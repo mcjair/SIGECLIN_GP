@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='Triaje de Precisión - SIGECLIN')}"></head>
+<body class="bg-deep overflow-hidden">
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Registro de Triaje', content=~{::#triaje-dashboard}, modals=null)}">
+        <div id="triaje-dashboard" class="animate-fade-in d-flex flex-column h-100 p-0" style="max-height: calc(100vh - 80px);">
+            
+            <!-- HEADER DEL PACIENTE (Premium Glassmorphism) -->
+            <div class="glass-panel-premium mx-4 mt-4 p-3 shadow-sm border border-light">
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="position-relative">
+                            <div th:if="${paciente.fotografia != null}" class="avatar shadow-sm border border-4 border-white rounded-circle" style="width: 70px; height: 70px; background-size: cover; background-position: center;" th:styleappend="'background-image: url(/paciente/foto/' + ${paciente.idPersona} + ')'"></div>
+                            <div th:unless="${paciente.fotografia != null}" class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center border border-4 border-white shadow-sm" style="width: 70px; height: 70px;">
+                                <i class="bi bi-person-fill text-primary fs-2"></i>
+                            </div>
+                            <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-3 border-white rounded-circle animate-pulse"></span>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex align-items-center gap-3 mb-1">
+                            <h4 class="fw-800 text-dark mb-0" th:text="${paciente.nombres + ' ' + paciente.apellidoPaterno + ' ' + (paciente.apellidoMaterno ?: '')}">JUAN PÉREZ</h4>
+                            <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-bold" th:text="${'HC: ' + paciente.numeroHistoriaClinica}">HC: 100234</span>
+                        </div>
+                        <div class="d-flex gap-4 text-muted extra-small fw-bold">
+                            <span><i class="bi bi-calendar-event me-1 text-primary"></i> <span th:text="${edad}">34 Años, 5 Meses, 2 Días</span></span>
+                            <span><i class="bi bi-gender-ambiguous me-1 text-primary"></i> <span th:text="${paciente.sexo == 'M' ? 'MASCULINO' : 'FEMENINO'}">MASCULINO</span></span>
+                            <span><i class="bi bi-fingerprint me-1 text-primary"></i> <span th:text="${paciente.numeroDocumento}">45678901</span></span>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-danger rounded-pill px-4 fw-800" onclick="window.history.back()">
+                                <i class="bi bi-x-circle me-2"></i> CANCELAR
+                            </button>
+                            <button type="submit" form="triajeForm" class="btn btn-primary rounded-pill px-4 fw-800 shadow-glow">
+                                FINALIZAR <i class="bi bi-check2-all ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AREA DE TRABAJO (3 COLUMNAS) -->
+            <div class="row g-4 flex-grow-1 overflow-hidden p-4">
+                
+                <!-- COLUMNA 1: ANTROPOMETRÍA & DERIVACIÓN (3/12) -->
+                <div class="col-xl-3 h-100">
+                    <div class="card border-0 shadow-premium h-100 d-flex flex-column rounded-4 overflow-hidden">
+                        <div class="card-header bg-white border-0 p-4">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="bg-primary-soft text-primary p-2 rounded-3 small"><i class="bi bi-speedometer2"></i></div>
+                                <h6 class="fw-800 text-dark mb-0">BIOMETRÍA</h6>
+                            </div>
+                        </div>
+                        <div class="card-body p-4 pt-0 overflow-y-auto custom-scrollbar">
+                            <form th:action="@{/triaje/guardar}" th:object="${triaje}" method="post" id="triajeForm">
+                                <input type="hidden" name="paciente.idPersona" th:value="${paciente.idPersona}">
+                                
+
+
+                                <div class="mb-4">
+                                    <label class="label-premium">PESO CORPORAL (Kg)</label>
+                                    <div class="input-premium-icon">
+                                        <i class="bi bi-weight"></i>
+                                        <input type="number" step="0.1" th:field="*{pesoKg}" id="peso" class="form-control-premium text-center" placeholder="0.0" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="label-premium">TALLA (Cm)</label>
+                                    <div class="input-premium-icon">
+                                        <i class="bi bi-rulers"></i>
+                                        <input type="number" step="1" th:field="*{tallaCm}" id="talla" class="form-control-premium text-center" placeholder="0" required>
+                                    </div>
+                                </div>
+
+                                <div class="bg-primary-soft p-4 rounded-4 text-center mb-4">
+                                    <span class="extra-small fw-800 text-primary d-block mb-1">ÍNDICE DE MASA CORPORAL (IMC)</span>
+                                    <div class="fs-2 fw-800 text-dark" id="imcValue">0.0</div>
+                                    <span class="badge bg-white text-primary rounded-pill px-3 shadow-sm mt-2" id="imcLabel">PENDIENTE</span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 2: SIGNOS VITALES (6/12) -->
+                <div class="col-xl-6 h-100">
+                    <div class="card border-0 shadow-premium h-100 d-flex flex-column rounded-4 overflow-hidden">
+                        <div class="card-header bg-white border-0 p-4">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="bg-danger-soft text-danger p-2 rounded-3 small"><i class="bi bi-heart-pulse-fill"></i></div>
+                                <h6 class="fw-800 text-dark mb-0">FUNCIONES VITALES</h6>
+                            </div>
+                        </div>
+                        <div class="card-body p-4 pt-0 overflow-y-auto custom-scrollbar">
+                            <div class="bg-light rounded-4 p-4 mb-4">
+                                <label class="label-premium text-center d-block mb-3">PRESIÓN ARTERIAL (mmHg)</label>
+                                <div class="d-flex align-items-center justify-content-center gap-3">
+                                    <div style="width: 140px;">
+                                        <input type="number" form="triajeForm" name="presionArterialSistolica" class="form-control-biometric" placeholder="120" required>
+                                        <span class="extra-small d-block text-center mt-2 fw-bold text-muted">SISTÓLICA</span>
+                                    </div>
+                                    <div class="fs-1 text-muted opacity-25">/</div>
+                                    <div style="width: 140px;">
+                                        <input type="number" form="triajeForm" name="presionArterialDiastolica" class="form-control-biometric" placeholder="80" required>
+                                        <span class="extra-small d-block text-center mt-2 fw-bold text-muted">DIASTÓLICA</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-4">
+                                    <div class="vital-gadget-premium bg-white p-4 rounded-4 shadow-sm border border-light text-center h-100">
+                                        <i class="bi bi-heart-fill text-danger mb-2 d-block"></i>
+                                        <input type="number" form="triajeForm" name="frecuenciaCardiaca" class="form-control-transparent-big" placeholder="72" required>
+                                        <span class="extra-small fw-800 text-muted">FREC. CARDIACA (BPM)</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="vital-gadget-premium bg-white p-4 rounded-4 shadow-sm border border-light text-center h-100">
+                                        <i class="bi bi-droplet-fill text-info mb-2 d-block"></i>
+                                        <input type="number" form="triajeForm" name="saturacionOxigeno" class="form-control-transparent-big" placeholder="98" required>
+                                        <span class="extra-small fw-800 text-muted">SATURACIÓN (SpO2%)</span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="vital-gadget-premium bg-white p-4 rounded-4 shadow-sm border border-light text-center h-100">
+                                        <i class="bi bi-thermometer-half text-warning mb-2 d-block"></i>
+                                        <input type="number" step="0.1" form="triajeForm" name="temperatura" class="form-control-transparent-big" placeholder="36.5" required>
+                                        <span class="extra-small fw-800 text-muted">TEMPERATURA (°C)</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 3: PRIORIDAD & NOTAS (3/12) -->
+                <div class="col-xl-3 h-100">
+                    <div class="card border-0 shadow-premium h-100 d-flex flex-column rounded-4 overflow-hidden">
+                        <div class="card-header bg-white border-0 p-4">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="bg-warning-soft text-warning p-2 rounded-3 small"><i class="bi bi-flag-fill"></i></div>
+                                <h6 class="fw-800 text-dark mb-0">TRIAJE</h6>
+                            </div>
+                        </div>
+                        <div class="card-body p-4 pt-0 d-flex flex-column">
+                            <div class="mb-4 bg-primary bg-opacity-10 p-3 rounded-4 border border-primary border-opacity-20">
+                                <label class="label-premium text-primary mb-1">SERVICIO DE DESTINO (DESDE ADMISIÓN)</label>
+                                <div class="fw-800 text-dark d-flex align-items-center gap-2">
+                                    <i class="bi bi-hospital-fill text-primary"></i>
+                                    <span th:text="${paciente.servicioSolicitado ?: 'MEDICINA GENERAL'}">MEDICINA GENERAL</span>
+                                </div>
+                                <input type="hidden" name="servicioDestino" th:value="${paciente.servicioSolicitado ?: 'MEDICINA GENERAL'}">
+                            </div>
+                            <label class="label-premium">CLASIFICACIÓN DE RIESGO</label>
+                             <select name="clasificacionUrgencia" form="triajeForm" class="form-select-premium mb-4" required>
+                                 <option value="verde">VERDE (Prioridad IV)</option>
+                                 <option value="amarillo">AMARILLO (Prioridad III)</option>
+                                 <option value="naranja">NARANJA (Prioridad II)</option>
+                                 <option value="rojo">ROJO (Prioridad I - EMERGENCIA)</option>
+                             </select>
+
+                            <label class="label-premium">OBSERVACIONES CLÍNICAS</label>
+                            <textarea form="triajeForm" th:field="*{triaje.observaciones}" class="form-control-premium flex-grow-1 mb-4" placeholder="Escriba hallazgos relevantes..."></textarea>
+                            
+                            <!-- PANEL DE ALERTAS DINÁMICAS -->
+                            <div id="clinicalAlertPanel" class="mb-4 d-none"></div>
+
+                            <div class="alert bg-primary-soft border-0 rounded-4 p-3 small fw-600 text-primary">
+                                <i class="bi bi-shield-check me-1"></i> Verifique los datos antes de finalizar.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+                .glass-panel-premium { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 24px; }
+                .shadow-premium { box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+                .label-premium { font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; display: block; }
+                .form-control-premium, .form-select-premium { 
+                    background: linear-gradient(145deg, #f1f5f9, #ffffff); 
+                    border: 1px solid #e2e8f0; 
+                    border-radius: 12px; 
+                    padding: 12px 18px; 
+                    font-weight: 600; 
+                    width: 100%; 
+                    outline: none; 
+                    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.02);
+                }
+                .form-control-premium:focus { border-color: var(--primary); background: white; }
+                .form-control-biometric { 
+                    background: linear-gradient(145deg, #f8fafc, #ffffff); 
+                    border: 2px solid #e2e8f0; 
+                    border-radius: 16px; 
+                    padding: 15px; 
+                    font-size: 2rem; 
+                    font-weight: 800; 
+                    color: var(--primary); 
+                    text-align: center; 
+                    width: 100%; 
+                    outline: none; 
+                    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.03);
+                }
+                .form-control-transparent-big { background: transparent; border: none; font-size: 2.2rem; font-weight: 800; color: var(--dark); text-align: center; width: 100%; outline: none; }
+                .bg-primary-soft { background: rgba(79, 70, 229, 0.08); }
+                .bg-danger-soft { background: rgba(239, 68, 68, 0.08); }
+                .bg-warning-soft { background: rgba(245, 158, 11, 0.08); }
+                .input-premium-icon { position: relative; }
+                .input-premium-icon i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+                .input-premium-icon .form-control-premium { padding-left: 45px; }
+                .animate-pulse { animation: pulse 2s infinite; }
+                @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+            </style>
+
+            <script th:inline="javascript">
+                const pesoInput = document.getElementById('peso');
+                const tallaInput = document.getElementById('talla');
+                const imcValue = document.getElementById('imcValue');
+                const imcLabel = document.getElementById('imcLabel');
+
+                function calcularIMC() {
+                    const peso = parseFloat(pesoInput.value);
+                    const talla = parseFloat(tallaInput.value) / 100;
+                    if (peso > 0 && talla > 0) {
+                        const imc = (peso / (talla * talla)).toFixed(1);
+                        imcValue.innerText = imc;
+                        let label = "NORMAL";
+                        let color = "#10b981";
+                        if (imc < 18.5) { label = "BAJO PESO"; color = "#3b82f6"; }
+                        else if (imc >= 25 && imc < 30) { label = "SOBREPESO"; color = "#f59e0b"; }
+                        else if (imc >= 30) { label = "OBESIDAD"; color = "#ef4444"; }
+                        imcLabel.innerText = label;
+                        imcLabel.style.backgroundColor = color;
+                        imcLabel.style.color = "white";
+                    }
+                    verificarAlertas();
+                }
+
+                function verificarAlertas() {
+                    const sis = parseInt(document.getElementsByName('presionArterialSistolica')[0].value);
+                    const dia = parseInt(document.getElementsByName('presionArterialDiastolica')[0].value);
+                    const fc = parseInt(document.getElementsByName('frecuenciaCardiaca')[0].value);
+                    const sat = parseInt(document.getElementsByName('saturacionOxigeno')[0].value);
+                    const temp = parseFloat(document.getElementsByName('temperatura')[0].value);
+                    
+                    let alertas = [];
+                    if (sis >= 140 || dia >= 90) alertas.push("HIPERTENSIÓN");
+                    if (sis < 90 || dia < 60) alertas.push("HIPOTENSIÓN");
+                    if (fc > 100) alertas.push("TAQUICARDIA");
+                    if (fc < 60) alertas.push("BRADICARDIA");
+                    if (sat < 95) alertas.push("HIPOXIA (BAJA SATURACIÓN)");
+                    if (temp >= 38.0) alertas.push("FIEBRE");
+                    if (temp < 35.5) alertas.push("HIPOTERMIA");
+
+                    const alertPanel = document.getElementById('clinicalAlertPanel');
+                    if (alertas.length > 0) {
+                        alertPanel.innerHTML = `<div class="alert bg-danger-soft border border-danger border-opacity-20 rounded-4 p-3 animate-pulse">
+                            <div class="d-flex align-items-center gap-2 text-danger fw-800 small mb-1">
+                                <i class="bi bi-exclamation-triangle-fill"></i> ALERTA CLÍNICA DETECTADA
+                            </div>
+                            <div class="extra-small fw-bold text-dark">${alertas.join(' • ')}</div>
+                        </div>`;
+                        alertPanel.classList.remove('d-none');
+                    } else {
+                        alertPanel.classList.add('d-none');
+                    }
+                }
+
+                document.querySelectorAll('input').forEach(input => {
+                    input.addEventListener('input', verificarAlertas);
+                });
+
+                pesoInput.addEventListener('input', calcularIMC);
+                tallaInput.addEventListener('input', calcularIMC);
+            </script>
+        </div>
+    </main>
+    <div th:replace="~{layout :: footer}"></div>
+</body>
+</html>

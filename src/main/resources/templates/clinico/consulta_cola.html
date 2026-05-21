@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='Cola de Espera - SIGECLIN')}"></head>
+<body class="bg-deep overflow-hidden">
+    <div th:replace="~{layout :: sidebar}"></div>
+
+    <main th:replace="~{layout :: main(pageTitle=${modulo ?: 'Servicios Médicos'}, content=~{::#queue-container}, modals=null)}">
+        <div id="queue-container" class="animate-fade-in d-flex flex-column h-100 p-4 overflow-hidden" style="height: calc(100vh - 120px);">
+            
+            <!-- PREMIUM DASHBOARD HEADER -->
+            <div class="glass-panel-premium p-4 mb-4 shadow-md border border-white d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="bg-primary shadow-glow p-3 rounded-4 text-white">
+                        <i class="bi bi-person-lines-fill fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-950 text-dark mb-0 tracking-tighter" th:text="${'Pacientes en Espera - ' + (modulo ?: 'General')}">Pacientes en Espera</h4>
+                        <p class="small text-muted fw-bold mb-0 text-uppercase tracking-wider">Monitor Central de Atención</p>
+                    </div>
+                </div>
+                <div class="d-flex gap-3">
+                    <div class="input-premium-icon" style="width: 350px;">
+                        <i class="bi bi-search text-primary"></i>
+                        <input type="text" id="patientSearch" class="input-premium py-2" placeholder="Filtrar por nombre o HC...">
+                    </div>
+                    <button class="btn btn-primary rounded-pill px-4 fw-950 shadow-glow" onclick="location.reload()">
+                        <i class="bi bi-arrow-clockwise me-2"></i> REFRESCAR
+                    </button>
+                </div>
+            </div>
+
+            <!-- ULTRA-PREMIUM CARDS GRID -->
+            <div class="flex-grow-1 overflow-y-auto custom-scrollbar pe-2 pb-5 h-100">
+                <div class="row g-4 align-content-start" id="cardsGrid">
+                    <div th:each="triaje : ${pacientes}" class="patient-card-wrapper col-xl-4 col-lg-6 col-md-12">
+                        <div th:if="${triaje != null && triaje.paciente != null}" 
+                             class="card-ultra-premium" 
+                             th:onclick="'window.location.href=\'/consulta/atender/' + ${triaje.idTriaje} + '\''">
+                            
+                            <!-- Card Header: Vibrant Identity -->
+                            <div class="card-header-vibrant p-4 d-flex align-items-center gap-3 transition-all"
+                                 th:classappend="${triaje.alertaClinica == true ? 'bg-grad-danger' : 'bg-grad-primary'}">
+                                <div class="avatar-premium-modern shadow-sm text-white fw-bold">
+                                    <span th:text="${triaje.paciente.nombres != null && !triaje.paciente.nombres.isEmpty() ? triaje.paciente.nombres.substring(0,1) : 'P'}">P</span>
+                                </div>
+                                <div class="flex-grow-1 text-white">
+                                    <h5 class="fw-950 mb-0 tracking-tighter patient-name" style="font-size: 1.15rem;" 
+                                        th:text="${((triaje.paciente.nombres ?: 'PACIENTE') + ' ' + (triaje.paciente.apellidoPaterno ?: '')).toUpperCase()}">PACIENTE</h5>
+                                    <span class="extra-small fw-800 opacity-80" th:text="'HC: ' + ${triaje.paciente.numeroHistoriaClinica ?: '---'}">HC: ---</span>
+                                </div>
+                                <div class="status-indicator" th:if="${triaje.alertaClinica == true}">
+                                    <div class="pulse-red-ring"></div>
+                                    <i class="bi bi-exclamation-octagon-fill text-white fs-4"></i>
+                                </div>
+                            </div>
+
+                            <!-- Card Body: Glass Data Grid -->
+                            <div class="p-4">
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="data-box-glass">
+                                            <label>DESTINO</label>
+                                            <div class="fw-800 text-main" th:text="${triaje.servicioDestino ?: 'Medicina General'}">Enfermería</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="data-box-glass">
+                                            <label>ESTADO</label>
+                                            <div class="fw-800" th:classappend="${triaje.alertaClinica == true ? 'text-danger' : 'text-primary'}"
+                                                 th:text="${triaje.alertaClinica == true ? 'ALERTA' : 'LISTO'}">LISTO</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Detailed Alert Section -->
+                                <div th:if="${triaje.alertaClinica == true}" class="alert-modern-box mb-3">
+                                    <label class="text-danger fw-950 extra-small d-block mb-1">DETALLE DE RIESGO</label>
+                                    <p class="text-danger-emphasis fw-700 mb-0 tracking-tighter" style="font-size: 0.8rem;" th:text="${triaje.detalleAlerta}">RIESGO CLÍNICO DETECTADO</p>
+                                </div>
+
+                                <!-- Action Section -->
+                                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top border-light">
+                                    <div class="d-flex align-items-center gap-2 text-muted fw-800 extra-small">
+                                        <i class="bi bi-clock-fill text-primary"></i> <span th:text="${triaje.fechaHora != null ? #temporals.format(triaje.fechaHora, 'HH:mm') : '--:--'}">14:30</span>
+                                    </div>
+                                    <button class="btn btn-premium-action-v2 fw-950"
+                                            th:classappend="${triaje.alertaClinica == true ? 'btn-grad-danger shadow-glow-danger' : 'btn-grad-primary shadow-glow-indigo'}">
+                                        ATENDER <i class="bi bi-chevron-right ms-1"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EMPTY STATE -->
+                    <div class="col-12 text-center py-5" th:if="${pacientes == null || pacientes.isEmpty()}">
+                        <div class="py-5 opacity-50">
+                            <i class="bi bi-person-check display-1 text-primary mb-3"></i>
+                            <h4 class="fw-800 text-muted">Módulo sin Pacientes</h4>
+                            <p class="text-muted small">No hay atenciones pendientes en la cola actual.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.getElementById('patientSearch').addEventListener('input', function(e) {
+                const term = e.target.value.toLowerCase();
+                document.querySelectorAll('.patient-card-wrapper').forEach(card => {
+                    const name = card.querySelector('.patient-name').textContent.toLowerCase();
+                    const hc = card.querySelector('.extra-small.fw-800').textContent.toLowerCase();
+                    if (name.includes(term) || hc.includes(term)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        </script>
+    </main>
+</body>
+</html>

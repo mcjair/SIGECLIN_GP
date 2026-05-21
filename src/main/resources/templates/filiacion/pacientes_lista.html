@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='SIGECLIN - Pacientes')}"></head>
+<body class="bg-deep">
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Directorio de Pacientes', content=~{::#pacientes-content}, modals=null)}">
+        <div id="pacientes-content" style="height: calc(100vh - 120px); display: flex; flex-direction: column;">
+            
+            <!-- SECCIÓN CABECERA -->
+            <div class="card glass-panel-premium border-0 p-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-800 text-dark mb-1">Gestión de Pacientes</h4>
+                        <p class="text-muted small mb-0">Consulte el historial de atenciones y la evolución de sus pacientes.</p>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center">
+                        <div class="position-relative" style="width: 300px;">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" id="patientFilter" class="form-control rounded-pill ps-5 border-0 shadow-sm" placeholder="Buscar por DNI o Nombre..." onkeyup="filterPatients(this)">
+                        </div>
+                        <a th:href="@{/pacientes/export/excel}" class="btn btn-success rounded-pill px-3 shadow-sm fw-800 d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-excel-fill"></i> EXPORTAR EXCEL
+                        </a>
+                        <span class="badge bg-primary text-white rounded-pill px-4 py-2 fw-bold" th:text="${pacientes.size() + ' REGISTROS'}">0 REGISTROS</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA DE PACIENTES -->
+            <div class="card glass-panel-premium border-0 shadow-sm flex-grow-1 overflow-hidden p-0">
+                <div class="table-responsive h-100 custom-scrollbar">
+                    <table class="table table-hover align-middle mb-0" id="pacientesTable">
+                        <thead class="bg-light position-sticky top-0 z-1" style="border-bottom: 2px solid #eee;">
+                            <tr>
+                                <th class="ps-4 py-3 fw-800 text-muted small text-uppercase">Paciente</th>
+                                <th class="py-3 fw-800 text-muted small text-uppercase">Documento</th>
+                                <th class="py-3 fw-800 text-muted small text-uppercase">H. Clínica</th>
+                                <th class="py-3 fw-800 text-muted small text-uppercase">Estado</th>
+                                <th class="py-3 fw-800 text-muted small text-uppercase">Último Registro</th>
+                                <th class="pe-4 py-3 text-center fw-800 text-muted small text-uppercase" style="min-width: 150px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pacientesBody">
+                            <tr th:each="p : ${pacientes}" class="patient-row">
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-primary bg-opacity-10 text-primary fw-900 rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
+                                             style="width: 40px; height: 40px;"
+                                             th:text="${p.nombres != null and !p.nombres.isEmpty() ? p.nombres.substring(0,1) : 'P'}">P</div>
+                                        <div>
+                                            <div class="fw-800 text-dark" th:text="${(p.apellidoPaterno ?: '') + ' ' + (p.apellidoMaterno ?: '') + ', ' + (p.nombres ?: '')}">PEREZ, JUAN</div>
+                                            <div class="text-muted extra-small fw-bold" th:text="${p.sexo == 'M' ? 'MASCULINO' : 'FEMENINO'}">M</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-dark" th:text="${p.numeroDocumento}">00000000</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border px-3 rounded-pill" th:text="${p.numeroHistoriaClinica}">HC-001</span>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill px-3 py-1 fw-bold"
+                                          th:classappend="${p.estado == 'ATENDIDO' ? 'bg-success' : 'bg-primary'}"
+                                          th:text="${p.estado}">ESTADO</span>
+                                </td>
+                                <td>
+                                    <div class="small fw-bold text-dark" th:text="${#temporals.format(p.fechaCreacion, 'dd/MM/yyyy')}">---</div>
+                                    <div class="extra-small text-muted" th:text="${#temporals.format(p.fechaCreacion, 'HH:mm')}">---</div>
+                                </td>
+                                <td class="pe-4 text-center">
+                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-800 shadow-sm"
+                                            onclick="abrirHistorial(this)"
+                                            th:data-id="${p.idPersona}"
+                                            th:data-nombre="${(p.apellidoPaterno ?: '') + ' ' + (p.apellidoMaterno ?: '') + ', ' + (p.nombres ?: '')}"
+                                            th:data-hc="${p.numeroHistoriaClinica}">
+                                        <i class="bi bi-clock-history me-1"></i> DETALLES
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <script>
+                console.log("SIGECLIN: Script de Gestión de Pacientes v3 inicializado.");
+                
+                // Función de filtrado global
+                window.filterPatients = function(input) {
+                    const q = input.value.toUpperCase();
+                    document.querySelectorAll(".patient-row").forEach(tr => {
+                        const content = tr.innerText.toUpperCase();
+                        tr.style.display = content.includes(q) ? "" : "none";
+                    });
+                };
+
+                window.abrirHistorial = async function(btn) {
+                    const id = btn.getAttribute('data-id');
+                    const nombre = btn.getAttribute('data-nombre');
+                    const hc = btn.getAttribute('data-hc');
+                    
+                    console.log("🔥 Solicitando historial para:", {id, nombre, hc});
+
+                    // Loader inicial
+                    Swal.fire({
+                        title: 'Consultando Expediente...',
+                        html: '<div class="spinner-border text-primary" role="status"></div><p class="mt-2 small text-muted">Buscando atenciones en el servidor...</p>',
+                        showConfirmButton: false,
+                        allowOutsideClick: false,
+                        customClass: { popup: 'rounded-5' }
+                    });
+
+                    try {
+                        const resp = await fetch('/pacientes/api/historial/' + id);
+                        if (!resp.ok) throw new Error('No se pudo conectar con el servidor.');
+                        const historial = await resp.json();
+                        window.currentHistorial = historial;
+                        
+                        console.log("✅ Datos recibidos:");
+                        console.table(historial);
+
+                        let timelineHtml = `
+                            <div class="p-2 text-start">
+                                <div class="d-flex justify-content-between align-items-center mb-4 bg-light p-4 rounded-4 border">
+                                    <div>
+                                        <h6 class="fw-900 mb-0 text-dark" style="font-size: 1.2rem;">${nombre}</h6>
+                                        <span class="badge bg-primary px-3 rounded-pill">HISTORIA CLÍNICA: ${hc}</span>
+                                    </div>
+                                    <input type="date" id="tFilter" class="form-control form-control-sm w-auto rounded-pill border-primary shadow-sm" onchange="filterT()">
+                                </div>
+                                <div class="d-flex gap-4 overflow-x-auto pb-4 custom-scrollbar" id="tContainer" style="min-height: 400px; scroll-behavior: smooth;">
+                        `;
+
+                        if (historial.length === 0) {
+                            timelineHtml += `
+                                <div class="w-100 text-center py-5 opacity-50">
+                                    <i class="bi bi-calendar-x display-1 d-block mb-3"></i>
+                                    <h4 class="fw-800">SIN ATENCIONES PREVIAS</h4>
+                                    <p>Este paciente aún no registra consultas en el sistema.</p>
+                                </div>`;
+                        } else {
+                            historial.forEach((h, i) => {
+                                timelineHtml += `
+                                    <div class="t-card p-0 flex-shrink-0 animate-fade-in shadow-premium overflow-hidden" 
+                                         data-date="${h.fecha.split(' ')[0]}"
+                                         style="width: 350px; background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 28px; border: 1px solid rgba(255,255,255,0.5); position: relative;">
+                                        
+                                        <!-- Barra de Estado Vertical (Neon Accent) -->
+                                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(to bottom, #4f46e5, #0ea5e9);"></div>
+
+                                        <div class="p-4">
+                                            <!-- Header: Index & Meta -->
+                                            <div class="d-flex justify-content-between align-items-start mb-4">
+                                                <div class="initial-box bg-dark text-white d-flex align-items-center justify-content-center fw-900 shadow-glow" 
+                                                     style="width: 42px; height: 42px; border-radius: 12px; font-size: 1.1rem; background: #1e293b;">${i+1}</div>
+                                                <div class="text-end">
+                                                    <div class="extra-small fw-800 text-primary text-uppercase" style="letter-spacing: 1px;">Registro Clínico</div>
+                                                    <div class="fw-900 text-dark" style="font-size: 1.1rem;">${h.fecha.split(' ')[0]}</div>
+                                                    <div class="extra-small text-muted fw-bold opacity-75">${h.fecha.split(' ')[1]}</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Body: Service & Doctor -->
+                                            <div class="mb-4">
+                                                <h4 class="fw-900 text-dark mb-1" style="letter-spacing: -0.5px; line-height: 1.2;">${h.servicio.toUpperCase()}</h4>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <div class="bg-primary bg-opacity-10 rounded-circle p-1" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="bi bi-person-check-fill text-primary" style="font-size: 0.75rem;"></i>
+                                                    </div>
+                                                    <span class="extra-small text-muted fw-800">DR(A). ${h.medico.toUpperCase()}</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Dx Panel (Glass Inner) -->
+                                            <div class="bg-white bg-opacity-50 p-4 rounded-4 mb-4 border border-white shadow-sm" style="backdrop-filter: blur(5px);">
+                                                <label class="extra-small fw-900 text-primary text-uppercase mb-2 d-block" style="letter-spacing: 1.5px; opacity: 0.6;">Diagnóstico Principal</label>
+                                                <h5 class="fw-900 text-dark mb-0" style="font-size: 1rem;">${h.diagnostico ? h.diagnostico.toUpperCase() : 'POR DEFINIR'}</h5>
+                                            </div>
+
+                                            <!-- Footer: Vitals & Action -->
+                                            <div class="d-flex align-items-center justify-content-between pt-2">
+                                                <div class="d-flex gap-2">
+                                                    <div class="p-2 bg-white rounded-3 border shadow-sm text-center" style="min-width: 65px;">
+                                                        <span class="d-block extra-small text-muted fw-800" style="font-size: 0.55rem;">P.A.</span>
+                                                        <span class="fw-900 text-primary" style="font-size: 0.75rem;">${h.pa || '--/--'}</span>
+                                                    </div>
+                                                    <div class="p-2 bg-white rounded-3 border shadow-sm text-center" style="min-width: 65px;">
+                                                        <span class="d-block extra-small text-muted fw-800" style="font-size: 0.55rem;">TEMP</span>
+                                                        <span class="fw-900 text-primary" style="font-size: 0.75rem;">${h.temp || '--'}°C</span>
+                                                    </div>
+                                                </div>
+                                                <button class="btn btn-dark rounded-circle d-flex align-items-center justify-content-center shadow-glow-primary" 
+                                                        style="width: 48px; height: 48px; background: #4f46e5; border: none;"
+                                                        onclick="mostrarMas(${i})">
+                                                    <i class="bi bi-arrow-right-short fs-3 text-white"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                        }
+
+                        timelineHtml += '</div></div>';
+
+                        // Mostramos el modal final
+                        Swal.fire({
+                            title: '<h3 class="fw-900 text-dark mb-0 mt-2"><i class="bi bi-clock-history me-2 text-primary"></i>Expediente Clínico</h3>',
+                            html: timelineHtml,
+                            width: '90%',
+                            showConfirmButton: false,
+                            showCloseButton: true,
+                            customClass: { 
+                                popup: 'rounded-5 shadow-premium overflow-hidden',
+                                closeButton: 'rounded-circle shadow-sm'
+                            }
+                        });
+
+                    } catch (e) {
+                        console.error("❌ Error en abrirHistorial:", e);
+                        Swal.fire({
+                            title: 'Error de Conexión',
+                            text: 'No se pudo recuperar el historial del paciente. Intente nuevamente.',
+                            icon: 'error',
+                            confirmButtonColor: '#4f46e5',
+                            customClass: { popup: 'rounded-5' }
+                        });
+                    }
+                }
+
+                window.filterT = function() {
+                    const val = document.getElementById('tFilter').value;
+                    const fmt = val ? val.split('-').reverse().join('/') : '';
+                    console.log("Filtrando historial por fecha:", fmt);
+                    document.querySelectorAll('.t-card').forEach(c => {
+                        c.style.display = !fmt || c.dataset.date === fmt ? "" : "none";
+                    });
+                }
+
+                window.mostrarMas = function(index) {
+                    const h = window.currentHistorial[index];
+                    
+                    // Helper para formatear fecha (YYYY-MM-DD a DD/MM/YYYY)
+                    const formatDate = (d) => {
+                        if(!d || d === '---') return '---';
+                        if(d.includes('-')) {
+                            const parts = d.split('-');
+                            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        }
+                        return d;
+                    };
+
+                    Swal.fire({
+                        title: '<h5 class="fw-900 text-white mb-0">EXPEDIENTE: DETALLE DE ATENCIÓN</h5>',
+                        html: `
+                            <div class="text-start mt-3">
+                                <!-- Bloque Principal: Diagnóstico y Motivo -->
+                                <div class="glass-panel-premium p-4 border-start border-primary border-5 mb-4 shadow-sm" style="background: rgba(79, 70, 229, 0.03);">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <div class="bg-primary text-white p-2 rounded-3 small"><i class="bi bi-clipboard2-pulse-fill"></i></div>
+                                        <label class="extra-small fw-900 text-primary text-uppercase tracking-wider mb-0">DIAGNÓSTICO FINAL</label>
+                                    </div>
+                                    <h4 class="fw-900 text-dark mb-3" style="font-size: 1.3rem; letter-spacing: -0.5px;">${h.diagnostico || 'POR DEFINIR'}</h4>
+                                    
+                                    <div class="p-3 bg-white rounded-4 border border-light">
+                                        <label class="extra-small fw-800 text-muted text-uppercase d-block mb-1">Motivo / Anamnesis</label>
+                                        <p class="small text-muted mb-0" style="line-height: 1.7; font-style: italic;">"${h.motivo || '---'}"<br>${h.anamnesis || ''}</p>
+                                    </div>
+                                </div>
+
+                                <!-- Grilla de Signos Vitales (Más grandes y profesionales) -->
+                                <div class="row g-3 mb-4">
+                                    <div class="col-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
+                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">P.A.</div>
+                                            <div class="fw-900 text-primary fs-5">${h.pa || '--/--'}</div>
+                                            <div class="extra-small text-muted opacity-50 fw-bold">mmHg</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
+                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">TEMP</div>
+                                            <div class="fw-900 text-primary fs-5">${h.temp || '--'}°C</div>
+                                            <div class="extra-small text-muted opacity-50 fw-bold">Celsius</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
+                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">F.C.</div>
+                                            <div class="fw-900 text-primary fs-5">${h.fc || '--'}</div>
+                                            <div class="extra-small text-muted opacity-50 fw-bold">lpm</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
+                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">SAT.</div>
+                                            <div class="fw-900 text-primary fs-5">${h.sat || '--'}%</div>
+                                            <div class="extra-small text-muted opacity-50 fw-bold">SpO2</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Plan Terapéutico y Próxima Cita -->
+                                <div class="p-4 bg-dark text-white rounded-5 shadow-lg position-relative overflow-hidden">
+                                    <div style="position: absolute; top:0; right:0; padding: 20px; opacity: 0.1; font-size: 4rem;"><i class="bi bi-prescription2"></i></div>
+                                    <label class="extra-small fw-800 text-info text-uppercase d-block mb-2 letter-spacing-1">PLAN TERAPÉUTICO / TRATAMIENTO</label>
+                                    <p class="small fw-bold mb-4" style="line-height: 1.6; opacity: 0.9;">${h.plan || 'Sin indicaciones terapéuticas registradas.'}</p>
+                                    
+                                    ${h.proximoControl && h.proximoControl !== '---' ? `
+                                    <div class="p-3 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-10 d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                <i class="bi bi-calendar-check-fill fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <span class="extra-small fw-900 text-info d-block text-uppercase">PRÓXIMA CITA (RECITA)</span>
+                                                <span class="fw-900 text-white fs-5">${formatDate(h.proximoControl)}</span>
+                                            </div>
+                                        </div>
+                                        <i class="bi bi-clock-history fs-4 text-info opacity-50"></i>
+                                    </div>` : ''}
+                                </div>
+                            </div>
+                        `,
+                        width: '750px',
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: '#4f46e5',
+                        background: '#ffffff',
+                        customClass: { 
+                            popup: 'rounded-5 border-0 shadow-2xl', 
+                            confirmButton: 'rounded-pill fw-800 px-5 py-3 shadow-glow-primary',
+                            header: 'bg-primary p-4 rounded-top-5'
+                        }
+                    });
+                }
+            </script>
+            
+            <style>
+                .patient-row:hover { background: var(--primary-soft) !important; cursor: pointer; }
+                .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(79, 70, 229, 0.2); border-radius: 10px; }
+                .t-card:hover { transform: scale(1.02); }
+                .btn-white { background: white; color: var(--primary); border: 1px solid #eee; }
+            </style>
+        </div>
+    </main>
+</body>
+</html>

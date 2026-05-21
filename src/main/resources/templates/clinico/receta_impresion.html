@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Receta Médica - SIGECLIN</title>
+    <!-- Usando Outfit para un look más moderno y profesional -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        @page { 
+            size: A4 vertical; 
+            margin: 15mm; 
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: #f1f5f9; 
+            color: #0f172a; 
+            font-family: 'Outfit', sans-serif; 
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .receta-container { 
+            width: 210mm; 
+            min-height: 297mm; 
+            background: white; 
+            padding: 25mm 20mm; 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .header-receta { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 2px solid #0f172a; 
+            padding-bottom: 15px; 
+            margin-bottom: 15px; 
+        }
+
+        .institution-container { display: flex; align-items: center; gap: 20px; }
+        .minsa-logo { height: 60px; }
+        .institution-info { flex: 1; }
+        .institution-title { 
+            font-weight: 900; 
+            font-size: 1.4rem; 
+            color: #0f172a; 
+            line-height: 1.1; 
+            margin-bottom: 2px; 
+            text-transform: uppercase; 
+        }
+        .institution-subtitle { 
+            font-size: 0.7rem; 
+            font-weight: 600; 
+            color: #64748b; 
+            letter-spacing: 0.2px; 
+        }
+
+        .header-meta { 
+            text-align: right; 
+            font-size: 0.8rem; 
+            line-height: 1.2;
+        }
+        .meta-item { display: block; font-weight: 800; color: #0f172a; font-size: 1.1rem; }
+        .meta-label { font-weight: 600; color: #64748b; font-size: 0.65rem; text-transform: uppercase; }
+
+        .receta-title-container {
+            text-align: center;
+            margin: 10px 0 20px;
+        }
+        .receta-title { 
+            font-size: 1.8rem; 
+            font-weight: 950; 
+            margin-bottom: 2px;
+            letter-spacing: 3px; 
+            text-transform: uppercase; 
+            border-bottom: 4px solid #0f172a;
+            display: inline-block;
+            padding-bottom: 4px;
+        }
+        .receta-number {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: #475569;
+        }
+
+        .section-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            background: #f8fafc;
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        .data-field { margin-bottom: 10px; }
+        .data-label { 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            color: #64748b; 
+            font-size: 0.6rem; 
+            margin-bottom: 2px;
+            display: block;
+        }
+        .data-value { 
+            font-weight: 600; 
+            color: #0f172a; 
+            font-size: 0.85rem; 
+            border-bottom: 1px dashed #cbd5e1;
+            padding-bottom: 2px;
+            display: block;
+        }
+
+        .receta-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 30px; 
+        }
+        .receta-table th { 
+            border: 1px solid #0f172a; 
+            padding: 10px; 
+            background: #f1f5f9; 
+            font-size: 0.65rem; 
+            text-transform: uppercase; 
+            font-weight: 800; 
+            text-align: left; 
+        }
+        .receta-table td { 
+            border: 1px solid #cbd5e1; 
+            padding: 12px 10px; 
+            font-size: 0.8rem; 
+            color: #1e293b; 
+        }
+        .med-name { font-weight: 800; font-size: 0.9rem; color: #0f172a; }
+
+        .indicaciones-area {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            flex-grow: 1;
+            min-height: 120px;
+        }
+
+        .footer-receta { 
+            margin-top: 40px; 
+        }
+        .signatures-row { 
+            display: flex; 
+            justify-content: space-around; 
+            align-items: flex-end; 
+            margin-bottom: 40px; 
+        }
+        .signature-block { 
+            text-align: center; 
+            width: 260px; 
+        }
+        .signature-line { 
+            border-top: 1.5px solid #0f172a; 
+            padding-top: 8px; 
+            font-size: 0.7rem; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+        }
+
+        .note-box {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            line-height: 1.5;
+            color: #475569;
+            border-left: 4px solid #0f172a;
+        }
+
+        .sys-footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.6rem;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        @media print {
+            body { padding: 0; background: white; }
+            .no-print { display: none; }
+            .receta-container { 
+                width: 100%; 
+                box-shadow: none; 
+                padding: 10mm;
+                min-height: 100vh;
+            }
+            .section-box { background: white !important; -webkit-print-color-adjust: exact; }
+            .receta-table th { background: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Barra de Herramientas No Imprimible -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <h6 class="mb-3 fw-800 text-center" style="font-size: 0.8rem;">OPCIONES DE IMPRESIÓN</h6>
+        <button onclick="window.print()" class="btn btn-primary w-100 rounded-pill py-2 fw-800 mb-2">
+            <i class="bi bi-printer-fill me-2"></i> IMPRIMIR RECETA
+        </button>
+        <button onclick="window.close()" class="btn btn-light w-100 rounded-pill py-2 fw-800">
+            <i class="bi bi-x-circle me-2"></i> SALIR
+        </button>
+    </div>
+
+    <div class="receta-container">
+        <!-- HEADER -->
+        <div class="header-receta">
+            <div class="institution-container">
+                <!-- Usamos el logo oficial del MINSA (Imagen 2) -->
+                <img src="/img/Minsa.png" alt="Logo MINSA" class="minsa-logo">
+                <div class="institution-info">
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 5px;">
+                        <div class="institution-title">Centro de Salud CLAS<br>Grocio Prado</div>
+                    </div>
+                    <div class="institution-subtitle">Ministerio de Salud | Red de Salud Chincha | Unidad Médica</div>
+                </div>
+            </div>
+            <div class="header-meta">
+                <div style="margin-bottom: 8px;">
+                    <span class="meta-label">Historia Clínica Nº</span>
+                    <span class="meta-item" id="headerHC">----------</span>
+                </div>
+                <div>
+                    <span class="meta-label">Fecha y Hora de Emisión</span>
+                    <span class="meta-item" id="headerFecha" style="font-size: 0.85rem;">-- / -- / ---- --:--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="receta-title-container" style="margin-top: 20px;">
+            <div class="receta-title">Receta Médica Múltiple</div>
+            <div class="receta-number" id="recetaNro" style="font-size: 1.4rem; color: #1e293b; font-weight: 900; letter-spacing: 1px; margin-top: 10px;">N° 000001</div>
+        </div>
+
+        <!-- DATOS PACIENTE -->
+        <div class="section-box">
+            <div class="data-grid">
+                <div class="data-field" style="grid-column: span 2;">
+                    <span class="data-label">Paciente</span>
+                    <span class="data-value" id="pacNombre" style="font-size: 1.1rem; text-transform: uppercase;">---</span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">DNI / Identificación</span>
+                    <span class="data-value" id="pacDni">---</span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">Edad Exacta</span>
+                    <span class="data-value" id="pacEdad">---</span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">Sexo</span>
+                    <span class="data-value" id="pacSexo">---</span>
+                </div>
+                <div class="data-field">
+                    <span class="data-label">Código de Atención</span>
+                    <span class="data-value">2026-ADM-[[${triaje?.idTriaje ?: '000'}]]</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEDICAMENTOS -->
+        <table class="receta-table">
+            <thead>
+                <tr>
+                    <th style="width: 20%; text-align: center;">CIE-10</th>
+                    <th style="width: 40%;">MEDICAMENTO Y CONCENTRACIÓN</th>
+                    <th style="width: 20%;">DOSIS Y FRECUENCIA</th>
+                    <th style="width: 12%; text-align: center;">DURACIÓN</th>
+                    <th style="width: 8%; text-align: center;">CANT.</th>
+                </tr>
+            </thead>
+            <tbody id="medList">
+                <!-- Dinámico -->
+            </tbody>
+        </table>
+
+        <!-- INDICACIONES -->
+        <div class="indicaciones-area">
+            <span class="data-label" style="margin-bottom: 8px; display: block; border-bottom: 1px solid #f1f5f9;">Indicaciones Adicionales y Plan de Trabajo</span>
+            <div id="planTxt" style="font-size: 0.9rem; font-weight: 500; color: #1e293b; line-height: 1.6;">---</div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer-receta">
+            <div class="signatures-row">
+                <div class="signature-block">
+                    <div class="signature-line">Firma del Paciente o Apoderado</div>
+                </div>
+                <div class="signature-block">
+                    <div class="signature-line">Sello y Firma del Médico Prescriptor</div>
+                </div>
+            </div>
+
+            <div class="note-box">
+                <strong>DISPOSICIONES GENERALES:</strong><br>
+                1. Esta receta tiene vigencia de 72 horas para el despacho de medicamentos.<br>
+                2. No se aceptarán documentos con borrones, tachaduras o enmiendas de ningún tipo.<br>
+                3. El paciente debe portar su DNI para la entrega de los insumos médicos en farmacia.
+            </div>
+
+            <div class="sys-footer">
+                Documento Electrónico Generado por SIGECLIN &nbsp;|&nbsp; Centro de Salud Grocio Prado
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const data = JSON.parse(localStorage.getItem('current_prescription'));
+            if (!data) return;
+
+            // Header & Meta
+            document.getElementById('headerHC').innerText = data.paciente.numeroHistoriaClinica || '---';
+            document.getElementById('headerFecha').innerText = data.fecha;
+
+            // Nro Receta
+            const nro = data.triaje ? data.triaje.idTriaje.toString().padStart(6, '0') : '000000';
+            document.getElementById('recetaNro').innerText = 'N° ' + nro;
+
+            // Paciente
+            const p = data.paciente;
+            document.getElementById('pacNombre').innerText = `${p.apellidoPaterno} ${p.apellidoMaterno}, ${p.nombres}`;
+            document.getElementById('pacDni').innerText = p.numeroDocumento;
+            document.getElementById('pacEdad').innerText = data.edad;
+            document.getElementById('pacSexo').innerText = p.sexo === 'M' ? 'MASCULINO' : 'FEMENINO';
+            
+            // Plan
+            document.getElementById('planTxt').innerText = data.planTratamiento || 'No se registraron indicaciones adicionales.';
+
+            // Medicamentos
+            const tbody = document.getElementById('medList');
+            if (data.medicamentos && data.medicamentos.length > 0) {
+                tbody.innerHTML = data.medicamentos.map(m => `
+                    <tr>
+                        <td style="text-align: center; font-size: 0.65rem; font-weight: 700; color: #475569;">
+                            ${m.codigo || '---'} - <span style="font-weight: 500;">${m.dx || ''}</span>
+                        </td>
+                        <td>
+                            <div class="med-name">${m.medicamento || m.nombre}</div>
+                        </td>
+                        <td style="font-weight: 600;">${m.dosis} / ${m.frecuencia}</td>
+                        <td style="text-align: center;">${m.duracion}</td>
+                        <td style="text-align: center; font-weight: 900;"># ${m.cantidad}</td>
+                    </tr>
+                `).join('');
+                
+                // Rellenar hasta 8 filas
+                for(let i = data.medicamentos.length; i < 8; i++) {
+                    tbody.innerHTML += `<tr><td style="height: 40px;"></td><td></td><td></td><td></td><td></td></tr>`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

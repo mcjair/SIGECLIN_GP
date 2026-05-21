@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='SIGECLIN - Caja y Pagos')}"></head>
+<body class="bg-deep">
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Gestión de Caja', content=~{::#caja-content}, modals=~{::#caja-modals})}">
+        <div id="caja-content" class="animate-fade-in single-screen-container">
+            
+            <!-- HEADER SECTION -->
+            <div class="card glass-panel-premium border-0 p-4 mb-4 shadow-sm">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-800 text-dark mb-1">Monitor de Cobros</h4>
+                        <p class="text-muted small mb-0">Gestión de recaudación para pacientes en espera de atención.</p>
+                    </div>
+                    <div class="d-flex gap-3 align-items-center">
+                        <span class="badge bg-primary rounded-pill px-4 py-2 fw-bold" th:if="${pacientesPendientes != null}" th:text="${pacientesPendientes.size() + ' PENDIENTES'}">0 PENDIENTES</span>
+                        <button class="btn btn-outline-primary btn-sm rounded-3" onclick="window.location.reload()">
+                            <i class="bi bi-arrow-clockwise"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GLASS-MEDICAL-PREMIUM CARDS GRID -->
+            <div class="row g-4 overflow-y-auto pe-2 custom-scrollbar flex-grow-1 align-content-start">
+                <div class="col-xl-4 col-lg-6 col-md-12" th:each="p : ${pacientesPendientes}">
+                    <div class="card-clinical-premium-wrapper" 
+                         th:data-id="${p.idPersona}"
+                         th:data-hc="${p.numeroHistoriaClinica}"
+                         th:data-name="${(p.nombres ?: '') + ' ' + (p.apellidoPaterno ?: '')}"
+                         th:data-service="${p.servicioSolicitado ?: 'Consulta General'}"
+                         onclick="abrirModalPago(this.dataset.id, this.dataset.hc, this.dataset.name, this.dataset.service)">
+                        
+                        <div class="card-medical-glass p-0 rounded-5 shadow-sm bg-white border border-light overflow-hidden transition-all">
+                            <!-- Header: Identity -->
+                            <div class="p-4 d-flex align-items-center gap-3">
+                                <div class="avatar-premium bg-indigo shadow-sm text-white fw-bold">
+                                    <span th:text="${p.nombres != null && !p.nombres.isEmpty() ? p.nombres.substring(0,1) : 'P'}">P</span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h4 class="fw-950 text-dark mb-1 tracking-tighter" style="font-size: 1.2rem;" 
+                                        th:text="${(p.nombres + ' ' + (p.apellidoPaterno ?: '')).toUpperCase()}">PERCY MAGALLANES</h4>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge-hc px-3 py-1 fw-900" th:text="'HC: ' + ${p.numeroHistoriaClinica}">HC: 2026-000001</span>
+                                        <div class="dot-active animate-pulse"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Data Grid: Symmetrical & Professional -->
+                            <div class="px-4 pb-4">
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <div class="glass-info-card info-indigo h-100">
+                                            <label>SERVICIO</label>
+                                            <div class="data-value text-truncate" th:text="${p.servicioSolicitado ?: 'Medicina General'}">Medicina General</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="glass-info-card info-emerald h-100">
+                                            <label>TOTAL</label>
+                                            <div class="data-value">S/ 50.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Footer -->
+                            <div class="px-4 py-3 bg-light bg-opacity-50 border-top d-flex justify-content-between align-items-center">
+                                <div class="status-pill status-waiting">
+                                    <i class="bi bi-clock-fill"></i> EN ESPERA
+                                </div>
+                                <button type="button" class="btn-premium btn-indigo"
+                                        onclick="event.stopPropagation(); abrirModalPago(this.closest('.card-clinical-premium-wrapper').dataset.id, this.closest('.card-clinical-premium-wrapper').dataset.hc, this.closest('.card-clinical-premium-wrapper').dataset.name, this.closest('.card-clinical-premium-wrapper').dataset.service)">
+                                    COBRAR <i class="bi bi-chevron-right ms-2"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- EMPTY STATE -->
+                <div class="col-12 text-center py-5" th:if="${pacientesPendientes == null || pacientesPendientes.isEmpty()}">
+                    <div class="py-5 opacity-50">
+                        <i class="bi bi-check2-all display-1 text-primary mb-3"></i>
+                        <h4 class="fw-800 text-muted">Caja al día</h4>
+                        <p class="text-muted small">No hay cobros pendientes en este momento.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALS SECTION -->
+    <div id="caja-modals">
+        <div class="modal fade" id="modalPago" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content glass-panel-premium border-0 shadow-2xl rounded-5 overflow-hidden">
+                    <div class="modal-body p-0">
+                        <div class="row g-0">
+                            <!-- Left: Receipt Preview -->
+                            <div class="col-md-7 p-5 bg-white bg-opacity-50">
+                                <div class="receipt-preview p-4 border rounded-4 bg-white shadow-sm">
+                                    <div class="text-center mb-4 border-bottom pb-3">
+                                        <div class="bg-primary-soft d-inline-block p-3 rounded-circle mb-2">
+                                            <i class="bi bi-receipt fs-3 text-primary"></i>
+                                        </div>
+                                        <h5 class="fw-800 text-dark mb-0">Comprobante de Pago</h5>
+                                        <small class="text-muted">SIGECLIN VOUCHER</small>
+                                    </div>
+
+                                    <div class="d-grid gap-3 mb-4">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="extra-small fw-bold text-muted">PACIENTE</span>
+                                            <span class="extra-small fw-800 text-dark" id="modalPaciente">---</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="extra-small fw-bold text-muted">HISTORIA CLÍNICA</span>
+                                            <span class="extra-small fw-800 text-dark" id="modalHC">---</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <span class="extra-small fw-bold text-muted">CONCEPTO</span>
+                                            <span class="extra-small fw-800 text-dark" id="modalConcepto">---</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="receipt-totals border-top pt-3">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="small fw-bold text-muted">SUBTOTAL</span>
+                                            <span class="small fw-bold">S/ 50.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span class="small fw-bold text-muted">IGV (0%)</span>
+                                            <span class="small fw-bold">S/ 0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between border-top pt-3">
+                                            <span class="fw-800 fs-5">TOTAL</span>
+                                            <span class="fw-800 fs-3 text-primary">S/ 50.00</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right: Payment Actions -->
+                            <div class="col-md-5 p-5 bg-light d-flex flex-column">
+                                <div class="d-flex justify-content-between align-items-center mb-4">
+                                    <h5 class="fw-800 text-dark mb-0">Pago Único</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <div class="payment-method-single active mb-auto">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-primary p-3 rounded-3 text-white shadow-sm">
+                                            <i class="bi bi-cash-coin fs-3"></i>
+                                        </div>
+                                        <div>
+                                            <span class="fw-800 d-block text-dark">EFECTIVO / CAJA</span>
+                                            <small class="text-success extra-small fw-bold">METODO ACTIVADO</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form id="paymentForm" th:action="@{/caja/pagar}" method="post">
+                                    <input type="hidden" name="idPaciente" id="formId">
+                                    <input type="hidden" name="hc" id="formHC">
+                                    <input type="hidden" name="servicio" id="formServicio">
+                                    
+                                    <button type="button" class="btn btn-primary btn-premium w-100 py-4 shadow-glow fs-5 fw-800 mt-4" onclick="confirmarYEmitir()">
+                                        CONFIRMAR Y EMITIR <i class="bi bi-check2-circle ms-2"></i>
+                                    </button>
+                                </form>
+                                
+                                <p class="text-center text-muted extra-small mt-3">
+                                    <i class="bi bi-shield-check me-1"></i> El paciente será derivado a <strong>Triaje</strong> automáticamente.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            let paymentModal;
+
+            function initCajaModal() {
+                const modalEl = document.getElementById('modalPago');
+                if (modalEl && typeof bootstrap !== 'undefined') {
+                    paymentModal = new bootstrap.Modal(modalEl);
+                } else if (!window.bootstrap) {
+                    setTimeout(initCajaModal, 300);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', initCajaModal);
+
+            function abrirModalPago(id, hc, nombres, servicio) {
+                if (!paymentModal) initCajaModal();
+                if (!paymentModal) return;
+                
+                document.getElementById('modalPaciente').innerText = nombres;
+                document.getElementById('modalHC').innerText = hc;
+                document.getElementById('modalConcepto').innerText = 'Atención en ' + servicio;
+                
+                document.getElementById('formId').value = id;
+                document.getElementById('formHC').value = hc;
+                document.getElementById('formServicio').value = servicio;
+                
+                paymentModal.show();
+            }
+
+            function confirmarYEmitir() {
+                const idPaciente = document.getElementById('formId').value;
+                const servicio = document.getElementById('formServicio').value;
+
+                // 1. Abrir ventana de impresión en segundo plano/nueva pestaña
+                const printUrl = `/caja/imprimir?idPaciente=${idPaciente}&servicio=${encodeURIComponent(servicio)}`;
+                const printWindow = window.open(printUrl, '_blank', 'width=500,height=700');
+
+                // 2. Mostrar alerta de éxito y procesar derivación
+                Swal.fire({
+                    title: '<div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-block mb-3"><i class="bi bi-check2-circle text-success fs-1"></i></div>',
+                    html: `
+                        <h4 class="fw-800 text-dark mb-2">¡PAGO PROCESADO!</h4>
+                        <p class="text-muted small">El comprobante ha sido generado y el paciente ha sido derivado a <strong>Triaje</strong> con éxito.</p>
+                    `,
+                    confirmButtonText: 'ENTENDIDO',
+                    confirmButtonColor: '#4f46e5',
+                    customClass: {
+                        popup: 'rounded-5 border-0 shadow-premium',
+                        confirmButton: 'fw-800 rounded-pill px-5 py-3 shadow-glow'
+                    }
+                }).then((result) => {
+                    document.getElementById('paymentForm').submit();
+                });
+            }
+        </script>
+    </div>
+
+    <style>
+        :root { --p-indigo: #4f46e5; --p-emerald: #10b981; --p-amber: #f59e0b; --p-rose: #ef4444; }
+        .card-medical-glass { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.08) !important; background: #fff; }
+        .card-medical-glass:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(79, 70, 229, 0.12) !important; border-color: var(--p-indigo) !important; }
+        .avatar-premium { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: linear-gradient(135deg, var(--p-indigo), #6366f1); color: white; }
+        .badge-hc { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; letter-spacing: 0.5px; }
+        .dot-active { width: 10px; height: 10px; background: var(--p-emerald); border-radius: 50%; box-shadow: 0 0 12px var(--p-emerald); }
+        .glass-info-card { padding: 14px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease; }
+        .glass-info-card label { display: block; font-size: 0.65rem; font-weight: 900; letter-spacing: 1.2px; margin-bottom: 6px; text-transform: uppercase; opacity: 0.8; }
+        .glass-info-card .data-value { font-size: 1.15rem; font-weight: 950; color: #0f172a; }
+        .info-indigo { background: rgba(79, 70, 229, 0.08); border-left: 5px solid var(--p-indigo); }
+        .info-emerald { background: rgba(16, 185, 129, 0.08); border-left: 5px solid var(--p-emerald); }
+        .info-amber { background: rgba(245, 158, 11, 0.08); border-left: 5px solid var(--p-amber); }
+        .info-rose { background: rgba(239, 68, 68, 0.08); border-left: 5px solid var(--p-rose); }
+        .status-pill { padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
+        .btn-premium { border: none; padding: 12px 28px; border-radius: 100px; font-weight: 950; font-size: 0.9rem; transition: all 0.3s ease; display: flex; align-items: center; letter-spacing: 0.5px; }
+        .btn-indigo { background: var(--p-indigo); color: white; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); }
+        .btn-indigo:hover { background: #4338ca; transform: scale(1.05); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.35); }
+        .fw-950 { font-weight: 950; }
+        .tracking-tighter { letter-spacing: -1px; }
+    </style>
+
+    <div th:replace="~{layout :: footer}"></div>
+</body>
+</html>

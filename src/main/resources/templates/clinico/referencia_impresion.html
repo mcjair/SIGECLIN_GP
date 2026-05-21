@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Hoja de Referencia - SIGECLIN</title>
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        @page { size: A4; margin: 0; }
+        body { background: #f1f5f9; color: #0f172a; font-family: 'Inter', sans-serif; padding: 40px; }
+        .referencia-container { width: 100%; max-width: 800px; margin: auto; background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 40px; min-height: 1050px; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .header-referencia { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; }
+        .institution-title { font-weight: 900; font-size: 1.8rem; letter-spacing: -0.5px; color: #1e293b; line-height: 1.1; margin-bottom: 5px; text-transform: uppercase; }
+        .institution-subtitle { font-size: 0.8rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
+        
+        .doc-title { font-size: 1.6rem; font-weight: 900; text-align: center; margin-bottom: 35px; letter-spacing: 2px; text-transform: uppercase; color: #0f172a; }
+        
+        .section-box { border: 2px solid #e2e8f0; background: #f8fafc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        .section-label { font-weight: 800; text-transform: uppercase; color: #475569; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; display: block; }
+        
+        .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .data-item { margin-bottom: 10px; }
+        .data-label { font-weight: 700; text-transform: uppercase; color: #64748b; font-size: 0.65rem; display: block; margin-bottom: 2px; }
+        .data-value { font-weight: 700; color: #0f172a; font-size: 0.9rem; border-bottom: 1px dashed #cbd5e1; padding-bottom: 2px; width: 100%; display: block; }
+
+        .footer-referencia { margin-top: auto; padding-top: 40px; }
+        .signatures-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; padding: 0 20px; }
+        .signature-line { border-top: 1px solid #0f172a; width: 280px; text-align: center; padding-top: 8px; font-size: 0.75rem; font-weight: 700; color: #1e293b; text-transform: uppercase; }
+        
+        .sys-code { text-align: center; margin-top: 20px; color: #94a3b8; font-size: 0.7rem; font-weight: 600; }
+        
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; background: white; }
+            .referencia-container { border: none; box-shadow: none; padding: 0; min-height: 100%; }
+            .section-box { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print p-3 text-center bg-dark text-white mb-4 rounded-3 mx-auto shadow" style="max-width: 800px;">
+        <h5 class="mb-3 fw-bold">PREVISUALIZACIÓN DE HOJA DE REFERENCIA</h5>
+        <div class="d-flex justify-content-center gap-3">
+            <button onclick="window.print()" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-pill">
+                <i class="bi bi-printer me-2"></i> IMPRIMIR DOCUMENTO
+            </button>
+            <button onclick="window.close()" class="btn btn-outline-light px-4 py-2 fw-bold rounded-pill">
+                <i class="bi bi-x-circle me-2"></i> CERRAR VISTA
+            </button>
+        </div>
+    </div>
+
+    <div class="referencia-container" id="printableArea">
+        
+        <div class="header-referencia">
+            <div class="flex-grow-1">
+                <div class="institution-title">Centro de Salud CLAS<br>Grocio Prado</div>
+                <div class="institution-subtitle">
+                    MINISTERIO DE SALUD &nbsp;|&nbsp; RED DE SALUD CHINCHA &nbsp;|&nbsp; UNIDAD DE ATENCIÓN MÉDICA
+                </div>
+            </div>
+            <div class="text-end" style="min-width: 200px;">
+                <div class="fw-900 fs-5 text-dark" style="letter-spacing: 1px;">REF. Nº <span id="refNum">2026-0001</span></div>
+                <div class="fw-bold text-muted mt-1" style="font-size: 0.85rem;">FECHA: <span id="fechaActual" class="text-dark">-- / -- / --</span></div>
+            </div>
+        </div>
+
+        <div class="doc-title">
+            <span style="border-bottom: 3px double #0f172a; padding-bottom: 5px;">HOJA DE REFERENCIA DEL PACIENTE</span>
+        </div>
+
+        <!-- 1. DATOS DEL PACIENTE -->
+        <div class="section-box">
+            <label class="section-label">I. DATOS DE IDENTIFICACIÓN DEL PACIENTE</label>
+            <div class="data-grid">
+                <div class="data-item" style="grid-column: span 2;">
+                    <label class="data-label">Apellidos y Nombres</label>
+                    <div class="data-value" id="pacNombre">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Documento Identidad (DNI)</label>
+                    <div class="data-value" id="pacDni">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Nº Historia Clínica</label>
+                    <div class="data-value" id="pacHc">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Edad</label>
+                    <div class="data-value" id="pacEdad">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Sexo</label>
+                    <div class="data-value" id="pacSexo">---</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. DATOS DE TRIAJE -->
+        <div class="section-box">
+            <label class="section-label">II. EVALUACIÓN DE SIGNOS VITALES (TRIAJE)</label>
+            <div class="data-grid" style="grid-template-columns: repeat(4, 1fr);">
+                <div class="data-item">
+                    <label class="data-label">P. Arterial</label>
+                    <div class="data-value" id="triPa">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Temperatura</label>
+                    <div class="data-value" id="triTemp">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Frec. Cardíaca</label>
+                    <div class="data-value" id="triFc">---</div>
+                </div>
+                <div class="data-item">
+                    <label class="data-label">Sat. O2</label>
+                    <div class="data-value" id="triSat">---</div>
+                </div>
+                <div class="data-item" style="grid-column: span 4; margin-top: 10px;">
+                    <label class="data-label">Prioridad de Atención / Urgencia</label>
+                    <div class="data-value" id="triUrg">---</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. MOTIVO Y DIAGNÓSTICO -->
+        <div class="section-box">
+            <label class="section-label">III. RESUMEN CLÍNICO Y DIAGNÓSTICO</label>
+            <div class="data-item mb-4">
+                <label class="data-label">Diagnóstico de Referencia (CIE-10)</label>
+                <div class="data-value" id="diagTxt" style="font-size: 1rem; padding: 10px 0;">---</div>
+            </div>
+            <div class="data-item">
+                <label class="data-label">Alergias Conocidas / Observaciones</label>
+                <div class="data-value" id="alergiasTxt" style="min-height: 50px;">---</div>
+            </div>
+        </div>
+
+        <!-- 4. INDICACIONES -->
+        <div class="section-box" style="flex-grow: 1;">
+            <label class="section-label">IV. INDICACIONES Y DESTINO DE REFERENCIA</label>
+            <div style="min-height: 150px; font-weight: 600; line-height: 1.6; font-size: 0.95rem;">
+                Se procede con la referencia del paciente para evaluación especializada por el motivo de: <span id="motivoRef">---</span>.
+                <br><br>
+                Plan sugerido: <span id="planRef">---</span>.
+            </div>
+        </div>
+
+        <div class="footer-referencia">
+            <div class="signatures-row">
+                <div class="text-center">
+                    <div class="signature-line">Firma del Profesional que Refiere</div>
+                </div>
+                <div class="text-center">
+                    <div class="signature-line">Sello del Establecimiento de Salud</div>
+                </div>
+            </div>
+            
+            <div class="sys-code">DOCUMENTO GENERADO POR SISTEMA SIGECLIN &nbsp;|&nbsp; COD: REF-PREVIEW</div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const data = JSON.parse(localStorage.getItem('current_referral'));
+            if (!data) {
+                alert("No se encontraron datos para la hoja de referencia.");
+                return;
+            }
+
+            document.getElementById('pacNombre').innerText = data.nombre.toUpperCase();
+            document.getElementById('pacDni').innerText = data.dni;
+            document.getElementById('pacHc').innerText = data.hc;
+            document.getElementById('pacEdad').innerText = data.edad;
+            document.getElementById('pacSexo').innerText = data.sexo;
+            
+            document.getElementById('triPa').innerText = data.pa;
+            document.getElementById('triTemp').innerText = data.temp + ' °C';
+            document.getElementById('triFc').innerText = data.fc + ' bpm';
+            document.getElementById('triSat').innerText = data.sat + ' %';
+            document.getElementById('triUrg').innerText = data.urgencia.toUpperCase();
+            
+            document.getElementById('diagTxt').innerText = data.diagnostico;
+            document.getElementById('alergiasTxt').innerText = data.alergias;
+            
+            document.getElementById('motivoRef').innerText = data.motivo || 'Evaluación Especializada';
+            document.getElementById('planRef').innerText = data.plan || 'A criterio del especialista de destino';
+            
+            document.getElementById('fechaActual').innerText = data.fecha;
+            
+            // Random ref number for preview
+            document.getElementById('refNum').innerText = '2026-' + Math.floor(Math.random() * 9000 + 1000);
+        });
+    </script>
+</body>
+</html>

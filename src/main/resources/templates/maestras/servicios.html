@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='SIGECLIN - Servicios Médicos')}"></head>
+<body>
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Nuestros Servicios Médicos', content=~{::#servicios-content}, modals=null)}">
+        <div id="servicios-content" class="animate-fade-in">
+            
+            <div class="row g-4">
+                <div class="col-md-4 col-xl-3" th:each="servicio : ${servicios}">
+                    <div class="card h-100 p-4 border-0 shadow-sm transition-all hover-translate-y">
+                        <div class="mb-4">
+                            <div class="bg-primary-soft text-primary d-inline-flex align-items-center justify-content-center rounded-4 mb-3" style="width: 64px; height: 64px;">
+                                <i th:class="${'bi ' + (servicio.icono != null ? servicio.icono : 'bi-shield-plus') + ' fs-1'}"></i>
+                            </div>
+                            <h4 class="fw-bold text-ink mb-2" th:text="${servicio.nombre}">Servicio</h4>
+                            <p class="text-muted small lh-base" th:text="${servicio.descripcion}">Descripción detallada del servicio médico ofrecido a la comunidad.</p>
+                        </div>
+                        
+                        <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="d-inline-block bg-success rounded-circle" style="width: 8px; height: 8px;"></span>
+                                <span class="text-success small fw-bold">Activo</span>
+                            </div>
+                            <span class="text-primary small fw-bold cursor-pointer hover-underline">Ver Detalles</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="col-12 text-center py-5" th:if="${#lists.isEmpty(servicios)}">
+                    <div class="card p-5 bg-transparent border-light">
+                        <div class="opacity-50">
+                            <i class="bi bi-gear-wide-connected fs-1 text-muted mb-3 d-block"></i>
+                            <h5 class="text-muted fw-bold">Catálogo en Actualización</h5>
+                            <p class="small text-muted">Estamos configurando la oferta médica para este periodo.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <style>
+        .hover-translate-y:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1) !important;
+        }
+        .transition-all {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='HMS - Gestión de Personal')}"></head>
+<body class="bg-deep">
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Gestión de Personal Médico', content=~{::#personal-content}, modals=~{::#modalPermisos})}">
+        <div id="personal-content" class="animate-fade-in">
+            
+            <!-- SECCIÓN CABECERA -->
+            <div class="card glass-panel-premium border-0 p-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-800 text-dark mb-1">Directorio de Personal Médico</h4>
+                        <p class="text-muted small mb-0">Gestión centralizada de profesionales, colegiaturas y permisos de acceso.</p>
+                    </div>
+                    <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
+                        <i class="bi bi-person-plus me-2"></i> Nuevo Personal
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista Lineal de Profesionales (Profesional por Profesional) -->
+            <div class="d-flex flex-column gap-3 mb-5">
+                <div th:each="p : ${personalList}" class="card glass-panel-premium border-0 shadow-sm overflow-hidden animate-fade-in p-3 hover-scale transition-all">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="avatar-refined bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center fw-900 border border-primary border-opacity-10" 
+                                 style="width: 60px; height: 60px; font-size: 1.2rem;"
+                                 th:text="${(p.nombres != null ? p.nombres.substring(0,1) : '') + (p.apellidoPaterno != null ? p.apellidoPaterno.substring(0,1) : '')}">
+                                RG
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="d-flex align-items-center gap-3 mb-1">
+                                <h5 class="fw-800 text-dark mb-0" th:text="${p.nombres + ' ' + p.apellidoPaterno}">Ricardo Gómez</h5>
+                                <span class="badge bg-success bg-opacity-10 text-success extra-small fw-800 px-3 rounded-pill">PERSONAL ACTIVO</span>
+                            </div>
+                            <div class="d-flex flex-wrap gap-4 text-muted extra-small fw-bold text-uppercase opacity-75">
+                                <span><i class="bi bi-card-text me-1 text-primary"></i> DNI: <span class="text-dark" th:text="${p.numeroDocumento}">00000000</span></span>
+                                <span><i class="bi bi-patch-check me-1 text-primary"></i> Colegiatura: <span class="text-dark" th:text="${p.numeroColegiatura != null ? p.numeroColegiatura : 'NO REGISTRADA'}">---</span></span>
+                                <span><i class="bi bi-briefcase me-1 text-primary"></i> Categoría: 
+                                    <span class="text-primary" th:text="${p.idTipoPersonal == 1 ? 'MÉDICO' : (p.idTipoPersonal == 2 ? 'ODONTÓLOGO' : (p.idTipoPersonal == 3 ? 'OBSTETRA' : (p.idTipoPersonal == 4 ? 'ENFERMERO' : 'ESPECIALISTA')))}">MÉDICO</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-light rounded-pill px-4 py-2 fw-800 extra-small shadow-sm border" title="Ver Horarios">
+                                    <i class="bi bi-calendar3 me-2 text-primary"></i> HORARIOS
+                                </button>
+                                <button class="btn btn-primary rounded-pill px-4 py-2 fw-800 extra-small shadow-glow border-0" 
+                                        th:onclick="'abrirConfiguracionPermisos(' + ${p.idPersona} + ')'">
+                                    <i class="bi bi-shield-lock-fill me-2"></i> GESTIONAR PERMISOS
+                                </button>
+                                <button class="btn btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px;">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${#lists.isEmpty(personalList)}" class="text-center py-5 opacity-50">
+                    <i class="bi bi-people display-1 text-muted"></i>
+                    <h5 class="fw-800 mt-3">NO SE ENCONTRÓ PERSONAL REGISTRADO</h5>
+                    <p class="small">Inicie el proceso de registro pulsando en "Nuevo Personal".</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL DE PERMISOS -->
+    <div th:fragment="modalPermisos">
+        <div id="modalPermisos" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                    <div class="modal-header border-0 p-4 pb-0">
+                        <h5 class="modal-title fw-800 text-dark">Configuración de Accesos</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="text-muted small mb-4">Seleccione los módulos a los que este personal tendrá acceso.</p>
+                        
+                        <div class="list-group list-group-flush border-top border-bottom border-light mb-4">
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-primary-soft p-2 rounded-3 text-primary"><i class="bi bi-people"></i></div>
+                                    <div>
+                                        <div class="fw-bold small text-dark">Módulo de Admisión</div>
+                                        <div class="extra-small text-muted">Registro y búsqueda de pacientes</div>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" checked>
+                                </div>
+                            </div>
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-info-soft p-2 rounded-3 text-info"><i class="bi bi-activity"></i></div>
+                                    <div>
+                                        <div class="fw-bold small text-dark">Módulo de Consultas</div>
+                                        <div class="extra-small text-muted">Atención médica y recetas</div>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" checked>
+                                </div>
+                            </div>
+                            <div class="list-group-item px-0 py-3 d-flex justify-content-between align-items-center bg-transparent">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-success-soft p-2 rounded-3 text-success"><i class="bi bi-cash-stack"></i></div>
+                                    <div>
+                                        <div class="fw-bold small text-dark">Módulo de Caja</div>
+                                        <div class="extra-small text-muted">Cobros y liquidaciones</div>
+                                    </div>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button class="btn btn-primary rounded-pill py-3 fw-bold shadow-glow border-0 bg-gradient-primary" onclick="guardarPermisos()">
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{layout :: footer}"></div>
+    
+    <script>
+        function abrirConfiguracionPermisos(id) {
+            const modalEl = document.getElementById('modalPermisos');
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+        }
+
+        function guardarPermisos() {
+            Swal.fire({
+                title: '¡Permisos Guardados!',
+                text: 'Los accesos del personal han sido actualizados correctamente.',
+                icon: 'success',
+                confirmButtonColor: '#4f46e5'
+            }).then(() => {
+                const modalEl = document.getElementById('modalPermisos');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if(modal) modal.hide();
+            });
+        }
+    </script>
+</body>
+</html>

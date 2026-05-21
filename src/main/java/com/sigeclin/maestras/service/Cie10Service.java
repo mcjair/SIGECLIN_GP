@@ -1,0 +1,118 @@
+package com.sigeclin.maestras.service;
+
+import com.sigeclin.maestras.model.Cie10;
+import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+public class Cie10Service {
+
+    @Value("${sigeclin.cie10.dir-path}")
+    private String dirPath;
+
+    private final List<Cie10> cie10Cache = new ArrayList<>();
+
+    @PostConstruct
+    public void init() {
+        try {
+            log.info("Cie10Service: Iniciando carga de caché CIE-10...");
+            cargarCie10DesdeCsv();
+        } catch (Exception e) {
+            log.error("CRITICAL ERROR: No se pudo inicializar la caché CIE-10: {}", e.getMessage(), e);
+        }
+    }
+
+    private void cargarCie10DesdeCsv() {
+        File folder = new File(dirPath);
+        if (!folder.exists() || !folder.isDirectory()) {
+            log.error("CRITICAL: Directorio CIE-10 no encontrado en: {}", dirPath);
+            return;
+        }
+
+        String[] prioritizedFiles = {"diagnosticos_cie10.csv", "codigos_activos.csv", "procedimientos_cpt.csv", "laboratorio.csv", "imagenes.csv"};
+        Set<String> codigosProcesados = new HashSet<>();
+        cie10Cache.clear();
+
+        for (String fileName : prioritizedFiles) {
+            File file = new File(folder, fileName);
+            if (!file.exists()) continue;
+            
+            log.info("Procesando archivo CIE-10: {}", file.getName());
+            int count = 0;
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+                String line;
+                br.readLine(); // Saltar cabecera
+                
+                while ((line = br.readLine()) != null) {
+                    try {
+                        if (line.trim().isEmpty()) continue;
+                        
+                        String[] parts = parseCsvLine(line);
+                        if (parts.length >= 2) {
+                            String codigo = parts[0].replace("\"", "").trim();
+                            String descripcion = parts[1].replace("\"", "").trim();
+
+                            if (!codigo.isEmpty()) {
+                                if (!codigosProcesados.contains(codigo)) {
+                                    Cie10 item = new Cie10();
+                                    item.setCodigo(codigo);
+                                    item.setDescripcion(descripcion);
+                                    cie10Cache.add(item);
+                                    codigosProcesados.add(codigo);
+                                    count++;
+                                }
+                            }
+                        }
+                    } catch (Exception inner) {
+                        // Skip malformed line
+                    }
+                }
+                log.info("Archivo {} cargado: {} registros nuevos.", file.getName(), count);
+            } catch (Exception e) {
+                log.error("Error al cargar {}: {}", file.getName(), e.getMessage());
+            }
+        }
+        log.info("=== CARGA FINALIZADA: {} diagnósticos únicos en memoria ===", cie10Cache.size());
+    }
+
+    private String[] parseCsvLine(String line) {
+        List<String> result = new ArrayList<>();
+        boolean inQuotes = false;
+        StringBuilder sb = new StringBuilder();
+        for (char c : line.toCharArray()) {
+            if (c == '\"') {
+                inQuotes = !inQuotes;
+            } else if (c == ',' && !inQuotes) {
+                result.add(sb.toString().trim());
+                sb = new StringBuilder();
+            } else {
+                sb.append(c);
+            }
+        }
+        result.add(sb.toString().trim());
+        return result.toArray(new String[0]);
+    }
+
+    public List<Cie10> search(String q) {
+        if (q == null || q.trim().length() < 2) return new ArrayList<>();
+        
+        String query = q.toLowerCase();
+        return cie10Cache.stream()
+                .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(query)) || 
+                            (c.getDescripcion() != null && c.getDescripcion().toLowerCase().contains(query)))
+                .limit(25)
+                .collect(Collectors.toList());
+    }
+
+    public int getCacheSize() {
+        return cie10Cache.size();
+    }
+}

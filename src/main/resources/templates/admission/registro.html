@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='SIGECLIN - Admisión de Vanguardia')}"></head>
+<body class="bg-deep overflow-hidden">
+    <div th:replace="~{layout :: sidebar}"></div>
+
+    <main th:replace="~{layout :: main(pageTitle='', content=~{::#admision-premium}, modals=null)}">
+        <div id="admision-premium" class="animate-fade-in d-flex flex-column h-100 p-0" style="max-height: 100vh;">
+            
+            <!-- TOP BAR: INTEGRATED SEARCH -->
+            <div class="glass-header p-3 px-4 d-flex align-items-center justify-content-between shadow-sm">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary p-2 rounded-3 text-white shadow-glow">
+                        <i class="bi bi-person-vcard fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-800 mb-0" style="color: var(--text-main);">Módulo de Admisión</h4>
+                        <p class="text-muted extra-small mb-0 fw-bold opacity-50">SISTEMA INTEGRAL DE GESTIÓN CLÍNICA</p>
+                    </div>
+                </div>
+
+                <div class="search-premium-wrapper">
+                    <div class="search-premium-container shadow-sm border border-light">
+                        <i class="bi bi-search text-primary"></i>
+                        <input type="text" id="dniSearch" placeholder="Buscar por DNI o Nro. Historia..." autocomplete="off">
+                        <button type="button" id="btnSearch" onclick="buscarPaciente()" class="btn btn-premium-main btn-sm px-4 rounded-pill">BUSCAR</button>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end me-3">
+                        <div class="extra-small fw-800 text-muted opacity-50">ESTADO DEL SISTEMA</div>
+                        <div class="small fw-800 text-success"><i class="bi bi-circle-fill small me-1"></i> OPERATIVO</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT AREA -->
+            <div class="row g-0 flex-grow-1 overflow-hidden">
+                
+                <!-- LEFT SIDEBAR: PATIENT PREVIEW & SERVICES -->
+                <div class="col-xl-4 col-lg-5 d-flex flex-column h-100 border-end z-1" style="background: var(--bg-card); border-color: var(--border) !important;">
+                    
+                    <!-- PATIENT STATUS CARD -->
+                    <div id="statusPanel" class="p-4 text-center border-bottom" style="background: rgba(255, 255, 255, 0.01); border-color: var(--border) !important;">
+                        <div class="avatar-wrapper mb-3 position-relative d-inline-block">
+                            <div id="statusIcon" class="avatar-main shadow-lg">
+                                <i class="bi bi-person-vcard text-muted fs-1"></i>
+                            </div>
+                            <div id="badgeStatus" class="status-badge bg-secondary"></div>
+                        </div>
+                        <h4 class="fw-800 mb-1 text-uppercase" style="color: var(--text-main);" id="preview-name">ESPERANDO ACCIÓN</h4>
+                        <p class="text-muted extra-small fw-800 text-uppercase tracking-wider mb-0" id="preview-dni">DNI / HISTORIA CLÍNICA</p>
+                    </div>
+
+                    <!-- SERVICE SELECTION -->
+                    <div class="p-4 flex-grow-1 overflow-y-auto custom-scrollbar">
+                        <div class="section-title-premium mb-4">
+                            <span>DESTINO DE ATENCIÓN</span>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div th:each="serv : ${ {'Medicina General', 'Enfermería', 'Obstetricia', 'Odontología', 'Psicología', 'Nutrición'} }" class="col-6">
+                                <input type="radio" form="patientForm" name="servicio" th:id="${'serv-' + serv}" th:value="${serv}" class="btn-check" th:checked="${serv == 'Medicina General'}">
+                                <label class="service-card-premium rounded-4 p-3 d-flex flex-column align-items-center gap-2 text-center" th:for="${'serv-' + serv}">
+                                    <div class="service-icon-premium shadow-sm">
+                                        <i th:class="${serv == 'Medicina General' ? 'bi bi-hospital' : 
+                                                       serv == 'Enfermería' ? 'bi bi-heart-pulse' :
+                                                       serv == 'Obstetricia' ? 'bi bi-gender-female' :
+                                                       serv == 'Odontología' ? 'bi bi-brightness-high' :
+                                                       serv == 'Psicología' ? 'bi bi-person-gear' : 'bi bi-apple'}"></i>
+                                    </div>
+                                    <span class="fw-800 small" style="color: var(--text-main);" th:text="${serv}">Servicio</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SIDEBAR FOOTER -->
+                    <div class="p-4 border-top" style="background: var(--bg-card); border-color: var(--border) !important;">
+                        <button type="submit" form="patientForm" id="btnGuardar" class="btn w-100 py-3 rounded-4 shadow-glow fw-800 disabled btn-premium-main">
+                            GUARDAR REGISTRO <i class="bi bi-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- RIGHT CONTENT: THE FORM -->
+                <div class="col-xl-8 col-lg-7 h-100 bg-deep overflow-y-auto custom-scrollbar p-3 p-lg-4">
+                    <div id="formContainer" class="form-locked w-100 position-relative">
+                        
+                        <!-- Lock Overlay -->
+                        <div class="form-lock-overlay">
+                            <div class="text-center p-5 glass-card-premium shadow-premium border border-light" style="max-width: 450px; border-radius: var(--radius-lg);">
+                                <div class="bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 70px; height: 70px;">
+                                    <i class="bi bi-search fs-2"></i>
+                                </div>
+                                <h5 class="fw-800 mb-2" style="color: var(--text-main);">Búsqueda de Paciente</h5>
+                                <p class="text-muted small mb-0">Use el buscador superior ingresando el <strong>DNI o Nro. de Historia Clínica</strong> del paciente para cargar su información o registrar un nuevo ingreso.</p>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/admission/guardar}" th:object="${paciente}" method="post" id="patientForm">
+                            <input type="hidden" th:field="*{idPersona}" id="field-idPersona">
+                            <input type="hidden" th:field="*{numeroHistoriaClinica}" id="field-hc">
+
+                            <!-- IDENTIFICATION CARD -->
+                            <div class="glass-card-premium p-4 mb-4">
+                                <div class="d-flex align-items-center gap-2 mb-4">
+                                    <i class="bi bi-shield-plus text-primary fs-5"></i>
+                                    <h5 class="fw-800 mb-0 text-dark" style="font-size: 1.1rem; letter-spacing: -0.3px;">Datos de Identificación</h5>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="label-premium">Tipo de Documento</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-card-text"></i></span>
+                                            
+                                            <!-- Hidden native select for validation and submit -->
+                                            <select th:field="*{tipoDocumento.idTipoDocumento}" id="field-tipoDoc" required style="display: none !important;">
+                                                <option value="">Seleccione...</option>
+                                                <option th:each="td : ${tiposDoc}" th:value="${td.idTipoDocumento}" th:text="${td.codigo + ' - ' + td.descripcion}">DNI</option>
+                                            </select>
+
+                                            <!-- Custom Premium Select Dropdown -->
+                                            <div class="custom-premium-select-wrapper" id="customSelectWrapper">
+                                                <div class="custom-premium-select-trigger" onclick="toggleCustomSelect()" tabindex="0">
+                                                    <span class="custom-select-text">Seleccione...</span>
+                                                    <i class="bi bi-chevron-down ms-auto custom-select-arrow"></i>
+                                                </div>
+                                                <div class="custom-premium-select-options" id="customSelectOptions">
+                                                    <div class="custom-select-option" data-value="" onclick="selectCustomOption('', 'Seleccione...')">Seleccione...</div>
+                                                    <div th:each="td : ${tiposDoc}" th:data-value="${td.idTipoDocumento}" th:data-text="${td.codigo + ' - ' + td.descripcion}" onclick="selectCustomOption(this.getAttribute('data-value'), this.getAttribute('data-text'))" class="custom-select-option" th:text="${td.codigo + ' - ' + td.descripcion}">DNI</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="label-premium">Nro. Documento</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-hash"></i></span>
+                                            <input type="text" th:field="*{numeroDocumento}" class="fw-800" id="field-dni" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="label-premium">Nombres</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-person"></i></span>
+                                            <input type="text" th:field="*{nombres}" id="field-nombres" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="label-premium">Apellido Paterno</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-person-fill"></i></span>
+                                            <input type="text" th:field="*{apellidoPaterno}" id="field-apellidoPaterno" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="label-premium">Apellido Materno</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-person-fill"></i></span>
+                                            <input type="text" th:field="*{apellidoMaterno}" id="field-apellidoMaterno">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="label-premium">Fecha Nacimiento</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-calendar3"></i></span>
+                                            <input type="date" th:field="*{fechaNacimiento}" id="field-fechaNacimiento" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="label-premium">Género</label>
+                                        <div class="d-flex gap-2">
+                                            <div class="flex-grow-1">
+                                                <input type="radio" th:field="*{sexo}" value="M" id="sexoM" class="btn-check" required>
+                                                <label for="sexoM" class="btn btn-outline-light-modern w-100 fw-800 py-2 extra-small">
+                                                    <i class="bi bi-gender-male"></i> MASCULINO
+                                                </label>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <input type="radio" th:field="*{sexo}" value="F" id="sexoF" class="btn-check">
+                                                <label for="sexoF" class="btn btn-outline-light-modern w-100 fw-800 py-2 extra-small">
+                                                    <i class="bi bi-gender-female"></i> FEMENINO
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="label-premium">Teléfono Principal</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-telephone"></i></span>
+                                            <input type="tel" th:field="*{telefonoPrincipal}" id="field-telefono" placeholder="9XXXXXXXX">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- CONTACT CARD -->
+                            <div class="glass-card-premium p-4">
+                                <div class="d-flex align-items-center gap-2 mb-4">
+                                    <i class="bi bi-geo-alt text-primary fs-5"></i>
+                                    <h5 class="fw-800 mb-0 text-dark" style="font-size: 1.1rem; letter-spacing: -0.3px;">Localización</h5>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-12">
+                                        <label class="label-premium">Dirección de Residencia</label>
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-geo-alt"></i></span>
+                                            <input type="text" th:field="*{direccion}" id="field-direccion" placeholder="Ej: Av. Las Palmeras 123, Miraflores" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <script th:inline="javascript">
+                async function buscarPaciente() {
+                    const query = document.getElementById('dniSearch').value;
+                    if (!query) return;
+
+                    const btnSearch = document.getElementById('btnSearch');
+                    btnSearch.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                    btnSearch.disabled = true;
+
+                    try {
+                        const response = await fetch(`/admission/api/buscar/${query}`);
+                        if (response.ok) {
+                            const data = await response.json();
+                            Swal.fire({
+                                title: '¡Paciente Encontrado!',
+                                text: `Bienvenido de nuevo, ${data.nombres}.`,
+                                icon: 'success',
+                                background: '#ffffff',
+                                borderRadius: '24px',
+                                confirmButtonColor: '#4f46e5',
+                                customClass: {
+                                    title: 'fw-800 text-dark',
+                                    popup: 'shadow-lg border-0'
+                                }
+                            });
+                            populateForm(data);
+                        } else {
+                            showNotFoundPopup(query);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                    } finally {
+                        btnSearch.innerHTML = 'BUSCAR';
+                        btnSearch.disabled = false;
+                    }
+                }
+
+                function populateForm(p) {
+                    document.getElementById('formContainer').classList.remove('form-locked');
+                    document.getElementById('btnGuardar').classList.remove('disabled');
+                    
+                    document.getElementById('field-idPersona').value = p.idPersona || '';
+                    document.getElementById('field-hc').value = p.numeroHistoriaClinica || '';
+                    document.getElementById('field-dni').value = p.numeroDocumento || '';
+                    document.getElementById('field-nombres').value = p.nombres || '';
+                    document.getElementById('field-apellidoPaterno').value = p.apellidoPaterno || '';
+                    document.getElementById('field-apellidoMaterno').value = p.apellidoMaterno || '';
+                    document.getElementById('field-fechaNacimiento').value = p.fechaNacimiento || '';
+                    document.getElementById('field-direccion').value = p.direccion || '';
+                    document.getElementById('field-telefono').value = p.telefonoPrincipal || '';
+                    
+                    if (p.sexo) {
+                        const sM = document.getElementById('sexoM');
+                        const sF = document.getElementById('sexoF');
+                        if (p.sexo === 'M' && sM) sM.checked = true;
+                        if (p.sexo === 'F' && sF) sF.checked = true;
+                    }
+                    if (p.tipoDocumento) {
+                        document.getElementById('field-tipoDoc').value = p.tipoDocumento.idTipoDocumento;
+                    }
+                    updateCustomSelectFromNative();
+
+                    updatePreview(p.nombres, p.apellidoPaterno, p.numeroDocumento, false);
+                }
+
+                function showNotFoundPopup(dni) {
+                    Swal.fire({
+                        title: 'Paciente Nuevo',
+                        text: `El DNI ${dni} no está en nuestra base de datos. ¿Desea realizar una nueva admisión?`,
+                        icon: 'info',
+                        showCancelButton: true,
+                        confirmButtonText: 'SÍ, REGISTRAR NUEVO',
+                        cancelButtonText: 'CANCELAR',
+                        background: '#ffffff',
+                        borderRadius: '24px',
+                        confirmButtonColor: '#4f46e5',
+                        cancelButtonColor: '#ef4444',
+                        customClass: {
+                            title: 'fw-800 text-dark',
+                            popup: 'shadow-lg border-0'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            enableNewPatientForm(dni);
+                        }
+                    });
+                }
+
+                function enableNewPatientForm(dni) {
+                    document.getElementById('patientForm').reset();
+                    document.getElementById('field-idPersona').value = '';
+                    document.getElementById('field-hc').value = '';
+                    if (/^\d+$/.test(dni)) document.getElementById('field-dni').value = dni;
+                    
+                    // Reset custom select to default
+                    updateCustomSelectFromNative();
+                    
+                    document.getElementById('formContainer').classList.remove('form-locked');
+                    document.getElementById('btnGuardar').classList.remove('disabled');
+                    updatePreview('NUEVO', 'PACIENTE', dni, true);
+                    document.getElementById('field-nombres').focus();
+                }
+
+                function updatePreview(name, surname, dni, isNew) {
+                    const full = ((name || '').split(' ')[0] + ' ' + (surname || '').split(' ')[0]).trim().toUpperCase();
+                    document.getElementById('preview-name').innerText = full || 'PACIENTE POR BUSCAR';
+                    document.getElementById('preview-dni').innerText = (isNew ? 'NUEVO REGISTRO: ' : 'HISTORIA ACTIVA: ') + (dni || '---');
+                    
+                    const iconBox = document.getElementById('statusIcon');
+                    const badge = document.getElementById('badgeStatus');
+                    
+                    // Reset styling classes
+                    iconBox.className = 'avatar-main shadow-lg';
+                    
+                    if (isNew) {
+                        iconBox.classList.add('active-new');
+                        iconBox.innerHTML = '<i class="bi bi-person-vcard fs-1 text-warning"></i>';
+                        badge.className = 'status-badge bg-warning';
+                    } else {
+                        iconBox.classList.add('active-registered');
+                        iconBox.innerHTML = '<i class="bi bi-person-check-fill fs-1 text-success"></i>';
+                        badge.className = 'status-badge bg-success';
+                    }
+                }
+
+                document.getElementById('dniSearch').addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarPaciente(); });
+
+                // Mostrar mensaje de éxito si viene de una redirección
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('saved')) {
+                    Swal.fire({
+                        title: '¡Admisión Exitosa!',
+                        text: 'El paciente ha sido registrado y derivado al módulo de Caja.',
+                        icon: 'success',
+                        background: '#ffffff',
+                        borderRadius: '24px',
+                        confirmButtonColor: '#4f46e5',
+                        customClass: {
+                            title: 'fw-800 text-dark',
+                            popup: 'shadow-lg border-0'
+                        }
+                    });
+                }
+                
+                if (urlParams.has('error')) {
+                    const msg = urlParams.get('msg') || 'Ocurrió un error inesperado al procesar la admisión.';
+                    Swal.fire({
+                        title: 'Atención',
+                        text: decodeURIComponent(msg),
+                        icon: 'error',
+                        background: '#ffffff',
+                        borderRadius: '24px',
+                        confirmButtonColor: '#ef4444',
+                        customClass: {
+                            title: 'fw-800 text-dark',
+                            popup: 'shadow-lg border-0'
+                        }
+                    });
+                }
+
+                // Custom Premium Select Logic
+                function toggleCustomSelect() {
+                    const wrapper = document.getElementById('customSelectWrapper');
+                    wrapper.classList.toggle('open');
+                    const group = wrapper.closest('.input-premium-group');
+                    if (group) {
+                        group.classList.toggle('dropdown-active', wrapper.classList.contains('open'));
+                    }
+                }
+
+                function selectCustomOption(val, text) {
+                    const nativeSelect = document.getElementById('field-tipoDoc');
+                    nativeSelect.value = val;
+                    
+                    updateCustomSelectFromNative();
+                    
+                    // Trigger native validation/change handlers if any
+                    const event = new Event('change');
+                    nativeSelect.dispatchEvent(event);
+                    
+                    const wrapper = document.getElementById('customSelectWrapper');
+                    wrapper.classList.remove('open');
+                    const group = wrapper.closest('.input-premium-group');
+                    if (group) group.classList.remove('dropdown-active');
+                }
+
+                function updateCustomSelectFromNative() {
+                    const nativeSelect = document.getElementById('field-tipoDoc');
+                    if (!nativeSelect) return;
+                    
+                    const val = nativeSelect.value;
+                    const selectedOpt = nativeSelect.options[nativeSelect.selectedIndex];
+                    const text = selectedOpt ? selectedOpt.text : 'Seleccione...';
+                    
+                    const triggerText = document.querySelector('.custom-premium-select-trigger .custom-select-text');
+                    if (triggerText) triggerText.innerText = text;
+                    
+                    const options = document.querySelectorAll('.custom-select-option');
+                    options.forEach(opt => {
+                        if (opt.getAttribute('data-value') === String(val)) {
+                            opt.classList.add('selected');
+                        } else {
+                            opt.classList.remove('selected');
+                        }
+                    });
+                }
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    const wrapper = document.getElementById('customSelectWrapper');
+                    if (wrapper && !wrapper.contains(e.target)) {
+                        wrapper.classList.remove('open');
+                        const group = wrapper.closest('.input-premium-group');
+                        if (group) group.classList.remove('dropdown-active');
+                    }
+                });
+
+                // Initialize on load
+                document.addEventListener('DOMContentLoaded', () => {
+                    updateCustomSelectFromNative();
+                });
+            </script>
+
+            <!-- Estilos del módulo migrados a main.css -->
+        </div>
+    </main>
+
+    <div th:replace="~{layout :: footer}"></div>
+</body>
+</html>

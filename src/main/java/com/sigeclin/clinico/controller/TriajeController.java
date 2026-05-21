@@ -1,0 +1,180 @@
+package com.sigeclin.clinico.controller;
+
+import com.sigeclin.clinico.model.Triaje;
+import com.sigeclin.clinico.service.TriajeService;
+import com.sigeclin.filiacion.model.Paciente;
+import com.sigeclin.filiacion.model.Usuario;
+import com.sigeclin.filiacion.repository.UsuarioRepository;
+import com.sigeclin.filiacion.service.PacienteService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
+
+@Controller
+@RequestMapping("/triaje")
+@RequiredArgsConstructor
+@Slf4j
+public class TriajeController {
+
+    private final TriajeService triajeService;
+    private final PacienteService pacienteService;
+    private final UsuarioRepository usuarioRepository;
+
+    @GetMapping("/nuevo")
+    public String mostrarListaEspera(@RequestParam(required = false) String hc, Model model) {
+        if (hc != null && !hc.isEmpty()) {
+            Optional<Paciente> paciente = pacienteService.buscarPorDniOHC(hc);
+            if (paciente.isPresent()) {
+                return "redirect:/triaje/registrar/" + paciente.get().getIdPersona();
+            }
+        }
+        
+        // Cargar lista de pacientes que vienen de Caja (Pendientes de Triaje)
+        model.addAttribute("pacientesPendientes", pacienteService.obtenerPendientesTriaje());
+        
+        return "clinico/triaje_busqueda";
+    }
+
+    @Transactional(readOnly = true)
+    @GetMapping("/registrar/{idPaciente}")
+    public String mostrarFormulario(@PathVariable Integer idPaciente, Model model, RedirectAttributes redirectAttributes) {
+        System.out.println("Triaje - Cargando formulario para Paciente ID: " + idPaciente);
+        
+        Optional<Paciente> pacienteOpt = pacienteService.buscarPorId(idPaciente);
+        if (pacienteOpt.isEmpty()) {
+            System.err.println("Triaje - Paciente NO encontrado: " + idPaciente);
+            redirectAttributes.addFlashAttribute("error", "Paciente no encontrado.");
+            return "redirect:/triaje/nuevo";
+        }
+
+        Paciente p = pacienteOpt.get();
+        // Forzar carga de datos básicos para evitar LazyInitializationException en la vista
+        String dummy = p.getNombres(); 
+        dummy = p.getApellidoPaterno();
+        
+        Triaje triaje = new Triaje();
+        triaje.setPaciente(p);
+        
+        model.addAttribute("triaje", triaje);
+        model.addAttribute("paciente", p);
+        model.addAttribute("edad", p.getEdadCompleta());
+        
+        System.out.println("Triaje - Formulario cargado con éxito para: " + p.getNombres());
+        return "clinico/triaje_registro";
+    }
+
+    @PostMapping("/guardar")
+    public String guardarTriaje(@ModelAttribute Triaje triaje, Authentication authentication, RedirectAttributes redirectAttributes) {
+        log.info(">>> [SIGECLIN] Iniciando registro de Triaje...");
+        try {
+            // Validar existencia de paciente
+            if (triaje.getPaciente() == null || triaje.getPaciente().getIdPersona() == null) {
+                throw new RuntimeException("ID de Paciente no proporcionado");
+            }
+
+            // Cargar paciente completo para asegurar consistencia y evitar LazyInit
+            Paciente paciente = pacienteService.buscarPorId(triaje.getPaciente().getIdPersona())
+                    .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
+            triaje.setPaciente(paciente);
+
+            // Asignar el usuario actual (quien realiza el triaje)
+            Usuario usuario = usuarioRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+            triaje.setUsuario(usuario);
+
+            // Normalizar y validar el servicio de destino
+            String sd = triaje.getServicioDestino();
+            if (sd == null || sd.isEmpty()) {
+                sd = paciente.getServicioSolicitado();
+            }
+
+            // Normalización final
+            if (sd != null) {
+                sd = sd.toUpperCase();
+                if (sd.equals("ENFERMERIA")) sd = "ENFERMERÍA";
+                if (sd.equals("ODONTOLOGIA")) sd = "ODONTOLOGÍA";
+                if (sd.equals("PSICOLOGIA")) sd = "PSICOLOGÍA";
+                if (sd.equals("NUTRICION")) sd = "NUTRICIÓN";
+                triaje.setServicioDestino(sd);
+            } else {
+                triaje.setServicioDestino("MEDICINA GENERAL");
+            }
+
+            // Asegurar que la clasificación de urgencia esté en minúsculas (por el check constraint de la DB)
+            if (triaje.getClasificacionUrgencia() != null) {
+                triaje.setClasificacionUrgencia(triaje.getClasificacionUrgencia().toLowerCase());
+            }
+
+            // --- LÓGICA DE ALERTAS CLÍNICAS (Protocolos MINSA/ESSALUD) ---
+            StringBuilder alertas = new StringBuilder();
+            
+            // 1. Presión Arterial (Normal: 90/60 - 120/80)
+            if (triaje.getPresionArterialSistolica() != null && triaje.getPresionArterialDiastolica() != null) {
+                if (triaje.getPresionArterialSistolica() >= 140 || triaje.getPresionArterialDiastolica() >= 90) {
+                    alertas.append("⚠️ HIPERTENSIÓN DETECTADA. ");
+                } else if (triaje.getPresionArterialSistolica() < 90 || triaje.getPresionArterialDiastolica() < 60) {
+                    alertas.append("⚠️ HIPOTENSIÓN DETECTADA. ");
+                }
+            }
+
+            // 2. Frecuencia Cardíaca (Normal: 60 - 100 bpm)
+            if (triaje.getFrecuenciaCardiaca() != null) {
+                if (triaje.getFrecuenciaCardiaca() > 100) alertas.append("⚠️ TAQUICARDIA. ");
+                else if (triaje.getFrecuenciaCardiaca() < 60) alertas.append("⚠️ BRADICARDIA. ");
+            }
+
+            // 3. Saturación de Oxígeno (Normal: >= 95%)
+            if (triaje.getSaturacionOxigeno() != null && triaje.getSaturacionOxigeno() < 95) {
+                alertas.append("⚠️ SATURACIÓN BAJA (HIPOXIA). ");
+            }
+
+            // 4. Temperatura (Normal: 36.5 - 37.5)
+            if (triaje.getTemperatura() != null) {
+                double temp = triaje.getTemperatura().doubleValue();
+                if (temp >= 38.0) alertas.append("⚠️ ESTADO FEBRIL. ");
+                else if (temp < 35.5) alertas.append("⚠️ HIPOTERMIA. ");
+            }
+
+            if (alertas.length() > 0) {
+                triaje.setAlertaClinica(true);
+                triaje.setDetalleAlerta(alertas.toString().trim());
+                log.warn(">>> [ALERTA CLINICA] DETECTADA: {}", triaje.getDetalleAlerta());
+            } else {
+                triaje.setAlertaClinica(false);
+                triaje.setDetalleAlerta(null);
+            }
+
+            log.info(">>> [SIGECLIN] Guardando entidad Triaje...");
+            triajeService.guardarTriaje(triaje);
+            
+            // Marcar paciente como listo para consulta
+            pacienteService.actualizarEstado(paciente.getIdPersona(), "PENDIENTE_CONSULTA");
+
+            redirectAttributes.addFlashAttribute("success", "Triaje de " + paciente.getNombres() + " registrado correctamente. Derivado a: " + triaje.getServicioDestino());
+            return "redirect:/triaje/nuevo";
+        } catch (Exception e) {
+            log.error(">>> [SIGECLIN] ERROR AL GUARDAR TRIAJE: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("error", "Error crítico al registrar el triaje: " + e.getMessage());
+            return "redirect:/triaje/nuevo";
+        }
+    }
+
+    @GetMapping("/buscar")
+    public String buscarPaciente(@RequestParam String query, Model model) {
+        // Buscamos por DNI o por Número de HC
+        Optional<Paciente> paciente = pacienteService.buscarPorDniOHC(query);
+        if (paciente.isPresent()) {
+            return "redirect:/triaje/registrar/" + paciente.get().getIdPersona();
+        } else {
+            model.addAttribute("error", "No se encontró ningún paciente con ese DNI o Historia Clínica.");
+            return "clinico/triaje_busqueda";
+        }
+    }
+}

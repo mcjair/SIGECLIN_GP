@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='SIGECLIN - Atención Médica')}"></head>
+<body class="bg-darker">
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Atención Médica', content=~{::#consulta-content}, modals=null)}">
+        <div id="consulta-content" class="animate-fade-in">
+        <div id="consulta-content" class="animate-fade-in">
+            <!-- Alerta Clínica de Triaje (Crítico - Posición Centrada Superior) -->
+            <div th:if="${triaje.alertaClinica}" class="d-flex justify-content-center mb-4">
+                <div class="alert-clinical-premium-centered animate-pulse-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="alert-icon-box shadow-sm">
+                            <i class="bi bi-exclamation-octagon-fill"></i>
+                        </div>
+                        <div class="text-start">
+                            <label class="alert-label text-uppercase mb-0">Riesgo Clínico Detectado</label>
+                            <h5 class="alert-detail mb-0 fw-950 text-white" th:text="${triaje.detalleAlerta}">ALERTA DE TRIAJE</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <form th:action="@{/consulta/guardar}" th:object="${consulta}" method="post">
+                <input type="hidden" th:field="*{paciente.idPersona}">
+                <input type="hidden" th:field="*{triaje.idTriaje}">
+
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Cabecera del Paciente -->
+                    <div class="col-12">
+                        <div class="card p-4 border-primary border-opacity-25 bg-primary bg-opacity-5">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="avatar-md rounded-circle bg-primary bg-opacity-10 p-1 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <i class="bi bi-person-fill fs-2 text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="mb-0 text-white" th:text="${consulta.paciente.nombres + ' ' + consulta.paciente.apellidoPaterno}">Juan Pérez</h3>
+                                        <p class="text-muted mb-0" th:text="'DNI: ' + ${consulta.paciente.numeroDocumento} + ' | HC: ' + ${consulta.paciente.idPersona}">DNI: 00000000</p>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 fs-6">
+                                        <i class="bi bi-clock-history me-1"></i> Iniciado: <span th:text="${#temporals.format(consulta.fechaHoraInicio, 'HH:mm')}">10:00</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Datos de Triaje (Solo Lectura) -->
+                    <div class="col-lg-3">
+                        <div class="card p-4 h-100">
+                            <h5 class="mb-4 text-warning"><i class="bi bi-heart-pulse me-2"></i> Triaje Actual</h5>
+                            <div class="d-flex flex-column gap-3">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Presión Arterial</span>
+                                    <span class="fw-bold" 
+                                          th:classappend="${triaje.presionArterialSistolica >= 140 or triaje.presionArterialDiastolica >= 90 ? 'text-danger' : 'text-white'}"
+                                          th:text="${triaje.presionArterialSistolica + '/' + triaje.presionArterialDiastolica}">120/80</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Temperatura</span>
+                                    <span class="fw-bold" 
+                                          th:classappend="${triaje.temperatura >= 38.0 or triaje.temperatura < 35.5 ? 'text-danger' : 'text-white'}"
+                                          th:text="${triaje.temperatura + ' °C'}">36.5 °C</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Frec. Cardiaca</span>
+                                    <span class="fw-bold" 
+                                          th:classappend="${triaje.frecuenciaCardiaca > 100 or triaje.frecuenciaCardiaca < 60 ? 'text-danger' : 'text-white'}"
+                                          th:text="${triaje.frecuenciaCardiaca + ' bpm'}">75 bpm</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">Saturación SpO2</span>
+                                    <span class="fw-bold" 
+                                          th:classappend="${triaje.saturacionOxigeno < 95 ? 'text-danger' : 'text-white'}"
+                                          th:text="${triaje.saturacionOxigeno + ' %'}">98 %</span>
+                                </div>
+                                <hr class="border-secondary opacity-25">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small">IMC</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary" 
+                                          th:classappend="${triaje.imc >= 30 ? 'bg-danger text-white' : ''}"
+                                          th:text="${triaje.imc}">24.5</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Formulario de Historia Clínica -->
+                    <div class="col-lg-9">
+                        <div class="card p-4">
+                            <ul class="nav nav-pills mb-4 gap-2" id="attendanceTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active rounded-3" id="anamnesis-tab" data-bs-toggle="pill" data-bs-target="#anamnesis" type="button">1. Anamnesis</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-3" id="exam-tab" data-bs-toggle="pill" data-bs-target="#exam" type="button">2. Examen Físico</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-3" id="dx-tab" data-bs-toggle="pill" data-bs-target="#dx" type="button">3. Diagnóstico</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-3" id="plan-tab" data-bs-toggle="pill" data-bs-target="#plan" type="button">4. Plan</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link rounded-3 border border-primary border-opacity-25" id="receta-tab" data-bs-toggle="pill" data-bs-target="#receta" type="button">
+                                        <i class="bi bi-capsule me-1 text-primary"></i> 5. Receta
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="attendanceTabContent">
+                                <!-- Anamnesis -->
+                                <div class="tab-pane fade show active" id="anamnesis" role="tabpanel">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold">MOTIVO DE CONSULTA</label>
+                                        <textarea th:field="*{motivoConsulta}" class="form-control" rows="2" placeholder="Síntoma principal..."></textarea>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold">ANAMNESIS / HISTORIA</label>
+                                        <textarea th:field="*{anamnesis}" class="form-control" rows="6" placeholder="Relato de la enfermedad..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Examen Físico -->
+                                <div class="tab-pane fade" id="exam" role="tabpanel">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold">EXAMEN FÍSICO DIRIGIDO</label>
+                                        <textarea th:field="*{examenFisico}" class="form-control" rows="8" placeholder="Hallazgos médicos..."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Diagnóstico -->
+                                <div class="tab-pane fade" id="dx" role="tabpanel">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold">BUSCAR DIAGNÓSTICO (CIE-10)</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-transparent border-secondary text-white"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="dxSearch" class="form-control border-secondary text-white bg-dark" placeholder="Escriba código o descripción (ej: A00)..." autocomplete="off">
+                                        </div>
+                                        <div id="dxResults" class="list-group position-absolute w-50 shadow-lg z-3" style="display:none; max-height: 200px; overflow-y: auto; border: 1px solid #444;"></div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-sm align-middle" id="dxTable">
+                                            <thead>
+                                                <tr><th style="width: 80px;">CIE-10</th><th>Descripción</th><th style="width: 50px;"></th></tr>
+                                            </thead>
+                                            <tbody id="dxBody">
+                                                <tr id="noDxRow"><td colspan="3" class="text-center text-muted small py-3">No hay diagnósticos agregados</td></tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <input type="hidden" name="diagnosticosJson" id="diagnosticosJson">
+                                </div>
+
+                                <!-- Plan -->
+                                <div class="tab-pane fade" id="plan" role="tabpanel">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold">PLAN DE TRABAJO</label>
+                                        <textarea th:field="*{planTratamiento}" class="form-control" rows="8" placeholder="Exámenes, procedimientos, etc."></textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Receta Electrónica -->
+                                <div class="tab-pane fade" id="receta" role="tabpanel">
+                                    <div class="row g-3 mb-4">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small fw-bold">BUSCAR MEDICAMENTO</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-transparent border-secondary"><i class="bi bi-capsule-pill text-primary"></i></span>
+                                                <input type="text" class="form-control border-secondary" placeholder="Nombre del fármaco...">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-muted small fw-bold">INDICACIONES GENERALES</label>
+                                            <input type="text" class="form-control border-secondary" placeholder="Dieta, reposo, etc.">
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive">
+                                        <table class="table table-dark table-hover align-middle">
+                                            <thead class="small text-muted">
+                                                <tr>
+                                                    <th>Medicamento</th>
+                                                    <th>Dosis</th>
+                                                    <th>Frecuencia</th>
+                                                    <th>Duración</th>
+                                                    <th>Cant.</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recetaDetalle">
+                                                <tr class="glass-effect-subtle">
+                                                    <td>
+                                                        <div class="fw-bold">Paracetamol 500mg</div>
+                                                        <div class="small text-muted">Tableta</div>
+                                                    </td>
+                                                    <td><input type="text" class="form-control form-control-sm w-75" value="1 tableta"></td>
+                                                    <td><input type="text" class="form-control form-control-sm" value="C/8 horas"></td>
+                                                    <td><input type="text" class="form-control form-control-sm" value="3 días"></td>
+                                                    <td><input type="number" class="form-control form-control-sm" value="9" style="width: 60px;"></td>
+                                                    <td><button class="btn btn-link text-danger p-0"><i class="bi bi-trash"></i></button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                        <button type="button" class="btn btn-outline-primary btn-sm mt-2">
+                                            <i class="bi bi-plus-circle me-1"></i> Agregar Medicamento
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-5 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-end gap-3">
+                                <a th:href="@{/consulta/espera}" class="btn btn-outline-secondary px-4">Cancelar</a>
+                                <button type="submit" class="btn btn-primary px-5 fw-bold shadow-glow" onclick="prepareSubmit()">
+                                    <i class="bi bi-check2-circle me-2"></i> Finalizar y Emitir Receta
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <script>
+                // Logic for CIE-10 Search
+                const dxSearch = document.getElementById('dxSearch');
+                const dxResults = document.getElementById('dxResults');
+                const dxBody = document.getElementById('dxBody');
+                const noDxRow = document.getElementById('noDxRow');
+                const dxJsonInput = document.getElementById('diagnosticosJson');
+                let selectedDx = [];
+
+                dxSearch.addEventListener('input', async (e) => {
+                    const q = e.target.value;
+                    if (q.length < 2) {
+                        dxResults.style.display = 'none';
+                        return;
+                    }
+
+                    try {
+                        const resp = await fetch(`/api/cie10/search?q=${encodeURIComponent(q)}`);
+                        const data = await resp.json();
+                        
+                        dxResults.innerHTML = data.map(dx => `
+                            <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary small" 
+                                    onclick="addDx('${dx.codigo}', '${dx.descripcion}')">
+                                <span class="fw-bold text-primary">${dx.codigo}</span> - ${dx.descripcion}
+                            </button>
+                        `).join('');
+                        dxResults.style.display = 'block';
+                    } catch (err) {
+                        console.error("Error searching CIE10:", err);
+                    }
+                });
+
+                window.addDx = function(codigo, descripcion) {
+                    if (selectedDx.some(d => d.codigo === codigo)) return;
+                    
+                    selectedDx.push({codigo, descripcion});
+                    if (noDxRow) noDxRow.style.display = 'none';
+                    
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="fw-bold text-primary">${codigo}</td>
+                        <td class="small">${descripcion}</td>
+                        <td><button type="button" class="btn btn-link text-danger p-0" onclick="removeDx('${codigo}', this)"><i class="bi bi-trash"></i></button></td>
+                    `;
+                    dxBody.appendChild(tr);
+                    dxSearch.value = '';
+                    dxResults.style.display = 'none';
+                };
+
+                window.removeDx = function(codigo, btn) {
+                    selectedDx = selectedDx.filter(d => d.codigo !== codigo);
+                    btn.closest('tr').remove();
+                    if (selectedDx.length === 0) noDxRow.style.display = '';
+                };
+
+                window.prepareSubmit = function() {
+                    dxJsonInput.value = JSON.stringify(selectedDx);
+                };
+
+                // Close results on click outside
+                document.addEventListener('click', (e) => {
+                    if (!dxSearch.contains(e.target) && !dxResults.contains(e.target)) {
+                        dxResults.style.display = 'none';
+                    }
+                });
+            </script>
+
+        </div>
+    </main>
+    <style>
+        .alert-clinical-premium-centered { background: linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%); border-radius: 16px; padding: 12px 30px; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .alert-icon-box { width: 45px; height: 45px; background: rgba(255, 255, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
+        .alert-label { color: rgba(255, 255, 255, 0.7); font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; }
+        .alert-detail { font-size: 1.1rem; letter-spacing: -0.5px; }
+        .animate-pulse-glow { animation: pulse-glow-red 2s infinite; }
+        @keyframes pulse-glow-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        .fw-950 { font-weight: 950; }
+        .bg-darker { background-color: #0f172a; }
+    </style>
+</body>
+</html>

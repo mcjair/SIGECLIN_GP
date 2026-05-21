@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='HMS - Historia Clínica Digital')}"></head>
+<body>
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Historia Clínica Digital', content=~{::#historia-content})}">
+        <div id="historia-content" class="animate-fade-in h-100">
+            
+            <div class="row g-4 h-100">
+                <!-- COLUMNA 1: PACIENTE -->
+                <div class="col-lg-3">
+                    <div class="card h-100 border-0 shadow-sm p-4 text-center d-flex flex-column gap-3">
+                        <div class="sidebar-category mt-0 text-start px-0"><i class="bi bi-person-circle me-2"></i> Paciente</div>
+                        
+                        <div class="avatar-box mx-auto my-3">
+                            <div class="avatar bg-primary text-white rounded-4 d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 100px; height: 100px; font-size: 2rem;">
+                                <span th:text="${#strings.substring(paciente.nombres, 0, 1) + #strings.substring(paciente.apellidoPaterno, 0, 1)}">JP</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="fw-800 mb-0 text-dark" th:text="${paciente.nombres + ' ' + paciente.apellidoPaterno}">Juan Pérez</h4>
+                            <div class="text-dim small fw-bold mt-1" th:text="${'DNI: ' + paciente.numeroDocumento + ' | HC: ' + (paciente.idPersona + 2026000)}">DNI: 45678901 | HC: 2026-0001</div>
+                        </div>
+
+                        <div class="bg-light rounded-4 p-3 text-start mt-2">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small fw-bold">Edad:</span>
+                                <span class="text-dark small fw-bold">34 años</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small fw-bold">Sexo:</span>
+                                <span class="text-dark small fw-bold" th:text="${paciente.sexo == 'M' ? 'Masculino' : 'Femenino'}">Masculino</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-muted small fw-bold">Urgencia:</span>
+                                <span class="badge bg-danger px-3 py-1 rounded-pill" style="font-size: 0.6rem;">ROJO / ALTO</span>
+                            </div>
+                        </div>
+
+                        <div class="text-start mt-3">
+                            <div class="text-dim small fw-bold text-uppercase mb-3" style="letter-spacing: 1px;">Último Triaje</div>
+                            <div class="d-flex flex-column gap-2 ps-1">
+                                <div class="small fw-bold text-muted">Presión: <span class="text-dark">120/80</span></div>
+                                <div class="small fw-bold text-muted">Temp: <span class="text-dark">37.5°C</span></div>
+                                <div class="small fw-bold text-muted">IMC: <span class="text-dark">24.5 (Normal)</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 2: CRONOLOGÍA -->
+                <div class="col-lg-5">
+                    <div class="card h-100 border-0 shadow-sm p-4">
+                        <div class="sidebar-category mt-0 mb-4 px-0"><i class="bi bi-clock-history me-2"></i> Cronología de Atenciones</div>
+                        
+                        <div class="timeline ps-3 border-start border-primary border-opacity-10 position-relative">
+                            <div th:each="consulta : ${consultas}" class="timeline-item mb-5 position-relative">
+                                <div class="timeline-dot position-absolute bg-primary rounded-circle shadow-glow" style="width: 12px; height: 12px; left: -19px; top: 5px;"></div>
+                                <div class="mb-1 d-flex gap-2 align-items-center">
+                                    <span class="text-primary small fw-800" th:text="${#temporals.format(consulta.fechaHoraInicio, 'dd MMM yyyy - HH:mm a')}">07 May 2026 - 10:30 AM</span>
+                                </div>
+                                <div class="fw-bold text-dark mb-1">
+                                    <span th:text="${consulta.servicio != null ? consulta.servicio.nombre : 'Medicina General'}">Medicina General</span>: 
+                                    <span class="fw-normal text-muted" th:text="${consulta.motivoConsulta}">Dolor abdominal agudo.</span>
+                                </div>
+                                <div class="text-dim italic small" th:text="${'Dr. ' + (consulta.medico != null ? consulta.medico.idPersona : 'Ricardo Gómez')}">Dr. Ricardo Gómez</div>
+                            </div>
+
+                            <div th:if="${consultas.empty}" class="text-center py-5">
+                                <i class="bi bi-calendar-x fs-1 text-dim opacity-25 d-block mb-2"></i>
+                                <p class="text-dim small">No se registran atenciones previas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COLUMNA 3: ALERTAS Y GESTIÓN -->
+                <div class="col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm p-4 d-flex flex-column">
+                        <!-- Alertas -->
+                        <div class="mb-5">
+                            <div class="sidebar-category mt-0 mb-3 px-0 text-danger"><i class="bi bi-exclamation-octagon me-2"></i> Alertas Críticas</div>
+                            <div class="bg-danger bg-opacity-10 border border-danger border-opacity-20 rounded-4 p-3 text-center text-danger small fw-bold animate-pulse">
+                                ¡ALERGIA A LA PENICILINA!
+                            </div>
+                        </div>
+
+                        <!-- Recetas -->
+                        <div class="mb-5">
+                            <div class="text-dim small fw-800 text-uppercase mb-3">Recetas Recientes</div>
+                            <div class="bg-light rounded-4 p-3 border border-secondary border-opacity-10">
+                                <div class="fw-bold text-dark small mb-1">Paracetamol 500mg</div>
+                                <div class="text-muted small">C/8h por 3 días</div>
+                            </div>
+                        </div>
+
+                        <!-- Antecedentes -->
+                        <div class="mb-5">
+                            <div class="text-dim small fw-800 text-uppercase mb-3">Antecedentes</div>
+                            <ul class="list-unstyled ps-1">
+                                <li class="small fw-bold text-muted mb-2">• Hipertensión leve</li>
+                                <li class="small fw-bold text-muted mb-2">• Cirugía de apéndice (2018)</li>
+                            </ul>
+                        </div>
+
+                        <!-- Botón Acción -->
+                        <div class="mt-auto">
+                            <button class="btn btn-primary w-100 py-3 rounded-4 shadow-sm fw-800 text-uppercase" style="background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); letter-spacing: 1px;">
+                                Nueva Atención
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <style>
+        .fw-800 { font-weight: 800; }
+        .shadow-glow { box-shadow: 0 0 10px rgba(99, 102, 241, 0.4); }
+        .animate-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        .italic { font-style: italic; }
+    </style>
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} ?: 'HMS - Sistema Hospitalario'"></title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css(v='3.2')}">
+    
+    <!-- Scripts base -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-deep">
+
+    <aside class="sidebar" id="sidebar" th:fragment="sidebar">
+        <!-- Toggle Button -->
+        <button class="sidebar-toggle" id="toggleSidebar">
+            <i class="bi bi-chevron-left" id="toggleIcon"></i>
+        </button>
+
+        <div class="mb-4 px-3">
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-primary p-2 rounded-3">
+                    <i class="bi bi-shield-plus text-white fs-4"></i>
+                </div>
+                <div class="sidebar-logo-text">
+                    <h2 class="fs-5 fw-800 mb-0 text-dark">SIGECLIN</h2>
+                    <p class="text-muted" style="font-size: 0.65rem; margin: 0;">Grocio Prado</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-grow-1 overflow-y-auto custom-scrollbar">
+            <!-- GENERAL -->
+            <div class="sidebar-category">Principal</div>
+            <a th:href="@{/dashboard}" class="sidebar-link">
+                <i class="bi bi-grid-1x2"></i> <span>DASHBOARD</span>
+            </a>
+
+            <!-- PRIMERA ATENCIÓN -->
+            <div class="sidebar-category" sec:authorize="hasAnyRole('ADMIN', 'ADMISION', 'CAJA', 'TRIAJE')">Primera Atención</div>
+            <a th:href="@{/admission/registro}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'ADMISION')">
+                <i class="bi bi-person-vcard"></i> <span>Admisión</span>
+            </a>
+            <a th:href="@{/caja/pago}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'CAJA')">
+                <i class="bi bi-wallet2"></i> <span>Caja (Pagos)</span>
+            </a>
+            <a th:href="@{/triaje/nuevo}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'TRIAJE')">
+                <i class="bi bi-heart-pulse"></i> <span>Triaje</span>
+            </a>
+
+            <!-- SERVICIOS MÉDICOS -->
+            <div class="sidebar-category" sec:authorize="hasAnyRole('ADMIN', 'ENFERMERIA', 'MEDICO_GENERAL', 'OBSTETRICIA', 'ODONTOLOGIA', 'PSICOLOGIA', 'NUTRICION')">Servicios Médicos</div>
+            <a th:href="@{/consulta/modulo/Enfermería}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'ENFERMERIA')">
+                <i class="bi bi-heart-pulse"></i> <span>Enfermería</span>
+            </a>
+            <a th:href="@{/consulta/modulo/Medicina General}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'MEDICO_GENERAL')">
+                <i class="bi bi-hospital"></i> <span>Medicina General</span>
+            </a>
+            <a th:href="@{/consulta/modulo/Obstetricia}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'OBSTETRICIA')">
+                <i class="bi bi-gender-female"></i> <span>Obstetricia</span>
+            </a>
+            <a th:href="@{/consulta/modulo/Odontología}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'ODONTOLOGIA')">
+                <i class="bi bi-brightness-high"></i> <span>Odontología</span>
+            </a>
+            <a th:href="@{/consulta/modulo/Psicología}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'PSICOLOGIA')">
+                <i class="bi bi-person-gear"></i> <span>Psicología</span>
+            </a>
+            <a th:href="@{/consulta/modulo/Nutrición}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'NUTRICION')">
+                <i class="bi bi-apple"></i> <span>Nutrición</span>
+            </a>
+
+            <!-- APOYO DIAGNÓSTICO -->
+            <div class="sidebar-category">Apoyo Diagnóstico</div>
+            <a th:href="@{/apoyo/laboratorio}" class="sidebar-link">
+                <i class="bi bi-search"></i> <span>Laboratorio</span>
+            </a>
+            <a th:href="@{/apoyo/farmacia}" class="sidebar-link">
+                <i class="bi bi-capsule"></i> <span>Farmacia</span>
+            </a>
+
+            <!-- GESTIÓN -->
+            <div class="sidebar-category">Gestión</div>
+            <a th:href="@{/personal/lista}" class="sidebar-link">
+                <i class="bi bi-people"></i> <span>Personal</span>
+            </a>
+            <a th:href="@{/pacientes/lista}" class="sidebar-link">
+                <i class="bi bi-person-lines-fill"></i> <span>Pacientes</span>
+            </a>
+        </nav>
+        
+        <div class="profile-footer d-flex align-items-center gap-3">
+            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase" 
+                 style="width: 38px; height: 38px;"
+                 th:text="${#authentication.name.substring(0,1)}">
+                U
+            </div>
+            <div class="flex-grow-1 overflow-hidden">
+                <div class="small fw-bold text-dark text-truncate" th:text="${#authentication.name}">Usuario</div>
+                <div class="text-muted" style="font-size: 0.65rem;" 
+                     th:text="${#authentication.authorities.isEmpty() ? 'SIN ROL' : #authentication.authorities[0].authority.replace('ROLE_', '').replace('_', ' ')}">
+                    Rol
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" class="ms-auto">
+                <button type="submit" class="btn btn-link p-0 text-muted">
+                    <i class="bi bi-box-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="main-wrapper" id="mainWrapper" th:fragment="main(pageTitle, content, modals)">
+        <header class="top-nav animate-fade-in">
+            <div>
+                <h1 class="fs-3 fw-800 mb-1" th:text="${pageTitle}">Title</h1>
+                <p class="text-muted small mb-0" th:if="${pageTitle == 'Dashboard'}">Grocio Prado</p>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4">
+                <button class="btn btn-link text-muted p-0 fs-5" id="themeToggle">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </button>
+                
+                <div class="d-flex gap-3 align-items-center">
+                    <div class="position-relative cursor-pointer"><i class="bi bi-bell text-muted fs-5"></i></div>
+                    <div class="cursor-pointer"><i class="bi bi-chat-dots text-muted fs-5"></i></div>
+                    <div class="vr mx-2 opacity-10"></div>
+                    <div class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-bold">Administrador</div>
+                </div>
+            </div>
+        </header>
+        
+        <div th:replace="${content}"></div>
+    </main>
+
+    <div id="modal-container">
+        <div th:if="${modals}" th:replace="${modals}"></div>
+    </div>
+
+    <footer th:fragment="footer">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+        
+        <!-- Robust Notification Handler -->
+        <div th:if="${success}" id="swal-success" th:data-message="${success}" style="display:none;"></div>
+        <div th:if="${error}" id="swal-error" th:data-message="${error}" style="display:none;"></div>
+        
+        <script th:inline="javascript">
+            function showNotifications() {
+                if (typeof Swal === 'undefined') {
+                    setTimeout(showNotifications, 200);
+                    return;
+                }
+
+                const successEl = document.getElementById('swal-success');
+                const errorEl = document.getElementById('swal-error');
+                const urlParams = new URLSearchParams(window.location.search);
+                const isSaved = urlParams.get('saved');
+                const hcParam = urlParams.get('hc');
+
+                if ((successEl && successEl.dataset.message) || isSaved) {
+                    const message = (successEl && successEl.dataset.message) 
+                                    ? successEl.dataset.message 
+                                    : ("Operación completada con éxito. " + (hcParam ? "HC: " + hcParam : ""));
+                                    
+                    Swal.fire({
+                        title: '¡Operación Exitosa!',
+                        text: message,
+                        icon: 'success',
+                        confirmButtonColor: '#4f46e5',
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+                }
+
+                if ((errorEl && errorEl.dataset.message) || urlParams.get('error')) {
+                    const message = (errorEl && errorEl.dataset.message) ? errorEl.dataset.message : "Ocurrió un error.";
+                    Swal.fire({
+                        title: 'Atención',
+                        text: message,
+                        icon: 'warning',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', showNotifications);
+        </script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const sidebar = document.getElementById('sidebar');
+                const mainWrapper = document.getElementById('mainWrapper');
+                const toggleBtn = document.getElementById('toggleSidebar');
+                const toggleIcon = document.getElementById('toggleIcon');
+                
+                if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                    if(sidebar) sidebar.classList.add('collapsed');
+                    if(mainWrapper) mainWrapper.classList.add('collapsed');
+                    if(toggleIcon) toggleIcon.classList.replace('bi-chevron-left', 'bi-chevron-right');
+                }
+
+                if(toggleBtn) {
+                    toggleBtn.addEventListener('click', function() {
+                        sidebar.classList.toggle('collapsed');
+                        mainWrapper.classList.toggle('collapsed');
+                        const isCollapsed = sidebar.classList.contains('collapsed');
+                        localStorage.setItem('sidebarCollapsed', isCollapsed);
+                        if (isCollapsed) {
+                            toggleIcon.classList.replace('bi-chevron-left', 'bi-chevron-right');
+                        } else {
+                            toggleIcon.classList.replace('bi-chevron-right', 'bi-chevron-left');
+                        }
+                    });
+                }
+
+                // Theme Toggle Logic
+                const themeToggle = document.getElementById('themeToggle');
+                const themeIcon = document.getElementById('themeIcon');
+                const currentTheme = localStorage.getItem('theme') || 'light';
+
+                if (currentTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    themeIcon.classList.replace('bi-moon-stars', 'bi-sun');
+                }
+
+                if (themeToggle) {
+                    themeToggle.addEventListener('click', () => {
+                        let theme = document.documentElement.getAttribute('data-theme');
+                        if (theme === 'dark') {
+                            document.documentElement.setAttribute('data-theme', 'light');
+                            themeIcon.classList.replace('bi-sun', 'bi-moon-stars');
+                            localStorage.setItem('theme', 'light');
+                        } else {
+                            document.documentElement.setAttribute('data-theme', 'dark');
+                            themeIcon.classList.replace('bi-moon-stars', 'bi-sun');
+                            localStorage.setItem('theme', 'dark');
+                        }
+                    });
+                }
+            });
+        </script>
+    </footer>
+</body>
+</html>

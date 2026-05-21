@@ -112,44 +112,7 @@ public class TriajeController {
                 triaje.setClasificacionUrgencia(triaje.getClasificacionUrgencia().toLowerCase());
             }
 
-            // --- LÓGICA DE ALERTAS CLÍNICAS (Protocolos MINSA/ESSALUD) ---
-            StringBuilder alertas = new StringBuilder();
-            
-            // 1. Presión Arterial (Normal: 90/60 - 120/80)
-            if (triaje.getPresionArterialSistolica() != null && triaje.getPresionArterialDiastolica() != null) {
-                if (triaje.getPresionArterialSistolica() >= 140 || triaje.getPresionArterialDiastolica() >= 90) {
-                    alertas.append("⚠️ HIPERTENSIÓN DETECTADA. ");
-                } else if (triaje.getPresionArterialSistolica() < 90 || triaje.getPresionArterialDiastolica() < 60) {
-                    alertas.append("⚠️ HIPOTENSIÓN DETECTADA. ");
-                }
-            }
-
-            // 2. Frecuencia Cardíaca (Normal: 60 - 100 bpm)
-            if (triaje.getFrecuenciaCardiaca() != null) {
-                if (triaje.getFrecuenciaCardiaca() > 100) alertas.append("⚠️ TAQUICARDIA. ");
-                else if (triaje.getFrecuenciaCardiaca() < 60) alertas.append("⚠️ BRADICARDIA. ");
-            }
-
-            // 3. Saturación de Oxígeno (Normal: >= 95%)
-            if (triaje.getSaturacionOxigeno() != null && triaje.getSaturacionOxigeno() < 95) {
-                alertas.append("⚠️ SATURACIÓN BAJA (HIPOXIA). ");
-            }
-
-            // 4. Temperatura (Normal: 36.5 - 37.5)
-            if (triaje.getTemperatura() != null) {
-                double temp = triaje.getTemperatura().doubleValue();
-                if (temp >= 38.0) alertas.append("⚠️ ESTADO FEBRIL. ");
-                else if (temp < 35.5) alertas.append("⚠️ HIPOTERMIA. ");
-            }
-
-            if (alertas.length() > 0) {
-                triaje.setAlertaClinica(true);
-                triaje.setDetalleAlerta(alertas.toString().trim());
-                log.warn(">>> [ALERTA CLINICA] DETECTADA: {}", triaje.getDetalleAlerta());
-            } else {
-                triaje.setAlertaClinica(false);
-                triaje.setDetalleAlerta(null);
-            }
+            // El servicio se encargará de evaluar y setear automáticamente las alertas clínicas (SRP)
 
             log.info(">>> [SIGECLIN] Guardando entidad Triaje...");
             triajeService.guardarTriaje(triaje);

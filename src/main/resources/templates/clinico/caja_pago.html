@@ -240,23 +240,80 @@
     </div>
 
     <style>
-        :root { --p-indigo: #4f46e5; --p-emerald: #10b981; --p-amber: #f59e0b; --p-rose: #ef4444; }
-        .card-medical-glass { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.08) !important; background: #fff; }
-        .card-medical-glass:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(79, 70, 229, 0.12) !important; border-color: var(--p-indigo) !important; }
-        .avatar-premium { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: linear-gradient(135deg, var(--p-indigo), #6366f1); color: white; }
-        .badge-hc { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; letter-spacing: 0.5px; }
-        .dot-active { width: 10px; height: 10px; background: var(--p-emerald); border-radius: 50%; box-shadow: 0 0 12px var(--p-emerald); }
-        .glass-info-card { padding: 14px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease; }
-        .glass-info-card label { display: block; font-size: 0.65rem; font-weight: 900; letter-spacing: 1.2px; margin-bottom: 6px; text-transform: uppercase; opacity: 0.8; }
-        .glass-info-card .data-value { font-size: 1.15rem; font-weight: 950; color: #0f172a; }
+        :root { 
+            --p-indigo: #4f46e5; 
+            --p-emerald: #0d9488; 
+            --p-amber: #d97706; 
+            --p-rose: #e11d48; 
+        }
+        .card-medical-glass { 
+            transition: var(--transition); 
+            border: 1px solid var(--glass-border) !important; 
+            background: var(--bg-card); 
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+        }
+        .card-medical-glass:hover { 
+            transform: translateY(-8px); 
+            box-shadow: var(--shadow-premium) !important; 
+            border-color: rgba(79, 70, 229, 0.25) !important; 
+        }
+        .avatar-premium { 
+            width: 56px; 
+            height: 56px; 
+            border-radius: 18px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 1.4rem; 
+            background: var(--primary-gradient); 
+            color: white; 
+        }
+        .badge-hc { 
+            background: rgba(148, 163, 184, 0.08); 
+            color: var(--text-muted); 
+            border: 1px solid rgba(148, 163, 184, 0.15); 
+            border-radius: 8px; 
+            font-size: 0.75rem; 
+            letter-spacing: 0.5px; 
+        }
+        .dot-active { 
+            width: 10px; 
+            height: 10px; 
+            background: var(--p-emerald); 
+            border-radius: 50%; 
+            box-shadow: 0 0 12px var(--p-emerald); 
+            animation: pulse 2s infinite;
+        }
+        .glass-info-card { 
+            padding: 14px; 
+            border-radius: 18px; 
+            border: 1px solid rgba(148, 163, 184, 0.12); 
+            transition: var(--transition); 
+        }
+        .glass-info-card label { 
+            display: block; 
+            font-size: 0.65rem; 
+            font-weight: 900; 
+            letter-spacing: 1.2px; 
+            margin-bottom: 6px; 
+            text-transform: uppercase; 
+            color: var(--text-muted);
+            opacity: 0.8; 
+        }
+        .glass-info-card .data-value { 
+            font-size: 1.15rem; 
+            font-weight: 950; 
+            color: var(--text-main); 
+        }
         .info-indigo { background: rgba(79, 70, 229, 0.08); border-left: 5px solid var(--p-indigo); }
-        .info-emerald { background: rgba(16, 185, 129, 0.08); border-left: 5px solid var(--p-emerald); }
-        .info-amber { background: rgba(245, 158, 11, 0.08); border-left: 5px solid var(--p-amber); }
-        .info-rose { background: rgba(239, 68, 68, 0.08); border-left: 5px solid var(--p-rose); }
+        .info-emerald { background: rgba(13, 148, 216, 0.08); border-left: 5px solid var(--p-emerald); }
+        .info-amber { background: rgba(217, 119, 6, 0.08); border-left: 5px solid var(--p-amber); }
+        .info-rose { background: rgba(225, 29, 72, 0.08); border-left: 5px solid var(--p-rose); }
         .status-pill { padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
-        .btn-premium { border: none; padding: 12px 28px; border-radius: 100px; font-weight: 950; font-size: 0.9rem; transition: all 0.3s ease; display: flex; align-items: center; letter-spacing: 0.5px; }
-        .btn-indigo { background: var(--p-indigo); color: white; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); }
-        .btn-indigo:hover { background: #4338ca; transform: scale(1.05); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.35); }
+        .btn-premium { border: none; padding: 12px 28px; border-radius: 100px; font-weight: 950; font-size: 0.9rem; transition: var(--transition); display: flex; align-items: center; letter-spacing: 0.5px; }
+        .btn-indigo { background: var(--primary-gradient); color: white !important; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2); }
+        .btn-indigo:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35); }
         .fw-950 { font-weight: 950; }
         .tracking-tighter { letter-spacing: -1px; }
     </style>

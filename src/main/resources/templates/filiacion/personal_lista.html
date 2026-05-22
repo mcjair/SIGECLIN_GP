@@ -1,26 +1,26 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: head(title='HMS - Gestión de Personal')}"></head>
+<head th:replace="~{layout :: head(title='SIGECLIN - Gestión de Personal')}"></head>
 <body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
     
-    <main th:replace="~{layout :: main(pageTitle='Gestión de Personal Médico', content=~{::#personal-content}, modals=~{::#modalPermisos})}">
+    <main th:replace="~{layout :: main(pageTitle='Gestión de Personal Médico', content=~{::#personal-content}, modals=~{::#modalPersonal})}">
         <div id="personal-content" class="animate-fade-in">
             
             <!-- SECCIÓN CABECERA -->
             <div class="card glass-panel-premium border-0 p-4 mb-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h4 class="fw-800 text-dark mb-1">Directorio de Personal Médico</h4>
+                        <h4 class="fw-800 mb-1" style="color: var(--text-main);">Directorio de Personal Médico</h4>
                         <p class="text-muted small mb-0">Gestión centralizada de profesionales, colegiaturas y permisos de acceso.</p>
                     </div>
-                    <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold">
+                    <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="abrirModalPersonal(null)">
                         <i class="bi bi-person-plus me-2"></i> Nuevo Personal
                     </button>
                 </div>
             </div>
 
-            <!-- Lista Lineal de Profesionales (Profesional por Profesional) -->
+            <!-- Lista Lineal de Profesionales -->
             <div class="d-flex flex-column gap-3 mb-5">
                 <div th:each="p : ${personalList}" class="card glass-panel-premium border-0 shadow-sm overflow-hidden animate-fade-in p-3 hover-scale transition-all">
                     <div class="row align-items-center">
@@ -33,29 +33,37 @@
                         </div>
                         <div class="col">
                             <div class="d-flex align-items-center gap-3 mb-1">
-                                <h5 class="fw-800 text-dark mb-0" th:text="${p.nombres + ' ' + p.apellidoPaterno}">Ricardo Gómez</h5>
-                                <span class="badge bg-success bg-opacity-10 text-success extra-small fw-800 px-3 rounded-pill">PERSONAL ACTIVO</span>
+                                <h5 class="fw-800 mb-0" style="color: var(--text-main);" th:text="${p.nombres + ' ' + p.apellidoPaterno}">Ricardo Gómez</h5>
+                                <span class="badge bg-success bg-opacity-10 text-success extra-small fw-800 px-3 rounded-pill"
+                                      th:if="${p.estadoLaboral == 'activo'}">ACTIVO</span>
+                                <span class="badge bg-danger bg-opacity-10 text-danger extra-small fw-800 px-3 rounded-pill"
+                                      th:unless="${p.estadoLaboral == 'activo'}">INACTIVO</span>
                             </div>
                             <div class="d-flex flex-wrap gap-4 text-muted extra-small fw-bold text-uppercase opacity-75">
-                                <span><i class="bi bi-card-text me-1 text-primary"></i> DNI: <span class="text-dark" th:text="${p.numeroDocumento}">00000000</span></span>
-                                <span><i class="bi bi-patch-check me-1 text-primary"></i> Colegiatura: <span class="text-dark" th:text="${p.numeroColegiatura != null ? p.numeroColegiatura : 'NO REGISTRADA'}">---</span></span>
+                                <span><i class="bi bi-card-text me-1 text-primary"></i> DNI: <span style="color: var(--text-main);" th:text="${p.numeroDocumento}">00000000</span></span>
+                                <span><i class="bi bi-patch-check me-1 text-primary"></i> Colegiatura: <span style="color: var(--text-main);" th:text="${p.numeroColegiatura != null ? p.numeroColegiatura : 'NO REGISTRADA'}">---</span></span>
                                 <span><i class="bi bi-briefcase me-1 text-primary"></i> Categoría: 
-                                    <span class="text-primary" th:text="${p.idTipoPersonal == 1 ? 'MÉDICO' : (p.idTipoPersonal == 2 ? 'ODONTÓLOGO' : (p.idTipoPersonal == 3 ? 'OBSTETRA' : (p.idTipoPersonal == 4 ? 'ENFERMERO' : 'ESPECIALISTA')))}">MÉDICO</span>
+                                    <span class="text-primary" th:text="${p.idTipoPersonal == 1 ? 'MÉDICO' : (p.idTipoPersonal == 2 ? 'ENFERMERO' : (p.idTipoPersonal == 3 ? 'OBSTETRA' : (p.idTipoPersonal == 4 ? 'ADMIN' : 'ESPECIALISTA')))}">MÉDICO</span>
                                 </span>
+                                <span><i class="bi bi-calendar me-1 text-primary"></i> Ingreso: <span style="color: var(--text-main);" th:text="${p.fechaIngreso}">---</span></span>
                             </div>
                         </div>
                         <div class="col-auto">
                             <div class="d-flex gap-2">
-                                <button class="btn btn-light rounded-pill px-4 py-2 fw-800 extra-small shadow-sm border" title="Ver Horarios">
-                                    <i class="bi bi-calendar3 me-2 text-primary"></i> HORARIOS
+                                <button class="btn btn-light rounded-pill px-4 py-2 fw-800 extra-small shadow-sm border" 
+                                        th:onclick="'abrirModalPersonal(' + ${p.idPersona} + ')'" title="Editar Personal">
+                                    <i class="bi bi-pencil me-2 text-primary"></i> EDITAR
                                 </button>
                                 <button class="btn btn-primary rounded-pill px-4 py-2 fw-800 extra-small shadow-glow border-0" 
                                         th:onclick="'abrirConfiguracionPermisos(' + ${p.idPersona} + ')'">
-                                    <i class="bi bi-shield-lock-fill me-2"></i> GESTIONAR PERMISOS
+                                    <i class="bi bi-shield-lock-fill me-2"></i> PERMISOS
                                 </button>
-                                <button class="btn btn-outline-danger rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" style="width: 38px; height: 38px;">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
+                                <form th:action="@{/personal/toggle-estado/{id}(id=${p.idPersona})}" method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline-warning rounded-circle p-0 d-flex align-items-center justify-content-center shadow-sm" 
+                                            style="width: 38px; height: 38px;" title="Cambiar Estado">
+                                        <i class="bi bi-toggle-on"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -70,13 +78,99 @@
         </div>
     </main>
 
+    <!-- MODAL PERSONAL (CREAR/EDITAR) -->
+    <div th:fragment="modalPersonal">
+        <div id="modalPersonal" class="modal fade" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
+                    <form th:action="@{/personal/guardar}" method="post">
+                        <div class="modal-header border-0 p-4 pb-0">
+                            <h5 class="modal-title fw-800" style="color: var(--text-main);">Registro de Personal</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-4">
+                            <input type="hidden" id="personalId" name="idPersona">
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Tipo Documento</label>
+                                    <select name="tipoDocumento.idTipoDocumento" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                        <option value="1">DNI</option>
+                                        <option value="2">CE</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">N° Documento</label>
+                                    <input type="text" name="numeroDocumento" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Colegiatura</label>
+                                    <input type="text" name="numeroColegiatura" class="form-control-premium w-100 rounded-3 p-2 fw-bold" placeholder="CMP-12345">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Nombres</label>
+                                    <input type="text" name="nombres" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Apellido Paterno</label>
+                                    <input type="text" name="apellidoPaterno" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Apellido Materno</label>
+                                    <input type="text" name="apellidoMaterno" class="form-control-premium w-100 rounded-3 p-2 fw-bold">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Sexo</label>
+                                    <select name="sexo" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                        <option value="M">Masculino</option>
+                                        <option value="F">Femenino</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Fecha Nacimiento</label>
+                                    <input type="date" name="fechaNacimiento" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Fecha Ingreso</label>
+                                    <input type="date" name="fechaIngreso" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Tipo Personal</label>
+                                    <select name="idTipoPersonal" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
+                                        <option value="1">MÉDICO</option>
+                                        <option value="2">ENFERMERO</option>
+                                        <option value="3">OBSTETRA</option>
+                                        <option value="4">ADMIN</option>
+                                        <option value="5">ESPECIALISTA</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Teléfono</label>
+                                    <input type="text" name="telefonoPrincipal" class="form-control-premium w-100 rounded-3 p-2 fw-bold">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label-premium">Email</label>
+                                    <input type="email" name="correoElectronico" class="form-control-premium w-100 rounded-3 p-2 fw-bold">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0 p-4 pt-0">
+                            <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">CANCELAR</button>
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-glow border-0">GUARDAR</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE PERMISOS -->
     <div th:fragment="modalPermisos">
         <div id="modalPermisos" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
                     <div class="modal-header border-0 p-4 pb-0">
-                        <h5 class="modal-title fw-800 text-dark">Configuración de Accesos</h5>
+                        <h5 class="modal-title fw-800" style="color: var(--text-main);">Configuración de Accesos</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-4">
@@ -87,7 +181,7 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="bg-primary-soft p-2 rounded-3 text-primary"><i class="bi bi-people"></i></div>
                                     <div>
-                                        <div class="fw-bold small text-dark">Módulo de Admisión</div>
+                                        <div class="fw-bold small" style="color: var(--text-main);">Módulo de Admisión</div>
                                         <div class="extra-small text-muted">Registro y búsqueda de pacientes</div>
                                     </div>
                                 </div>
@@ -99,7 +193,7 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="bg-info-soft p-2 rounded-3 text-info"><i class="bi bi-activity"></i></div>
                                     <div>
-                                        <div class="fw-bold small text-dark">Módulo de Consultas</div>
+                                        <div class="fw-bold small" style="color: var(--text-main);">Módulo de Consultas</div>
                                         <div class="extra-small text-muted">Atención médica y recetas</div>
                                     </div>
                                 </div>
@@ -111,7 +205,7 @@
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="bg-success-soft p-2 rounded-3 text-success"><i class="bi bi-cash-stack"></i></div>
                                     <div>
-                                        <div class="fw-bold small text-dark">Módulo de Caja</div>
+                                        <div class="fw-bold small" style="color: var(--text-main);">Módulo de Caja</div>
                                         <div class="extra-small text-muted">Cobros y liquidaciones</div>
                                     </div>
                                 </div>
@@ -134,7 +228,59 @@
 
     <div th:replace="~{layout :: footer}"></div>
     
-    <script>
+    <script th:inline="javascript">
+        const personalData = /*[[${personalList}]]*/ [];
+        
+        function abrirModalPersonal(id) {
+            const modalEl = document.getElementById('modalPersonal');
+            const modal = new bootstrap.Modal(modalEl);
+            const form = modalEl.querySelector('form');
+            
+            if (id !== null) {
+                fetch('/personal/api/' + id)
+                    .then(resp => resp.json())
+                    .then(p => {
+                        form.querySelector('[name="idPersona"]').value = p.idPersona || '';
+                        form.querySelector('[name="nombres"]').value = p.nombres || '';
+                        form.querySelector('[name="apellidoPaterno"]').value = p.apellidoPaterno || '';
+                        form.querySelector('[name="apellidoMaterno"]').value = p.apellidoMaterno || '';
+                        form.querySelector('[name="numeroDocumento"]').value = p.numeroDocumento || '';
+                        form.querySelector('[name="numeroColegiatura"]').value = p.numeroColegiatura || '';
+                        form.querySelector('[name="sexo"]').value = p.sexo || 'M';
+                        form.querySelector('[name="idTipoPersonal"]').value = p.idTipoPersonal || 1;
+                        form.querySelector('[name="telefonoPrincipal"]').value = p.telefonoPrincipal || '';
+                        form.querySelector('[name="correoElectronico"]').value = p.correoElectronico || '';
+                        if (p.tipoDocumento) {
+                            form.querySelector('[name="tipoDocumento.idTipoDocumento"]').value = p.tipoDocumento.idTipoDocumento || 1;
+                        }
+                        if (p.fechaNacimiento) {
+                            const fn = Array.isArray(p.fechaNacimiento) 
+                                ? new Date(p.fechaNacimiento[0], p.fechaNacimiento[1]-1, p.fechaNacimiento[2]).toISOString().split('T')[0]
+                                : p.fechaNacimiento.substring(0, 10);
+                            form.querySelector('[name="fechaNacimiento"]').value = fn;
+                        }
+                        if (p.fechaIngreso) {
+                            const fi = Array.isArray(p.fechaIngreso)
+                                ? new Date(p.fechaIngreso[0], p.fechaIngreso[1]-1, p.fechaIngreso[2]).toISOString().split('T')[0]
+                                : p.fechaIngreso.substring(0, 10);
+                            form.querySelector('[name="fechaIngreso"]').value = fi;
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error cargando personal:', err);
+                        Swal.fire('Error', 'No se pudo cargar los datos del personal.', 'error');
+                    });
+            } else {
+                form.querySelectorAll('input, select').forEach(el => {
+                    if (el.type !== 'submit' && el.type !== 'hidden') el.value = '';
+                });
+                modal.show();
+                return;
+            }
+            
+            modal.show();
+        }
+
         function abrirConfiguracionPermisos(id) {
             const modalEl = document.getElementById('modalPermisos');
             const modal = new bootstrap.Modal(modalEl);

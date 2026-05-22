@@ -65,7 +65,7 @@
                                     <label class="label-premium">PESO CORPORAL (Kg)</label>
                                     <div class="input-premium-icon">
                                         <i class="bi bi-weight"></i>
-                                        <input type="number" step="0.1" th:field="*{pesoKg}" id="peso" class="form-control-premium text-center" placeholder="0.0" required>
+                                        <input type="number" step="0.1" min="1.0" max="300.0" th:field="*{pesoKg}" id="peso" class="form-control-premium text-center" placeholder="0.0" required>
                                     </div>
                                 </div>
                                 
@@ -73,7 +73,7 @@
                                     <label class="label-premium">TALLA (Cm)</label>
                                     <div class="input-premium-icon">
                                         <i class="bi bi-rulers"></i>
-                                        <input type="number" step="1" th:field="*{tallaCm}" id="talla" class="form-control-premium text-center" placeholder="0" required>
+                                        <input type="number" step="1" min="30" max="250" th:field="*{tallaCm}" id="talla" class="form-control-premium text-center" placeholder="0" required>
                                     </div>
                                 </div>
 
@@ -101,12 +101,12 @@
                                 <label class="label-premium text-center d-block mb-3">PRESIÓN ARTERIAL (mmHg)</label>
                                 <div class="d-flex align-items-center justify-content-center gap-3">
                                     <div style="width: 140px;">
-                                        <input type="number" form="triajeForm" name="presionArterialSistolica" class="form-control-biometric" placeholder="120" required>
+                                        <input type="number" min="40" max="250" form="triajeForm" name="presionArterialSistolica" class="form-control-biometric" placeholder="120" required>
                                         <span class="extra-small d-block text-center mt-2 fw-bold text-muted">SISTÓLICA</span>
                                     </div>
                                     <div class="fs-1 text-muted opacity-25">/</div>
                                     <div style="width: 140px;">
-                                        <input type="number" form="triajeForm" name="presionArterialDiastolica" class="form-control-biometric" placeholder="80" required>
+                                        <input type="number" min="30" max="150" form="triajeForm" name="presionArterialDiastolica" class="form-control-biometric" placeholder="80" required>
                                         <span class="extra-small d-block text-center mt-2 fw-bold text-muted">DIASTÓLICA</span>
                                     </div>
                                 </div>
@@ -116,7 +116,7 @@
                                 <div class="col-md-4">
                                     <div class="vital-gadget-premium bg-white p-4 rounded-4 shadow-sm border border-light text-center h-100">
                                         <i class="bi bi-heart-fill text-danger mb-2 d-block"></i>
-                                        <input type="number" form="triajeForm" name="frecuenciaCardiaca" class="form-control-transparent-big" placeholder="72" required>
+                                        <input type="number" min="30" max="220" form="triajeForm" name="frecuenciaCardiaca" class="form-control-transparent-big" placeholder="72" required>
                                         <span class="extra-small fw-800 text-muted">FREC. CARDIACA (BPM)</span>
                                     </div>
                                 </div>
@@ -124,7 +124,7 @@
                                 <div class="col-md-4">
                                     <div class="vital-gadget-premium bg-white p-4 rounded-4 shadow-sm border border-light text-center h-100">
                                         <i class="bi bi-droplet-fill text-info mb-2 d-block"></i>
-                                        <input type="number" form="triajeForm" name="saturacionOxigeno" class="form-control-transparent-big" placeholder="98" required>
+                                        <input type="number" min="40" max="100" form="triajeForm" name="saturacionOxigeno" class="form-control-transparent-big" placeholder="98" required>
                                         <span class="extra-small fw-800 text-muted">SATURACIÓN (SpO2%)</span>
                                     </div>
                                 </div>
@@ -132,7 +132,7 @@
                                 <div class="col-md-4">
                                     <div class="vital-gadget-premium bg-white p-4 rounded-4 shadow-sm border border-light text-center h-100">
                                         <i class="bi bi-thermometer-half text-warning mb-2 d-block"></i>
-                                        <input type="number" step="0.1" form="triajeForm" name="temperatura" class="form-control-transparent-big" placeholder="36.5" required>
+                                        <input type="number" step="0.1" min="30.0" max="45.0" form="triajeForm" name="temperatura" class="form-control-transparent-big" placeholder="36.5" required>
                                         <span class="extra-small fw-800 text-muted">TEMPERATURA (°C)</span>
                                     </div>
                                 </div>
@@ -183,23 +183,26 @@
             </div>
 
             <style>
-                .glass-panel-premium { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); border-radius: 24px; }
-                .shadow-premium { box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
-                .label-premium { font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; display: block; }
+                .glass-panel-premium { background: var(--bg-card); backdrop-filter: blur(20px) saturate(180%); border-radius: 24px; }
+                .shadow-premium { box-shadow: var(--shadow-premium); }
+                .label-premium { font-size: 0.75rem; font-weight: 800; color: var(--primary); margin-bottom: 8px; display: block; letter-spacing: 0.5px; }
                 .form-control-premium, .form-select-premium { 
-                    background: linear-gradient(145deg, #f1f5f9, #ffffff); 
-                    border: 1px solid #e2e8f0; 
+                    background: rgba(255, 255, 255, 0.65); 
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid rgba(148, 163, 184, 0.18); 
                     border-radius: 12px; 
                     padding: 12px 18px; 
                     font-weight: 600; 
+                    color: var(--text-main);
                     width: 100%; 
                     outline: none; 
-                    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.02);
+                    transition: var(--transition);
                 }
-                .form-control-premium:focus { border-color: var(--primary); background: white; }
+                .form-control-premium:focus, .form-select-premium:focus { border-color: var(--primary); background: white; box-shadow: 0 0 0 4px var(--primary-glow); }
                 .form-control-biometric { 
-                    background: linear-gradient(145deg, #f8fafc, #ffffff); 
-                    border: 2px solid #e2e8f0; 
+                    background: rgba(255, 255, 255, 0.8); 
+                    border: 2px solid rgba(148, 163, 184, 0.18); 
                     border-radius: 16px; 
                     padding: 15px; 
                     font-size: 2rem; 
@@ -208,17 +211,18 @@
                     text-align: center; 
                     width: 100%; 
                     outline: none; 
-                    box-shadow: inset 3px 3px 6px rgba(0,0,0,0.03);
+                    transition: var(--transition);
                 }
-                .form-control-transparent-big { background: transparent; border: none; font-size: 2.2rem; font-weight: 800; color: var(--dark); text-align: center; width: 100%; outline: none; }
-                .bg-primary-soft { background: rgba(79, 70, 229, 0.08); }
-                .bg-danger-soft { background: rgba(239, 68, 68, 0.08); }
-                .bg-warning-soft { background: rgba(245, 158, 11, 0.08); }
+                .form-control-biometric:focus { border-color: var(--primary); background: white; box-shadow: var(--shadow-premium); }
+                .form-control-transparent-big { background: transparent; border: none; font-size: 2.2rem; font-weight: 800; color: var(--text-main); text-align: center; width: 100%; outline: none; transition: var(--transition); }
+                .bg-primary-soft { background: var(--primary-soft); }
+                .bg-danger-soft { background: rgba(225, 29, 72, 0.08); }
+                .bg-warning-soft { background: rgba(217, 119, 6, 0.08); }
                 .input-premium-icon { position: relative; }
                 .input-premium-icon i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
                 .input-premium-icon .form-control-premium { padding-left: 45px; }
                 .animate-pulse { animation: pulse 2s infinite; }
-                @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
+                @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.85; } 100% { transform: scale(1); opacity: 1; } }
             </style>
 
             <script th:inline="javascript">
@@ -234,10 +238,10 @@
                         const imc = (peso / (talla * talla)).toFixed(1);
                         imcValue.innerText = imc;
                         let label = "NORMAL";
-                        let color = "#10b981";
-                        if (imc < 18.5) { label = "BAJO PESO"; color = "#3b82f6"; }
-                        else if (imc >= 25 && imc < 30) { label = "SOBREPESO"; color = "#f59e0b"; }
-                        else if (imc >= 30) { label = "OBESIDAD"; color = "#ef4444"; }
+                        let color = "#0d9488"; // Teal premium
+                        if (imc < 18.5) { label = "BAJO PESO"; color = "#0891b2"; } // Cyan info
+                        else if (imc >= 25 && imc < 30) { label = "SOBREPESO"; color = "#d97706"; } // Amber warning
+                        else if (imc >= 30) { label = "OBESIDAD"; color = "#e11d48"; } // Rose danger
                         imcLabel.innerText = label;
                         imcLabel.style.backgroundColor = color;
                         imcLabel.style.color = "white";
@@ -281,6 +285,40 @@
 
                 pesoInput.addEventListener('input', calcularIMC);
                 tallaInput.addEventListener('input', calcularIMC);
+
+                // Interceptor de submit para validaciones de triaje del lado del cliente
+                document.getElementById('triajeForm').addEventListener('submit', function(e) {
+                    const peso = parseFloat(pesoInput.value);
+                    const talla = parseFloat(tallaInput.value);
+                    const sis = parseInt(document.getElementsByName('presionArterialSistolica')[0].value);
+                    const dia = parseInt(document.getElementsByName('presionArterialDiastolica')[0].value);
+                    const fc = parseInt(document.getElementsByName('frecuenciaCardiaca')[0].value);
+                    const sat = parseInt(document.getElementsByName('saturacionOxigeno')[0].value);
+                    const temp = parseFloat(document.getElementsByName('temperatura')[0].value);
+
+                    let errors = [];
+                    if (isNaN(peso) || peso < 1.0 || peso > 300.0) errors.push("El peso corporal debe estar comprendido entre 1.0 y 300.0 Kg.");
+                    if (isNaN(talla) || talla < 30 || talla > 250) errors.push("La talla debe estar comprendida entre 30 y 250 Cm.");
+                    if (isNaN(sis) || sis < 40 || sis > 250) errors.push("La presión arterial sistólica debe estar entre 40 y 250 mmHg.");
+                    if (isNaN(dia) || dia < 30 || dia > 150) errors.push("La presión arterial diastólica debe estar entre 30 y 150 mmHg.");
+                    if (isNaN(fc) || fc < 30 || fc > 220) errors.push("La frecuencia cardiaca debe estar entre 30 y 220 BPM.");
+                    if (isNaN(sat) || sat < 40 || sat > 100) errors.push("La saturación de oxígeno debe estar entre 40% y 100%.");
+                    if (isNaN(temp) || temp < 30.0 || temp > 45.0) errors.push("La temperatura corporal debe estar entre 30.0 y 45.0 °C.");
+
+                    if (errors.length > 0) {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: '<h4 class="fw-800 text-danger mb-0"><i class="bi bi-exclamation-octagon-fill me-2"></i>Datos fuera de Rango</h4>',
+                            html: '<div class="text-start p-3 bg-light rounded-4 border"><ul class="mb-0 text-muted small fw-bold">' + errors.map(err => `<li class="mb-2">${err}</li>`).join('') + '</ul></div>',
+                            confirmButtonText: 'CORREGIR DATOS',
+                            confirmButtonColor: '#ef4444',
+                            customClass: {
+                                popup: 'rounded-5 border-0 shadow-lg',
+                                confirmButton: 'rounded-pill px-4 fw-800'
+                            }
+                        });
+                    }
+                });
             </script>
         </div>
     </main>

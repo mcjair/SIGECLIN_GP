@@ -44,6 +44,7 @@ public class SystemInitializer implements CommandLineRunner {
             createRolesIfMissing();
             seedStaff();
             seedUsers();
+            seedMedicamentos();
             log.info(">>> [SIGECLIN] Sincronización Finalizada con Éxito.");
         } catch (Exception e) {
             log.error(">>> [SIGECLIN] ERROR CRITICO EN INICIALIZACION: {}", e.getMessage(), e);
@@ -67,6 +68,18 @@ public class SystemInitializer implements CommandLineRunner {
 
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS servicio_solicitado VARCHAR(50)");
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS referencia_direccion VARCHAR(255)");
+            
+            // Resolver inconsistencias de columnas heredadas no utilizadas de esquemas antiguos
+            try {
+                jdbcTemplate.execute("ALTER TABLE clinico.detalle_receta ALTER COLUMN duracion DROP NOT NULL");
+            } catch (Exception e) {
+                log.warn("No se pudo alterar la columna duracion en detalle_receta: {}", e.getMessage());
+            }
+            try {
+                jdbcTemplate.execute("ALTER TABLE clinico.detalle_receta ALTER COLUMN indicaciones DROP NOT NULL");
+            } catch (Exception e) {
+                log.warn("No se pudo alterar la columna indicaciones en detalle_receta: {}", e.getMessage());
+            }
         } catch (Exception e) {
             log.warn("No se pudo completar la consistencia de esquema: {}", e.getMessage());
         }
@@ -77,9 +90,11 @@ public class SystemInitializer implements CommandLineRunner {
         String[] tables = {
             "clinico.auditoria_acceso", "seguridad.sesion_log",
             "clinico.detalle_receta", "clinico.receta_medica",
+            "clinico.dispensacion", "clinico.lote_medicamento",
             "clinico.diagnostico_consulta", "clinico.consulta",
             "clinico.triaje", "clinico.alergia_paciente", "clinico.antecedente_paciente",
-            "filiacion.paciente", "filiacion.personal", "filiacion.tipo_documento", "filiacion.persona"
+            "filiacion.paciente", "filiacion.personal", "filiacion.tipo_documento", "filiacion.persona",
+            "maestras.catalogo_medicamentos", "maestras.familia_farmacologica", "maestras.via_administracion"
         };
         for (String table : tables) {
             try { jdbcTemplate.execute("TRUNCATE " + table + " CASCADE"); } catch (Exception e) {
@@ -197,6 +212,46 @@ public class SystemInitializer implements CommandLineRunner {
             } catch (Exception e) {
                 log.warn("No se pudo sincronizar secuencia {}: {}", seq, e.getMessage());
             }
+        }
+    }
+
+    private void seedMedicamentos() {
+        log.info(">>> [SIGECLIN] Sembrando Vías de Administración...");
+        jdbcTemplate.execute("INSERT INTO maestras.via_administracion (id_via_administracion, codigo, descripcion) VALUES (1, 'ORAL', 'Oral') ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.via_administracion (id_via_administracion, codigo, descripcion) VALUES (2, 'EV', 'Endovenosa') ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.via_administracion (id_via_administracion, codigo, descripcion) VALUES (3, 'IM', 'Intramuscular') ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.via_administracion (id_via_administracion, codigo, descripcion) VALUES (4, 'TOP', 'Tópica') ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.via_administracion (id_via_administracion, codigo, descripcion) VALUES (5, 'INH', 'Inhalatoria') ON CONFLICT DO NOTHING");
+
+        log.info(">>> [SIGECLIN] Sembrando Familias Farmacológicas...");
+        jdbcTemplate.execute("INSERT INTO maestras.familia_farmacologica (id_familia, codigo_atc, descripcion, activo) VALUES (1, 'N02B', 'Analgésicos y Antipiréticos', true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.familia_farmacologica (id_familia, codigo_atc, descripcion, activo) VALUES (2, 'J01C', 'Antibióticos Beta-lactámicos', true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.familia_farmacologica (id_familia, codigo_atc, descripcion, activo) VALUES (3, 'A02B', 'Medicamentos para Úlcera Péptica', true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.familia_farmacologica (id_familia, codigo_atc, descripcion, activo) VALUES (4, 'R03A', 'Adrenérgicos Inhalatorios', true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.familia_farmacologica (id_familia, codigo_atc, descripcion, activo) VALUES (5, 'M01A', 'Antiinflamatorios no Esteroideos (AINEs)', true) ON CONFLICT DO NOTHING");
+
+        log.info(">>> [SIGECLIN] Sembrando Catálogo de Medicamentos (MINSA)...");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (1, 'MED-001', 'PARACETAMOL', 'Paracetamol 500mg', 1, 'Tableta', '500mg', 10, true, true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (2, 'MED-002', 'IBUPROFENO', 'Ibuprofeno 400mg', 5, 'Tableta', '400mg', 10, true, true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (3, 'MED-003', 'AMOXICILINA', 'Amoxicilina 500mg', 2, 'Cápsula', '500mg', 10, true, true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (4, 'MED-004', 'OMEPRAZOL', 'Omeprazol 20mg', 3, 'Cápsula', '20mg', 10, true, true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (5, 'MED-005', 'SALBUTAMOL', 'Salbutamol Inhalador', 4, 'Aerosol', '100mcg/dosis', 5, true, true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (6, 'MED-006', 'DICLOFENACO', 'Diclofenaco Sódico', 5, 'Ampolla', '75mg/3ml', 10, true, true) ON CONFLICT DO NOTHING");
+        jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                             "VALUES (7, 'MED-007', 'LORATADINA', 'Loratadina 10mg', 1, 'Tableta', '10mg', 10, true, true) ON CONFLICT DO NOTHING");
+
+        try {
+            jdbcTemplate.execute("SELECT setval('maestras.via_administracion_id_via_administracion_seq', COALESCE((SELECT MAX(id_via_administracion) FROM maestras.via_administracion), 1))");
+            jdbcTemplate.execute("SELECT setval('maestras.familia_farmacologica_id_familia_seq', COALESCE((SELECT MAX(id_familia) FROM maestras.familia_farmacologica), 1))");
+            jdbcTemplate.execute("SELECT setval('maestras.catalogo_medicamentos_id_medicamento_seq', COALESCE((SELECT MAX(id_medicamento) FROM maestras.catalogo_medicamentos), 1))");
+        } catch (Exception e) {
+            log.warn("No se pudo sincronizar secuencias de tablas maestras: {}", e.getMessage());
         }
     }
 }

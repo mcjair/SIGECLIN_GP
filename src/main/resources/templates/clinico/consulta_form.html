@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head(title='SIGECLIN - Atención Médica')}"></head>
-<body class="bg-darker">
+<body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
     
     <main th:replace="~{layout :: main(pageTitle='Atención Médica', content=~{::#consulta-content}, modals=null)}">
-        <div id="consulta-content" class="animate-fade-in">
         <div id="consulta-content" class="animate-fade-in">
             <!-- Alerta Clínica de Triaje (Crítico - Posición Centrada Superior) -->
             <div th:if="${triaje.alertaClinica}" class="d-flex justify-content-center mb-4">
@@ -296,15 +295,6 @@
 
         </div>
     </main>
-    <style>
-        .alert-clinical-premium-centered { background: linear-gradient(135deg, #ef4444 0%, #7f1d1d 100%); border-radius: 16px; padding: 12px 30px; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .alert-icon-box { width: 45px; height: 45px; background: rgba(255, 255, 255, 0.15); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; }
-        .alert-label { color: rgba(255, 255, 255, 0.7); font-size: 0.65rem; font-weight: 800; letter-spacing: 1px; }
-        .alert-detail { font-size: 1.1rem; letter-spacing: -0.5px; }
-        .animate-pulse-glow { animation: pulse-glow-red 2s infinite; }
-        @keyframes pulse-glow-red { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-        .fw-950 { font-weight: 950; }
-        .bg-darker { background-color: #0f172a; }
-    </style>
+    <div th:replace="~{layout :: footer}"></div>
 </body>
 </html>

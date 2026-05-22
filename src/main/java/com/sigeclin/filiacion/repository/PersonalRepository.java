@@ -10,4 +10,6 @@ import com.sigeclin.filiacion.model.Personal;
 public interface PersonalRepository extends JpaRepository<Personal, Integer> {
 
     Optional<Personal> findByNumeroDocumento(String numeroDocumento);
+    
+    Optional<Personal> findByUsuarioUsername(String username);
 }

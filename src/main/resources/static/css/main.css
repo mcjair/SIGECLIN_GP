@@ -1,55 +1,94 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    /* HMS Premium Light System - Ultra Modern */
-    --bg-deep: #f8fafc;
-    --bg-card: rgba(255, 255, 255, 0.8);
-    --bg-sidebar: #ffffff;
+    /* HMS Premium Light System - Ultra Modern Redefined */
+    --bg-deep: #f1f5f9;
+    --bg-card: rgba(255, 255, 255, 0.55); /* Vidrio premium más translúcido */
+    --bg-sidebar: rgba(255, 255, 255, 0.8);
     
-    --primary: #4f46e5; /* Indigo Modern */
-    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    --primary-soft: #f5f3ff;
-    --primary-glow: rgba(79, 70, 229, 0.15);
+    --primary: #4f46e5;
+    --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #db2777 100%); /* Aurora gradient */
+    --primary-soft: rgba(79, 70, 229, 0.08);
+    --primary-glow: rgba(79, 70, 229, 0.12);
     
-    --success: #10b981;
-    --success-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    --warning: #f59e0b;
-    --danger: #ef4444;
-    --info: #0ea5e9;
+    /* Semantic Colors Calibrated */
+    --success: #0d9488; /* Teal premium */
+    --success-gradient: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+    --warning: #d97706; /* Amber cálido */
+    --danger: #e11d48;  /* Carmín/Rose premium */
+    --danger-gradient: linear-gradient(135deg, #e11d48 0%, #fb7185 100%);
+    --info: #0891b2;    /* Cyan elegante */
     
-    --text-main: #1e293b;
-    --text-muted: #64748b;
-    --text-dim: #94a3b8;
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --text-dim: #6b7b8f;
     
-    --border: rgba(226, 232, 240, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.4);
+    --border: rgba(148, 163, 184, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.55);
     
-    --radius-full: 50px;
-    --radius-xl: 32px;
-    --radius-lg: 20px;
-    --radius-md: 14px;
+    --radius-full: 9999px;
+    --radius-xl: 24px;
+    --radius-lg: 16px;
+    --radius-md: 12px;
     
     --font-main: 'Plus Jakarta Sans', sans-serif;
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
-    --shadow-md: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-    --shadow-premium: 0 15px 35px -5px rgba(79, 70, 229, 0.08);
+    --transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Curva fluida elástica */
+    --shadow-sm: 0 4px 10px rgba(15, 23, 42, 0.02);
+    --shadow-md: 0 12px 36px -4px rgba(15, 23, 42, 0.05);
+    --shadow-premium: 0 20px 40px -8px rgba(79, 70, 229, 0.08);
 }
 
 [data-theme="dark"] {
-    --bg-deep: #0f172a;
-    --bg-card: rgba(30, 41, 59, 0.7);
-    --bg-sidebar: #1e293b;
+    --bg-deep: #090f1d;
+    --bg-card: rgba(15, 23, 42, 0.5); /* Vidrio premium translúcido oscuro */
+    --bg-sidebar: rgba(15, 23, 42, 0.85);
     
     --primary: #818cf8;
-    --primary-soft: rgba(129, 140, 248, 0.1);
+    --primary-soft: rgba(129, 140, 248, 0.08);
+    --primary-gradient: linear-gradient(135deg, #818cf8 0%, #a78bfa 50%, #f472b6 100%);
+    
+    /* Semantic Colors Calibrated for Dark Mode */
+    --success: #14b8a6;
+    --warning: #f59e0b;
+    --danger: #fb7185;
+    --info: #22d3ee;
     
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --text-dim: #64748b;
     
-    --border: rgba(51, 65, 85, 0.5);
-    --glass-border: rgba(255, 255, 255, 0.05);
+    --border: rgba(255, 255, 255, 0.06);
+    --glass-border: rgba(255, 255, 255, 0.08);
+}
+
+/* Global Bootstrap Utility Overrides for Premium Dark Mode */
+[data-theme="dark"] .text-dark {
+    color: var(--text-main) !important;
+}
+[data-theme="dark"] .text-muted {
+    color: var(--text-muted) !important;
+}
+[data-theme="dark"] .text-dim {
+    color: var(--text-dim) !important;
+}
+[data-theme="dark"] .bg-white {
+    background-color: var(--bg-card) !important;
+}
+[data-theme="dark"] .bg-light {
+    background-color: rgba(15, 23, 42, 0.3) !important;
+}
+[data-theme="dark"] .border-light {
+    border-color: var(--glass-border) !important;
+}
+[data-theme="dark"] .border-top {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-theme="dark"] .border-bottom {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-theme="dark"] .card {
+    background-color: var(--bg-card) !important;
+    border-color: var(--glass-border) !important;
 }
 
 * {
@@ -64,6 +103,10 @@ body {
     font-family: var(--font-main);
     -webkit-font-smoothing: antialiased;
     min-height: 100dvh;
+}
+
+.bg-premium, .bg-deep {
+    background-color: var(--bg-deep) !important;
 }
 
 /* Sidebar Styling - Light & Clean */
@@ -211,19 +254,19 @@ body {
 /* Premium Cards with Glassmorphism */
 .card {
     background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-lg);
     padding: 1.8rem;
     transition: var(--transition);
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
 }
 
 .card:hover {
-    transform: translateY(-6px) scale(1.01);
-    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.08), 0 18px 36px -18px rgba(0, 0, 0, 0.1);
-    border-color: var(--primary-glow);
+    transform: translateY(-6px);
+    box-shadow: var(--shadow-premium);
+    border-color: rgba(79, 70, 229, 0.2);
 }
 
 .bg-gradient-primary {
@@ -283,17 +326,20 @@ body {
 
 /* Buttons */
 .btn-primary {
-    background: var(--primary);
+    background: var(--primary-gradient);
     border: none;
     padding: 10px 24px;
     border-radius: var(--radius-md);
     font-weight: 700;
+    color: white;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    transition: var(--transition);
 }
 
 .btn-primary:hover {
-    background: #1d4ed8;
+    opacity: 0.95;
     transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);
+    box-shadow: 0 8px 20px rgba(79, 70, 229, 0.35);
 }
 
 /* Profile Section Sidebar */
@@ -366,8 +412,10 @@ body {
 }
 
 .input-premium {
-    background: linear-gradient(145deg, #f1f5f9, #ffffff);
-    border: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(148, 163, 184, 0.18);
     border-radius: var(--radius-full);
     padding: 14px 24px;
     font-size: 0.95rem;
@@ -375,19 +423,64 @@ body {
     transition: var(--transition);
     width: 100%;
     outline: none;
-    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.03), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .input-premium {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 .input-premium:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 4px var(--primary-glow), inset 1px 1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 0 0 4px var(--primary-glow);
     background: white;
+}
+
+[data-theme="dark"] .input-premium:focus {
+    background: rgba(15, 23, 42, 0.85);
 }
 
 .input-premium::placeholder {
     color: #cbd5e1;
     opacity: 0.3;
     font-weight: 400;
+}
+
+/* Form Control Premium - Global Base */
+.form-control-premium {
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-main);
+    width: 100%;
+    outline: none;
+    transition: var(--transition);
+}
+.form-control-premium:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-glow);
+    background: white;
+}
+[data-theme="dark"] .form-control-premium {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .form-control-premium:focus {
+    background: rgba(15, 23, 42, 0.85);
+}
+
+.form-label-premium {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-left: 12px;
+    margin-bottom: 8px;
+    display: block;
 }
 
 .input-premium-icon {
@@ -1036,6 +1129,157 @@ body {
     box-shadow: 0 8px 20px rgba(239, 68, 68, 0.2) !important;
 }
 
+/* Hardcoded Colors - Dark Mode Overrides */
+[data-theme="dark"] .vital-gauge-ring {
+    background: rgba(15, 23, 42, 0.5);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .vital-row {
+    background: rgba(15, 23, 42, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-theme="dark"] .nav-tabs-premium {
+    background: rgba(255, 255, 255, 0.03);
+}
+[data-theme="dark"] .nav-tabs-premium .nav-link.active {
+    background: rgba(15, 23, 42, 0.5) !important;
+    color: var(--primary) !important;
+}
+[data-theme="dark"] .bg-primary-subtle { background: var(--primary-soft) !important; color: var(--primary) !important; }
+[data-theme="dark"] .bg-success-subtle { background: rgba(16, 185, 129, 0.1) !important; color: var(--success) !important; }
+[data-theme="dark"] .bg-danger-subtle { background: rgba(239, 68, 68, 0.1) !important; color: var(--danger) !important; }
+[data-theme="dark"] .clinical-card {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: var(--glass-border);
+}
+[data-theme="dark"] .receipt-panel {
+    background: rgba(15, 23, 42, 0.5);
+}
+[data-theme="dark"] .payment-method-card {
+    border-color: var(--glass-border);
+}
+[data-theme="dark"] .glass-panel-premium {
+    background: rgba(15, 23, 42, 0.35) !important;
+    border-color: var(--glass-border) !important;
+}
+
+/* Premium Form Controls - Dark Mode Overrides */
+[data-theme="dark"] .form-control-premium,
+[data-theme="dark"] .form-select-premium {
+    background: rgba(15, 23, 42, 0.4);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .form-control-premium:focus,
+[data-theme="dark"] .form-select-premium:focus {
+    background: rgba(15, 23, 42, 0.85);
+}
+[data-theme="dark"] .form-control-biometric {
+    background: rgba(15, 23, 42, 0.5);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .form-control-biometric:focus {
+    background: rgba(15, 23, 42, 0.85);
+}
+
+/* Gradient Button Dark Overrides */
+[data-theme="dark"] .btn-cyan-grad {
+    background: linear-gradient(135deg, #22d3ee, #0891b2);
+}
+[data-theme="dark"] .btn-emerald-grad {
+    background: linear-gradient(135deg, #34d399, #059669);
+}
+[data-theme="dark"] .btn-indigo-grad {
+    background: linear-gradient(135deg, #818cf8, #4f46e5);
+}
+[data-theme="dark"] .btn-amber-grad {
+    background: linear-gradient(135deg, #fbbf24, #d97706);
+}
+
+/* Alert Clinical Premium Dark Override */
+[data-theme="dark"] .alert-clinical-premium-detail {
+    color: #fca5a5;
+}
+
+/* Dashboard Hardcoded Color Overrides */
+[data-theme="dark"] .stat-trend-indicator[style*="#7c3aed"] {
+    background: rgba(167, 139, 250, 0.15) !important;
+    color: #a78bfa !important;
+}
+[data-theme="dark"] .stat-trend-indicator[style*="#d97706"] {
+    background: rgba(251, 191, 36, 0.15) !important;
+    color: #fbbf24 !important;
+}
+[data-theme="dark"] .progress-bar-fill[style*="#7c3aed"] {
+    background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%) !important;
+}
+
+/* Search panel bg-white in dark mode */
+[data-theme="dark"] .bg-white.bg-opacity-50,
+[data-theme="dark"] .search-container.bg-white {
+    background: var(--bg-card) !important;
+}
+
+/* Triaje search bg override */
+[data-theme="dark"] .card-medical-glass.bg-white {
+    background: var(--bg-card) !important;
+    border-color: var(--glass-border) !important;
+}
+
+/* Dashboard SVG Chart Dark Overrides */
+[data-theme="dark"] #pG stop {
+    stop-color: #818cf8;
+}
+[data-theme="dark"] #chartPathMain {
+    stroke: #818cf8;
+}
+
+/* Dashboard progress-bar-fill dark mode (generic) */
+[data-theme="dark"] .progress-bar-fill:not([style*="background"]) {
+    background: var(--primary-gradient) !important;
+}
+
+/* SweetAlert2 Dark Mode */
+[data-theme="dark"] .swal2-popup {
+    background: var(--bg-card) !important;
+}
+[data-theme="dark"] .swal2-title {
+    color: var(--text-main) !important;
+}
+[data-theme="dark"] .swal2-html-container {
+    color: var(--text-muted) !important;
+}
+
+/* Triaje Busqueda Dark Overrides */
+[data-theme="dark"] .card-medical-glass {
+    background: var(--bg-card) !important;
+    border-color: var(--glass-border) !important;
+}
+[data-theme="dark"] .badge-hc {
+    background: rgba(15, 23, 42, 0.5) !important;
+    color: var(--text-muted) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+[data-theme="dark"] .glass-info-card .data-value {
+    color: var(--text-main) !important;
+}
+[data-theme="dark"] .glass-info-card {
+    border-color: rgba(255, 255, 255, 0.06) !important;
+}
+[data-theme="dark"] .status-pill.status-waiting {
+    background: rgba(79, 70, 229, 0.15) !important;
+    color: var(--primary) !important;
+}
+
+/* Caja Pago Dark Overrides */
+[data-theme="dark"] .receipt-preview.bg-white {
+    background: var(--bg-card) !important;
+}
+
+/* Patients List Dark Overrides */
+[data-theme="dark"] .bg-white.bg-opacity-50.rounded-4 {
+    background: var(--bg-card) !important;
+}
+
 /* ==========================================
    SIGECLIN ULTRA-PREMIUM REDESIGN DASHBOARD
    ========================================== */
@@ -1082,22 +1326,22 @@ body {
 }
 
 .icon-purple-gradient {
-    background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
-    box-shadow: 0 8px 20px -4px rgba(124, 58, 237, 0.3);
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+    box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.35);
 }
 
 .icon-blue-gradient {
-    background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
-    box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+    box-shadow: 0 8px 20px -4px rgba(2, 132, 199, 0.3);
 }
 
 .icon-emerald-gradient {
-    background: linear-gradient(135deg, #059669 0%, #34d399 100%);
-    box-shadow: 0 8px 20px -4px rgba(5, 150, 105, 0.3);
+    background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%);
+    box-shadow: 0 8px 20px -4px rgba(13, 148, 136, 0.3);
 }
 
 .icon-amber-gradient {
-    background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+    background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
     box-shadow: 0 8px 20px -4px rgba(217, 119, 6, 0.3);
 }
 
@@ -1201,12 +1445,40 @@ body {
     height: 10px;
     border-radius: 50%;
     background: var(--success);
-    box-shadow: 0 0 10px var(--success), 0 0 20px var(--success);
+    box-shadow: 0 0 8px var(--success), 0 0 16px var(--success);
+    animation: neon-pulse 2s infinite ease-in-out;
 }
 
 .neon-dot.inactive {
     background: var(--danger);
-    box-shadow: 0 0 10px var(--danger), 0 0 20px var(--danger);
+    box-shadow: 0 0 8px var(--danger), 0 0 16px var(--danger);
+    animation: neon-pulse-inactive 2s infinite ease-in-out;
+}
+
+@keyframes neon-pulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.85;
+        box-shadow: 0 0 6px var(--success), 0 0 12px var(--success);
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+        box-shadow: 0 0 12px var(--success), 0 0 24px var(--success);
+    }
+}
+
+@keyframes neon-pulse-inactive {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.85;
+        box-shadow: 0 0 6px var(--danger), 0 0 12px var(--danger);
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+        box-shadow: 0 0 12px var(--danger), 0 0 24px var(--danger);
+    }
 }
 
 /* Dashboard Grids & Layouts */

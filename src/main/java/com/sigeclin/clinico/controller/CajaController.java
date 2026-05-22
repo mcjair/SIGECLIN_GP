@@ -1,8 +1,12 @@
 package com.sigeclin.clinico.controller;
 
 import com.sigeclin.filiacion.model.Paciente;
+import com.sigeclin.filiacion.model.Usuario;
+import com.sigeclin.filiacion.repository.UsuarioRepository;
 import com.sigeclin.filiacion.service.PacienteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Controller
@@ -18,6 +23,8 @@ import java.util.Optional;
 public class CajaController {
 
     private final PacienteService pacienteService;
+    private final UsuarioRepository usuarioRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     @GetMapping("/pago")
     public String mostrarPago(@RequestParam(required = false) String hc, 
@@ -66,13 +73,36 @@ public class CajaController {
     public String procesarPago(@RequestParam Integer idPaciente, 
                                @RequestParam String hc, 
                                @RequestParam(required = false) String servicio, 
+                               @RequestParam(defaultValue = "50.00") java.math.BigDecimal monto,
+                               @RequestParam(defaultValue = "EFECTIVO") String tipoPago,
+                               @RequestParam(required = false) String concepto,
+                               Authentication authentication,
                                org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         System.out.println("Caja - Procesando pago para Paciente ID: " + idPaciente + " - HC: " + hc);
         
-        // Cambiar estado del paciente para que aparezca en Triaje
-        pacienteService.actualizarEstado(idPaciente, "PENDIENTE_TRIAJE");
-        
-        redirectAttributes.addFlashAttribute("success", "Pago procesado correctamente. El paciente ha sido derivado a Triaje.");
+        try {
+            // Obtener el usuario autenticado
+            Usuario usuario = usuarioRepository.findByUsername(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+            // Generar concepto y número de comprobante
+            String conceptoFinal = (concepto != null && !concepto.isEmpty()) ? concepto : ("Atención en " + (servicio != null ? servicio : "Consulta"));
+            String numeroComprobante = "C-" + LocalDate.now().getYear() + "-" + String.format("%06d", (int)(Math.random() * 1000000));
+
+            // Insertar el registro de pago en pago_log
+            jdbcTemplate.update(
+                "INSERT INTO clinico.pago_log (id_paciente, id_usuario, monto, tipo_pago, concepto, numero_comprobante) VALUES (?, ?, ?, ?, ?, ?)",
+                idPaciente, usuario.getIdPersona(), monto, tipoPago.toUpperCase(), conceptoFinal, numeroComprobante
+            );
+            
+            // Cambiar estado del paciente para que aparezca en Triaje
+            pacienteService.actualizarEstado(idPaciente, "PENDIENTE_TRIAJE");
+            
+            redirectAttributes.addFlashAttribute("success", "Pago procesado correctamente. El paciente ha sido derivado a Triaje.");
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Error al procesar el pago: " + e.getMessage());
+        }
         
         return "redirect:/caja/pago"; 
     }

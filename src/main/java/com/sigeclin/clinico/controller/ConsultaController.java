@@ -43,6 +43,7 @@ public class ConsultaController {
     private final TriajeRepository triajeRepository;
     private final ConsultaRepository consultaRepository;
     private final com.sigeclin.maestras.service.Cie10Service cie10Service;
+    private final com.sigeclin.filiacion.repository.PersonalRepository personalRepository;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .disable(com.fasterxml.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS);
@@ -128,16 +129,23 @@ public class ConsultaController {
                 List<AlergiaPaciente> alergias = alergiaRepository.findByPacienteIdPersonaAndActivaTrue(paciente.getIdPersona());
                 model.addAttribute("alergias", alergias != null ? alergias : new ArrayList<>());
 
+                // Obtener médico logueado (Personal)
+                String username = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+                com.sigeclin.filiacion.model.Personal medicoLogueado = personalRepository.findByUsuarioUsername(username).orElse(null);
+                model.addAttribute("medicoLogueado", medicoLogueado);
+
                 try {
                     // Serialización segura para JS
                     model.addAttribute("historialJson", objectMapper.writeValueAsString(historial != null ? historial : new ArrayList<>()));
                     model.addAttribute("pacienteJson", objectMapper.writeValueAsString(paciente));
                     model.addAttribute("triajeJson", objectMapper.writeValueAsString(triaje));
+                    model.addAttribute("medicoJson", objectMapper.writeValueAsString(medicoLogueado));
                 } catch (Exception e) {
                     log.error("Error serializando datos: {}", e.getMessage());
                     model.addAttribute("historialJson", "[]");
                     model.addAttribute("pacienteJson", "{}");
                     model.addAttribute("triajeJson", "{}");
+                    model.addAttribute("medicoJson", "null");
                 }
             }
             

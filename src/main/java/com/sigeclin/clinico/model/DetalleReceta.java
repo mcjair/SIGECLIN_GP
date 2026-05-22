@@ -10,6 +10,7 @@ import lombok.Data;
 public class DetalleReceta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_detalle")
     private Integer idDetalleReceta;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,11 +27,18 @@ public class DetalleReceta {
     @Column(nullable = false)
     private String frecuencia;
 
-    @Column(nullable = false)
-    private String duracion;
+    @Column(name = "duracion_dias", nullable = false)
+    private Integer duracionDias;
 
-    @Column(nullable = false)
+    @Column(name = "cantidad_total", nullable = false)
     private Integer cantidadTotal;
 
-    private String indicaciones;
+    @Column(name = "id_via_administracion", nullable = false)
+    private Integer idViaAdministracion = 1; // Default to 1 (Oral)
+
+    @Column(name = "indicaciones_adicionales")
+    private String indicacionesAdicionales;
+
+    @Column(name = "estado_dispensacion")
+    private String estadoDispensacion = "pendiente";
 }

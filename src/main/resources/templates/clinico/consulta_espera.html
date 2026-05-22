@@ -65,7 +65,7 @@
                             </div>
                             <span class="extra-small text-muted fw-bold text-uppercase opacity-50" style="font-size: 0.65rem;">Signos Vitales Actuales</span>
                         </div>
-                        <div class="card-body p-3 pt-0 overflow-hidden d-flex flex-column justify-content-between">
+                        <div class="card-body p-3 pt-0 overflow-hidden d-flex flex-column justify-content-start gap-3">
                             <!-- Dashboard de Triaje (Diseño Premium Circular Compacto) -->
                             <div class="triaje-circular mb-2">
                                 <!-- PRESIÓN ARTERIAL -->
@@ -128,15 +128,15 @@
                                 <!-- CLASIFICACIÓN DE URGENCIA -->
                                 <div class="vital-row d-flex align-items-center gap-3 mb-2 p-2 px-3 rounded-4 bg-white shadow-sm border border-light">
                                     <div class="vital-gauge-ring" 
-                                         th:classappend="${triaje?.clasificacionUrgencia == 'ROJO' ? 'vital-danger' : (triaje?.clasificacionUrgencia == 'NARANJA' ? 'vital-warning' : 'vital-success')}">
+                                         th:classappend="${triaje?.clasificacionUrgencia == 'rojo' or triaje?.clasificacionUrgencia == 'ROJO' ? 'vital-danger' : (triaje?.clasificacionUrgencia == 'naranja' or triaje?.clasificacionUrgencia == 'NARANJA' ? 'vital-warning' : 'vital-success')}">
                                         <i class="bi bi-exclamation-triangle fs-5"></i>
                                     </div>
                                     <div class="flex-grow-1">
                                         <span class="extra-small fw-800 text-muted d-block text-uppercase mb-0" style="font-size: 0.6rem;">URGENCIA</span>
-                                        <div class="fw-800 text-dark fs-6 leading-tight" th:text="${triaje?.clasificacionUrgencia ?: 'NORMAL'}">NORMAL</div>
+                                        <div class="fw-800 text-dark fs-6 leading-tight" th:text="${triaje?.clasificacionUrgencia != null ? triaje.clasificacionUrgencia.toUpperCase() : 'NORMAL'}">NORMAL</div>
                                         <span class="extra-small fw-bold" style="font-size: 0.65rem;"
-                                              th:classappend="${triaje?.clasificacionUrgencia == 'ROJO' ? 'text-danger' : (triaje?.clasificacionUrgencia == 'NARANJA' ? 'text-warning' : 'text-success')}"
-                                              th:text="${triaje?.clasificacionUrgencia == 'ROJO' ? 'Crítico / Emergencia' : (triaje?.clasificacionUrgencia == 'NARANJA' ? 'Prioridad Media' : 'Estable / Control')}">Estable</span>
+                                              th:classappend="${triaje?.clasificacionUrgencia == 'rojo' or triaje?.clasificacionUrgencia == 'ROJO' ? 'text-danger' : (triaje?.clasificacionUrgencia == 'naranja' or triaje?.clasificacionUrgencia == 'NARANJA' ? 'text-warning' : 'text-success')}"
+                                              th:text="${triaje?.clasificacionUrgencia == 'rojo' or triaje?.clasificacionUrgencia == 'ROJO' ? 'Crítico / Emergencia' : (triaje?.clasificacionUrgencia == 'naranja' or triaje?.clasificacionUrgencia == 'NARANJA' ? 'Prioridad Media' : 'Estable / Control')}">Estable</span>
                                     </div>
                                 </div>
                             </div>
@@ -184,14 +184,12 @@
                             <!-- TAB 1: REGISTRO CLÍNICO -->
                             <div class="tab-pane fade show active animate-fade-in h-100" id="registro-pane" role="tabpanel" aria-labelledby="registro-tab" tabindex="0">
                                 <div class="d-flex flex-column h-100 gap-2">
-                                    <div class="flex-shrink-0">
-                                        <label class="label-premium text-primary d-flex align-items-center gap-2 mb-1"><i class="bi bi-chat-dots-fill"></i> MOTIVO DE CONSULTA</label>
-                                        <input type="text" id="atencionMotivo" class="form-control bg-light border-0 py-2 px-3 rounded-3 fw-bold w-100" placeholder="Ej: Dolor abdominal o cefalea..." style="font-size: 0.95rem; font-weight: 600;">
-                                    </div>
+                                    <!-- Unified Clinical Registry: Motivo is kept as a hidden field synchronized with Anamnesis -->
+                                    <input type="hidden" id="atencionMotivo">
                                     
-                                    <div class="flex-grow-1 d-flex flex-column">
+                                    <div class="flex-grow-1 d-flex flex-column" style="min-height: 120px;">
                                         <label class="label-premium text-primary d-flex align-items-center gap-2 mb-1"><i class="bi bi-clipboard-pulse"></i> ANAMNESIS</label>
-                                        <textarea id="atencionAnamnesis" class="form-control bg-light border-0 p-2 px-3 fw-bold rounded-3 w-100 shadow-sm flex-grow-1" placeholder="Detalle de síntomas, antecedentes y evolución del paciente..." style="font-size: 0.95rem; font-weight: 600; resize: none; min-height: 80px;"></textarea>
+                                        <textarea id="atencionAnamnesis" class="form-control bg-light border-0 p-2 px-3 fw-bold rounded-3 w-100 shadow-sm flex-grow-1" placeholder="Detalle de síntomas, antecedentes y evolución del paciente..." style="font-size: 0.95rem; font-weight: 600; resize: none; min-height: 120px;"></textarea>
                                     </div>
                                     
                                     <div class="flex-grow-1 d-flex flex-column">
@@ -269,16 +267,19 @@
                             </div>
                         </div>
 
-                        <div class="card-body p-3 flex-grow-1 overflow-hidden d-flex flex-column" id="bodyAtencion" style="background-color: #ffffff;">
+                        <div class="card-body p-3 flex-grow-1 overflow-hidden d-flex flex-column" id="bodyAtencion" style="background-color: var(--bg-card);">
                             <!-- PANEL DE ENTRADA (Arriba) -->
                             <div class="pb-2 border-bottom flex-shrink-0">
                                 <!-- CIE-10 Panel -->
                                 <div class="mb-3">
                                     <label class="label-premium text-primary mb-1.5 d-flex align-items-center gap-2"><i class="bi bi-search"></i> DIAGNÓSTICO (CIE-10)</label>
-                                    <div class="position-relative">
+                                    <div class="position-relative mb-2">
                                         <input type="text" id="cie10Search" class="form-control bg-light border-0 py-2 px-3 rounded-3 fw-bold small w-100" placeholder="Ej: A000 - Cólera..." autocomplete="off" style="font-size: 0.85rem;">
                                         <div id="cie10Results" class="position-absolute w-100 bg-white border rounded-3 mt-1 shadow-lg overflow-y-auto custom-scrollbar" style="max-height: 200px; z-index: 100; display: none;"></div>
                                     </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill w-100 py-1.5 fw-bold d-flex align-items-center justify-content-center gap-1 shadow-sm transition-all" onclick="addDiagnostico()" style="font-size: 0.78rem;">
+                                        <i class="bi bi-plus-circle-fill"></i> INGRESAR DX
+                                    </button>
                                 </div>
 
                                 <hr class="my-2 opacity-10">
@@ -316,8 +317,13 @@
                                 <input type="hidden" id="triajeIdHidden" th:value="${triaje.idTriaje}">
                             </div>
 
-                            <!-- PANEL DE RECETA (Abajo) -->
-                            <div class="flex-grow-1 pt-3 overflow-y-auto custom-scrollbar" id="itemsList" style="min-height: 120px;">
+                            <!-- PANEL DE DETALLES (Abajo) -->
+                            <div class="flex-grow-1 pt-2 overflow-y-auto custom-scrollbar d-flex flex-column gap-3" id="detailsListContainer" style="min-height: 120px;">
+                                <!-- Diagnósticos List -->
+                                <div id="diagnosticosList"></div>
+                                
+                                <!-- Prescripción List -->
+                                <div id="itemsList"></div>
                             </div>
                         </div>
 
@@ -341,25 +347,61 @@
 
             <style>
                 .tab-content > .tab-pane.active { display: flex !important; flex-direction: column; height: 100%; }
-                .glass-panel-premium { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border-radius: 20px; }
-                .triaje-item { transition: var(--transition); border: 1px solid transparent; }
-                .triaje-item:hover { transform: translateY(-3px); border-color: var(--primary-glow); }
-                .timeline-dot { position: absolute; left: -7px; top: 15px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; z-index: 2; }
+                .glass-panel-premium { background: var(--bg-card); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border-radius: 20px; border: 1px solid var(--glass-border); }
+                .triaje-item { transition: var(--transition); border: 1px solid rgba(148, 163, 184, 0.12); }
+                .triaje-item:hover { transform: translateY(-3px); border-color: rgba(79, 70, 229, 0.25); }
+                .timeline-dot { position: absolute; left: -7px; top: 15px; width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--bg-card); z-index: 2; }
                 .hover-scale:hover { transform: scale(1.03); }
-                .shadow-premium { box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+                .shadow-premium { box-shadow: var(--shadow-premium); }
                 .tracking-wider { letter-spacing: 1px; }
                 .label-premium { font-size: 0.85rem; font-weight: 800; color: var(--primary); margin-bottom: 4px; display: block; letter-spacing: 0.5px; }
-                .form-control-premium { background: white; border: 1px solid #f1f5f9; border-radius: 12px; padding: 12px 18px; font-size: 0.9rem; font-weight: 600; width: 100%; outline: none; transition: all 0.3s; }
-                .form-control-premium:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
+                .form-control-premium { 
+                    background: rgba(255, 255, 255, 0.65); 
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid rgba(148, 163, 184, 0.18); 
+                    border-radius: 12px; 
+                    padding: 12px 18px; 
+                    font-size: 0.9rem; 
+                    font-weight: 600; 
+                    color: var(--text-main);
+                    width: 100%; 
+                    outline: none; 
+                    transition: var(--transition); 
+                }
+                .form-control-premium:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); background: white; }
                 .input-premium-icon { position: relative; }
                 .input-premium-icon i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
-                .input-premium-icon .input-premium { padding-left: 45px; width: 100%; background: white; border: 1px solid #f1f5f9; border-radius: 12px; padding-top: 12px; padding-bottom: 12px; font-weight: 600; outline: none; transition: all 0.3s; }
-                .input-premium-icon .input-premium:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); }
-                .bg-primary-soft { background: rgba(79, 70, 229, 0.08); }
-                .bg-success-soft { background: rgba(16, 185, 129, 0.08); }
-                .bg-info-soft { background: rgba(14, 165, 233, 0.08); }
-                .btn-soft-primary { background: var(--primary-soft); color: var(--primary); border: none; }
+                .input-premium-icon .input-premium { 
+                    padding-left: 45px; 
+                    width: 100%; 
+                    background: rgba(255, 255, 255, 0.65); 
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                    border: 1px solid rgba(148, 163, 184, 0.18); 
+                    border-radius: 12px; 
+                    padding-top: 12px; 
+                    padding-bottom: 12px; 
+                    font-weight: 600; 
+                    color: var(--text-main);
+                    outline: none; 
+                    transition: var(--transition); 
+                }
+                .input-premium-icon .input-premium:focus { border-color: var(--primary); box-shadow: 0 0 0 4px var(--primary-glow); background: white; }
+                .bg-primary-soft { background: var(--primary-soft); }
+                .bg-success-soft { background: rgba(13, 148, 216, 0.08); }
+                .bg-info-soft { background: rgba(8, 145, 178, 0.08); }
+                 .btn-soft-primary { background: var(--primary-soft); color: var(--primary); border: none; }
                 .btn-soft-primary:hover { background: var(--primary); color: white; }
+                
+                /* High transparency placeholders for premium UI */
+                .form-control::placeholder,
+                textarea::placeholder,
+                input::placeholder {
+                    opacity: 0.35 !important;
+                    color: var(--text-dim) !important;
+                    font-weight: 500 !important;
+                }
             </style>
 
             <script th:inline="javascript">
@@ -368,11 +410,13 @@
                 
                 // Inicialización segura de datos del servidor (Usando JSON pre-serializado)
                 const itemsReceta = [];
+                const itemsDiagnosticos = [];
                 let selectedDx = null;
                 
                 const historialBase = JSON.parse(/*[[${historialJson}]]*/ "[]");
                 const pacienteBase = JSON.parse(/*[[${pacienteJson}]]*/ "{}");
                 const triajeBase = JSON.parse(/*[[${triajeJson}]]*/ "{}");
+                const medicoBase = JSON.parse(/*[[${medicoJson}]]*/ "null");
                 const edadBase = /*[[${edad}]]*/ "---";
                 const alergiasBase = /*[[${alergias}]]*/ [];
                 
@@ -456,16 +500,98 @@
                     } catch (err) { console.error(err); }
                 });
 
+                function addDiagnostico() {
+                    if (!selectedDx) {
+                        // Intentar parsear el valor actual del input si tiene el formato "CODIGO - DESCRIPCION"
+                        const searchVal = document.getElementById('cie10Search').value;
+                        if (searchVal && searchVal.includes(' - ')) {
+                            const parts = searchVal.split(' - ');
+                            selectedDx = {
+                                codigo: parts[0].trim(),
+                                descripcion: parts.slice(1).join(' - ').trim()
+                            };
+                        }
+                    }
+                    
+                    if (!selectedDx) {
+                        Swal.fire({
+                            title: 'Diagnóstico Inválido',
+                            text: 'Por favor, busque y seleccione un diagnóstico (CIE-10) de la lista antes de hacer clic en "INGRESAR DX".',
+                            icon: 'warning',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                        return;
+                    }
+
+                    // Evitar duplicados
+                    const exists = itemsDiagnosticos.some(d => d.codigo === selectedDx.codigo);
+                    if (exists) {
+                        Swal.fire('Atención', 'Este diagnóstico ya ha sido agregado.', 'warning');
+                        return;
+                    }
+
+                    itemsDiagnosticos.push({
+                        id: Date.now(),
+                        codigo: selectedDx.codigo,
+                        descripcion: selectedDx.descripcion
+                    });
+
+                    renderDiagnosticos();
+                    
+                    // Reset input
+                    document.getElementById('cie10Search').value = '';
+                    selectedDx = null;
+                }
+
+                function renderDiagnosticos() {
+                    const list = document.getElementById('diagnosticosList');
+                    if (!list) return;
+                    
+                    if (itemsDiagnosticos.length === 0) {
+                        list.innerHTML = '';
+                        return;
+                    }
+
+                    let html = '<div class="section-title-premium mb-2" style="font-size: 0.75rem;"><span class="text-info"><i class="bi bi-patch-check-fill me-1"></i> DIAGNÓSTICOS INGRESADOS</span></div>';
+                    itemsDiagnosticos.forEach(function(diag) {
+                        html += '<div class="bg-white rounded-4 p-2.5 mb-2 border border-light shadow-sm animate-fade-in" style="border-left: 3px solid var(--info) !important;">' +
+                                    '<div class="d-flex justify-content-between align-items-start">' +
+                                        '<div class="flex-grow-1">' +
+                                            '<div class="fw-800 text-dark mb-0" style="font-size: 0.8rem !important;">' + diag.codigo + '</div>' +
+                                            '<div class="extra-small text-muted fw-bold" style="font-size: 0.7rem;">' + diag.descripcion + '</div>' +
+                                        '</div>' +
+                                        '<button class="btn btn-link text-danger p-1 ms-2 border-0 rounded-circle bg-danger-soft" onclick="removeDiagnostico(' + diag.id + ')" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" title="Eliminar diagnóstico">' +
+                                            '<i class="bi bi-trash3-fill" style="font-size: 0.7rem;"></i>' +
+                                        '</button>' +
+                                    '</div>' +
+                                '</div>';
+                    });
+                    list.innerHTML = html;
+                }
+
+                function removeDiagnostico(id) {
+                    const idx = itemsDiagnosticos.findIndex(d => d.id === id);
+                    if (idx > -1) {
+                        itemsDiagnosticos.splice(idx, 1);
+                        renderDiagnosticos();
+                    }
+                }
+
                 function addItem() {
                     const med = document.getElementById('medName').value;
                     const dos = document.getElementById('medDosis').value;
                     const dur = document.getElementById('medDur').value;
                     const cant = document.getElementById('medCant').value;
                     
-                    if (!selectedDx) {
+                    let dxObj = selectedDx;
+                    if (!dxObj && itemsDiagnosticos.length > 0) {
+                        dxObj = itemsDiagnosticos[0];
+                    }
+                    
+                    if (!dxObj) {
                         Swal.fire({
                             title: 'Diagnóstico Requerido',
-                            text: 'Por favor, busque y seleccione un diagnóstico (CIE-10) de la lista antes de agregar el medicamento.',
+                            text: 'Debe ingresar al menos un diagnóstico (CIE-10) usando el botón "INGRESAR DX" antes de agregar un medicamento.',
                             icon: 'warning',
                             confirmButtonColor: '#4f46e5'
                         });
@@ -483,8 +609,8 @@
                         frecuencia: dos, // Usamos dosis como frecuencia si no hay campo separado
                         duracion: dur,
                         cantidad: cant,
-                        dx: selectedDx.descripcion,
-                        codigo: selectedDx.codigo
+                        dx: dxObj.descripcion,
+                        codigo: dxObj.codigo
                     };
 
                     itemsReceta.push(item);
@@ -583,20 +709,16 @@
                 }
 
                 function finalizarAtencion() {
-                    if (itemsReceta.length === 0) {
+                    if (itemsDiagnosticos.length === 0) {
                         Swal.fire({
-                            title: '¿Finalizar sin receta?',
-                            text: "No ha agregado medicamentos a la receta. ¿Desea continuar?",
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonText: 'SÍ, FINALIZAR',
-                            cancelButtonText: 'VOLVER'
-                        }).then((result) => {
-                            if (result.isConfirmed) saveFinal();
+                            title: 'Diagnóstico Requerido',
+                            text: 'Debe ingresar al menos un diagnóstico (CIE-10) usando el botón "INGRESAR DX" antes de finalizar la atención.',
+                            icon: 'warning',
+                            confirmButtonColor: '#4f46e5'
                         });
-                    } else {
-                        saveFinal();
+                        return;
                     }
+                    saveFinal();
                 }
 
                 async function saveFinal(proximoControl = null) {
@@ -608,7 +730,12 @@
                         examenFisico: document.getElementById('atencionExamen').value,
                         planTratamiento: document.getElementById('atencionPlan').value,
                         proximoControl: proximoControl,
-                        diagnosticos: selectedDx ? [{codigo: selectedDx.codigo, descripcion: selectedDx.descripcion}] : [],
+                        diagnosticos: itemsDiagnosticos.map(function(d) {
+                            return {
+                                codigo: d.codigo,
+                                descripcion: d.descripcion
+                            };
+                        }),
                         medicamentos: itemsReceta.map(function(i) {
                             return {
                                 id: 1, // Mock ID for medicine
@@ -883,6 +1010,59 @@
                     });
                 }
 
+                function generarCertificado() {
+                    const pacNombre = `${pacienteBase.apellidoPaterno} ${pacienteBase.apellidoMaterno || ''}, ${pacienteBase.nombres}`;
+                    const pacDoc = pacienteBase.numeroDocumento;
+                    const pacEdad = edadBase;
+                    const pacDiag = selectedDx ? (selectedDx.codigo + ' - ' + selectedDx.descripcion) : (document.getElementById('cie10Search').value || 'POR DEFINIR');
+                    
+                    const medName = medicoBase ? 'Dr(a). ' + medicoBase.nombres + ' ' + medicoBase.apellidoPaterno + (medicoBase.apellidoMaterno ? ' ' + medicoBase.apellidoMaterno : '') : 'Dr. Hugo Magallanes C.';
+                    const medCMP = medicoBase ? medicoBase.numeroColegiatura : '084221';
+
+                    Swal.fire({
+                        title: '<h5 class="fw-800 text-dark mb-0"><i class="bi bi-file-earmark-pdf-fill text-info me-2"></i> EMITIR CERTIFICADO MÉDICO</h5>',
+                        html: '<div class="text-start mt-3">' +
+                                '<div class="mb-3">' +
+                                    '<label class="label-premium">Médico Firmante</label>' +
+                                    '<input type="text" id="certMedInput" class="form-control bg-light border-0 py-2 px-3 rounded-3 fw-bold small w-100" value="' + medName + '" readonly>' +
+                                '</div>' +
+                                '<div class="mb-3">' +
+                                    '<label class="label-premium">Nº CMP</label>' +
+                                    '<input type="text" id="certCMPInput" class="form-control bg-light border-0 py-2 px-3 rounded-3 fw-bold small w-100" value="' + medCMP + '" readonly>' +
+                                '</div>' +
+                                '<div class="mb-3">' +
+                                    '<label class="label-premium">Diagnóstico del Certificado</label>' +
+                                    '<input type="text" id="certDiagInput" class="form-control bg-light border-0 py-2 px-3 rounded-3 fw-bold small w-100" value="' + pacDiag + '">' +
+                                '</div>' +
+                                '<div class="mb-3">' +
+                                    '<label class="label-premium">Observaciones (Indicaciones de reposo, etc.)</label>' +
+                                    '<textarea id="certObsInput" class="form-control bg-light border-0 p-3 fw-bold small rounded-3 w-100" rows="3" placeholder="Ej: Paciente requiere descanso médico físico obligatorio de 3 días a partir de la fecha."></textarea>' +
+                                '</div>' +
+                            '</div>',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="bi bi-printer-fill me-1"></i> GENERAR E IMPRIMIR',
+                        cancelButtonText: 'CANCELAR',
+                        confirmButtonColor: '#0ea5e9',
+                        width: '500px',
+                        customClass: { popup: 'rounded-4 shadow-lg border-0', confirmButton: 'fw-800 rounded-pill px-4', cancelButton: 'fw-800 rounded-pill px-4 btn-light' }
+                    }).then(res => {
+                        if(res.isConfirmed) {
+                            const data = {
+                                paciente: pacNombre,
+                                dni: pacDoc,
+                                edad: pacEdad,
+                                diagnostico: document.getElementById('certDiagInput').value,
+                                observaciones: document.getElementById('certObsInput').value || 'Ninguna.',
+                                fecha: new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }),
+                                medico: document.getElementById('certMedInput').value,
+                                cmp: document.getElementById('certCMPInput').value
+                            };
+                            localStorage.setItem('current_certificate', JSON.stringify(data));
+                            window.open('/consulta/certificado/preview', '_blank');
+                        }
+                    });
+                }
+
                 function abrirNuevaAtencion() {
                     Swal.fire({
                         title: '<h5 class="fw-800 text-dark mb-0"><i class="bi bi-file-medical text-primary me-2"></i> REGISTRO CLÍNICO</h5>',
@@ -975,21 +1155,7 @@
                     });
                 }
 
-                function generarCertificado() {
-                    console.log("Generando certificado médico...");
-                    const data = {
-                        paciente: `${pacienteBase.apellidoPaterno} ${pacienteBase.apellidoMaterno || ''}, ${pacienteBase.nombres}`,
-                        dni: pacienteBase.numeroDocumento,
-                        edad: [[${edad}]],
-                        diagnostico: selectedDx ? (selectedDx.codigo + ' - ' + selectedDx.descripcion) : (document.getElementById('cie10Search').value || 'POR DEFINIR'),
-                        observaciones: document.getElementById('atencionPlan').value || 'Sin observaciones adicionales.',
-                        fecha: new Date().toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }),
-                        medico: 'Dr(a). ' + (triajeBase.usuario?.personal?.nombres || 'MÉDICO') + ' ' + (triajeBase.usuario?.personal?.apellidoPaterno || ''),
-                        cmp: triajeBase.usuario?.personal?.colegiatura || '------'
-                    };
-                    localStorage.setItem('current_certificate', JSON.stringify(data));
-                    window.open('/consulta/certificado/preview', '_blank');
-                }
+
 
                 let recetarioMinimizado = false;
                 function contraerRecetario() {
@@ -1075,7 +1241,7 @@
                                     r.detalles.forEach(d => {
                                         recList.innerHTML += `<div class="p-2 mb-1 border-bottom d-flex justify-content-between align-items-center">
                                             <span class="small fw-800 text-dark">${d.medicamento.nombreGenerico}</span>
-                                            <span class="extra-small text-muted fw-bold">${d.dosis} | ${d.frecuencia} | ${d.duracion}</span>
+                                            <span class="extra-small text-muted fw-bold">${d.dosis} | ${d.frecuencia} | ${d.duracionDias || d.duracion} días</span>
                                         </div>`;
                                     });
                                 }
@@ -1173,8 +1339,9 @@
     <style>
         .card-hover:hover {
             transform: translateX(5px) scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
-            background: white !important;
+            box-shadow: var(--shadow-premium) !important;
+            background: var(--bg-card) !important;
+            border-color: rgba(79, 70, 229, 0.25) !important;
         }
         .line-clamp-2 {
             display: -webkit-box;

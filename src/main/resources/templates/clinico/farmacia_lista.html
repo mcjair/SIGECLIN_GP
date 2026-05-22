@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head(title='SIGECLIN - Farmacia')}"></head>
-<body class="bg-premium">
+<body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
     
     <main th:replace="~{layout :: main(pageTitle='Dispensación de Medicamentos', content=~{::#far-content}, modals=null)}">
@@ -60,5 +60,6 @@
             </div>
         </div>
     </main>
+    <div th:replace="~{layout :: footer}"></div>
 </body>
 </html>

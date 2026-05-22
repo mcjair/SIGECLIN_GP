@@ -61,9 +61,25 @@ public class ConsultaService {
 
         com.sigeclin.filiacion.model.Paciente paciente = triaje.getPaciente();
 
-        Personal medico = personalRepository.findById(triaje.getUsuario().getIdPersona())
-                .orElseGet(() -> personalRepository.findAll().stream().findFirst()
-                        .orElseThrow(() -> new RuntimeException("No hay personal médico registrado")));
+        String username = null;
+        try {
+            org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null) {
+                username = auth.getName();
+            }
+        } catch (Exception e) {
+            // Ignorar si no está en contexto web (ej. tests)
+        }
+
+        Personal medico = null;
+        if (username != null) {
+            medico = personalRepository.findByUsuarioUsername(username).orElse(null);
+        }
+        if (medico == null) {
+            medico = personalRepository.findById(triaje.getUsuario().getIdPersona())
+                    .orElseGet(() -> personalRepository.findAll().stream().findFirst()
+                            .orElseThrow(() -> new RuntimeException("No hay personal médico registrado")));
+        }
 
         Consulta consulta = new Consulta();
         consulta.setPaciente(paciente);
@@ -164,9 +180,26 @@ public class ConsultaService {
                     detalle.setMedicamento(medicamento);
                     detalle.setDosis((String) medData.get("dosis"));
                     detalle.setFrecuencia((String) medData.get("frecuencia"));
-                    detalle.setDuracion((String) medData.get("duracion"));
+                    
+                    int duracion = 1;
+                    if (medData.get("duracion") != null) {
+                        try {
+                            String durStr = medData.get("duracion").toString().replaceAll("[^0-9]", "");
+                            if (!durStr.isEmpty()) {
+                                duracion = Integer.parseInt(durStr);
+                            }
+                        } catch (Exception e) {
+                            duracion = 1;
+                        }
+                    }
+                    detalle.setDuracionDias(duracion);
+                    
                     Object cantObj = medData.get("cantidad");
                     detalle.setCantidadTotal(cantObj != null ? Integer.parseInt(cantObj.toString()) : 1);
+                    
+                    // Asegurar vía de administración por defecto (1 = Oral)
+                    detalle.setIdViaAdministracion(1);
+                    detalle.setEstadoDispensacion("pendiente");
                     
                     detalleRecetaRepository.save(detalle);
                 }

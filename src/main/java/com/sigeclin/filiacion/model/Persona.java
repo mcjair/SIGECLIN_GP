@@ -1,6 +1,10 @@
 package com.sigeclin.filiacion.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,7 +15,7 @@ import java.time.LocalDateTime;
     @UniqueConstraint(columnNames = {"id_tipo_documento", "numero_documento"})
 })
 @Inheritance(strategy = InheritanceType.JOINED)
-@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "fotografia"})
 public class Persona {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,23 +23,27 @@ public class Persona {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_tipo_documento", nullable = false)
+    @NotNull(message = "El tipo de documento es obligatorio")
     private TipoDocumento tipoDocumento;
 
-    @Column(nullable = false)
+    @NotBlank(message = "El numero de documento es obligatorio")
+    @Pattern(regexp = "^[0-9A-Za-z-]+$", message = "Formato de documento invalido")
     private String numeroDocumento;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Los nombres son obligatorios")
     private String nombres;
 
-    @Column(nullable = false)
+    @NotBlank(message = "El apellido paterno es obligatorio")
     private String apellidoPaterno;
 
     private String apellidoMaterno;
 
-    @Column(nullable = false)
+    @NotNull(message = "La fecha de nacimiento es obligatoria")
+    @Past(message = "La fecha de nacimiento debe ser en el pasado")
     private LocalDate fechaNacimiento;
 
-    @Column(length = 1)
+    @NotNull(message = "El sexo es obligatorio")
+    @Pattern(regexp = "^[MF]$", message = "Sexo debe ser M o F")
     private String sexo;
 
     private String telefonoPrincipal;

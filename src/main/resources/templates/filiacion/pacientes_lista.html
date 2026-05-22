@@ -342,9 +342,19 @@
                 .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 6px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(79, 70, 229, 0.2); border-radius: 10px; }
                 .t-card:hover { transform: scale(1.02); }
-                .btn-white { background: white; color: var(--primary); border: 1px solid #eee; }
+                .btn-white { 
+                    background: var(--bg-card); 
+                    color: var(--primary); 
+                    border: 1px solid var(--glass-border); 
+                    transition: var(--transition);
+                }
+                .btn-white:hover {
+                    background: var(--primary-soft);
+                    border-color: var(--primary);
+                }
             </style>
         </div>
     </main>
+    <div th:replace="~{layout :: footer}"></div>
 </body>
 </html>

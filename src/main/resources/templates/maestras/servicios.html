@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head(title='SIGECLIN - Servicios Médicos')}"></head>
-<body>
+<body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
     
     <main th:replace="~{layout :: main(pageTitle='Nuestros Servicios Médicos', content=~{::#servicios-content}, modals=null)}">
@@ -52,5 +52,6 @@
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
     </style>
+    <div th:replace="~{layout :: footer}"></div>
 </body>
 </html>

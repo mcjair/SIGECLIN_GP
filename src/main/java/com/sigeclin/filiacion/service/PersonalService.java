@@ -3,6 +3,7 @@ package com.sigeclin.filiacion.service;
 import com.sigeclin.filiacion.model.Personal;
 import com.sigeclin.filiacion.repository.PersonalRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.stereotype.Service;
@@ -10,9 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class PersonalService {
+public class PersonalService implements IPersonalService {
 
     private final PersonalRepository personalRepository;
 

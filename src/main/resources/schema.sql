@@ -119,18 +119,18 @@ CREATE TABLE maestras.servicio (
     tipo VARCHAR(30) CHECK (tipo IN ('CONSULTA', 'APOYO_DIAGNOSTICO', 'ADMINISTRATIVO'))
 );
 
-CREATE TABLE maestras.catalogo_cie10 (
-    id_cie10 SERIAL PRIMARY KEY,
-    codigo VARCHAR(10) UNIQUE NOT NULL,
+CREATE TABLE maestras.cie10 (
+    codigo VARCHAR(10) PRIMARY KEY,
     descripcion TEXT NOT NULL,
     categoria VARCHAR(50),
     subcategoria VARCHAR(50),
     capitulo VARCHAR(10),
+    servicios VARCHAR(255),
     activo BOOLEAN DEFAULT true
 );
 
-CREATE INDEX idx_cie10_codigo ON maestras.catalogo_cie10(codigo);
-CREATE INDEX idx_cie10_descripcion ON maestras.catalogo_cie10 USING gin(to_tsvector('spanish', descripcion));
+CREATE INDEX idx_cie10_codigo ON maestras.cie10(codigo);
+CREATE INDEX idx_cie10_descripcion ON maestras.cie10 USING gin(to_tsvector('spanish', descripcion));
 
 CREATE TABLE maestras.catalogo_ciex (
     id_ciex SERIAL PRIMARY KEY,
@@ -306,7 +306,7 @@ CREATE INDEX idx_consulta_paciente ON clinico.consulta(id_paciente, fecha_hora_i
 CREATE TABLE clinico.diagnostico_consulta (
     id_diagnostico SERIAL PRIMARY KEY,
     id_consulta INT NOT NULL REFERENCES clinico.consulta(id_consulta),
-    id_cie10 INT NOT NULL REFERENCES maestras.catalogo_cie10(id_cie10),
+    codigo_cie10 VARCHAR(10) NOT NULL REFERENCES maestras.cie10(codigo),
     tipo VARCHAR(20) DEFAULT 'principal',
     observaciones TEXT,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP

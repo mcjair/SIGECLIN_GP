@@ -25,24 +25,39 @@ public class Cie10ServiceTest {
     @Test
     public void testCacheIsLoaded() {
         int cacheSize = cie10Service.getCacheSize();
-        System.out.println("CIE-10 Cache Size: " + cacheSize);
         assertTrue(cacheSize > 0, "Cache should have loaded at least some elements from the CSV files");
     }
 
     @Test
     public void testSearchByCode() {
-        // A00 is Cholera (Colera)
-        List<Cie10> results = cie10Service.search("A00");
+        // I10 is Essential Hypertension (included in curated set)
+        List<Cie10> results = cie10Service.search("I10");
         assertNotNull(results);
-        assertFalse(results.isEmpty(), "Should find some results for A00");
-        assertTrue(results.stream().anyMatch(c -> c.getCodigo().startsWith("A00")));
+        assertFalse(results.isEmpty(), "Should find I10 - Hipertensión esencial");
+        assertTrue(results.stream().anyMatch(c -> c.getCodigo().contains("I10")));
     }
 
     @Test
     public void testSearchByDescription() {
-        // "colera" or "cólera"
-        List<Cie10> results = cie10Service.search("colera");
+        // Search for "hipertension" (included in curated set)
+        List<Cie10> results = cie10Service.search("hipertension");
         assertNotNull(results);
-        assertFalse(results.isEmpty(), "Should find some results for 'colera'");
+        assertFalse(results.isEmpty(), "Should find results for 'hipertension'");
+    }
+
+    @Test
+    public void testSearchFilteredByService() {
+        // Search filtered by MEDICINA GENERAL should return hypertension
+        List<Cie10> results = cie10Service.search("hipertension", "MEDICINA GENERAL");
+        assertNotNull(results);
+        assertFalse(results.isEmpty(), "Should find hypertension in MEDICINA GENERAL");
+    }
+
+    @Test
+    public void testSearchFilteredByServiceNoMatch() {
+        // Search filtered by ODONTOLOGIA should NOT return hypertension
+        List<Cie10> results = cie10Service.search("hipertension", "ODONTOLOGIA");
+        assertNotNull(results);
+        assertTrue(results.isEmpty(), "Hypertension should not appear in ODONTOLOGIA");
     }
 }

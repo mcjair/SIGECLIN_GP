@@ -1,9 +1,10 @@
 package com.sigeclin.filiacion.controller;
 
-import com.sigeclin.filiacion.service.PacienteService;
-import com.sigeclin.clinico.service.ConsultaService;
+import com.sigeclin.filiacion.service.IPacienteService;
+import com.sigeclin.clinico.service.IConsultaService;
 import com.sigeclin.clinico.model.Consulta;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -15,13 +16,14 @@ import java.util.HashMap;
 import java.util.stream.Collectors;
 import java.time.format.DateTimeFormatter;
 
+@Slf4j
 @Controller
 @RequestMapping("/pacientes")
 @RequiredArgsConstructor
 public class GestionPacienteController {
 
-    private final PacienteService pacienteService;
-    private final ConsultaService consultaService;
+    private final IPacienteService pacienteService;
+    private final IConsultaService consultaService;
 
     @GetMapping("/lista")
     public String listarPacientes(Model model) {

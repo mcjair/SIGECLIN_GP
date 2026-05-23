@@ -1,16 +1,18 @@
 package com.sigeclin.clinico.controller;
 
 import com.sigeclin.clinico.model.Triaje;
-import com.sigeclin.clinico.service.TriajeService;
+import com.sigeclin.clinico.service.ITriajeService;
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.model.Usuario;
 import com.sigeclin.filiacion.repository.UsuarioRepository;
-import com.sigeclin.filiacion.service.PacienteService;
+import com.sigeclin.filiacion.service.IPacienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +25,8 @@ import java.util.Optional;
 @Slf4j
 public class TriajeController {
 
-    private final TriajeService triajeService;
-    private final PacienteService pacienteService;
+    private final ITriajeService triajeService;
+    private final IPacienteService pacienteService;
     private final UsuarioRepository usuarioRepository;
 
     @GetMapping("/nuevo")
@@ -45,11 +47,11 @@ public class TriajeController {
     @Transactional(readOnly = true)
     @GetMapping("/registrar/{idPaciente}")
     public String mostrarFormulario(@PathVariable Integer idPaciente, Model model, RedirectAttributes redirectAttributes) {
-        System.out.println("Triaje - Cargando formulario para Paciente ID: " + idPaciente);
+        log.debug("Triaje - Cargando formulario para Paciente ID: {}", idPaciente);
         
         Optional<Paciente> pacienteOpt = pacienteService.buscarPorId(idPaciente);
         if (pacienteOpt.isEmpty()) {
-            System.err.println("Triaje - Paciente NO encontrado: " + idPaciente);
+            log.warn("Triaje - Paciente NO encontrado: {}", idPaciente);
             redirectAttributes.addFlashAttribute("error", "Paciente no encontrado.");
             return "redirect:/triaje/nuevo";
         }
@@ -66,13 +68,27 @@ public class TriajeController {
         model.addAttribute("paciente", p);
         model.addAttribute("edad", p.getEdadCompleta());
         
-        System.out.println("Triaje - Formulario cargado con éxito para: " + p.getNombres());
+        log.debug("Triaje - Formulario cargado con éxito para: {}", p.getNombres());
         return "clinico/triaje_registro";
     }
 
     @PostMapping("/guardar")
-    public String guardarTriaje(@ModelAttribute Triaje triaje, Authentication authentication, RedirectAttributes redirectAttributes) {
+    public String guardarTriaje(@Valid @ModelAttribute Triaje triaje, BindingResult bindingResult,
+                                Authentication authentication, RedirectAttributes redirectAttributes) {
         log.info(">>> [SIGECLIN] Iniciando registro de Triaje...");
+        if (bindingResult.hasErrors()) {
+            String msg = bindingResult.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse("Error de validación");
+            log.warn("Validación fallida en Triaje: {}", msg);
+            redirectAttributes.addFlashAttribute("error", msg);
+            if (triaje.getPaciente() != null && triaje.getPaciente().getIdPersona() != null) {
+                return "redirect:/triaje/registrar/" + triaje.getPaciente().getIdPersona();
+            }
+            return "redirect:/triaje/nuevo";
+        }
+
         try {
             // Validar existencia de paciente
             if (triaje.getPaciente() == null || triaje.getPaciente().getIdPersona() == null) {

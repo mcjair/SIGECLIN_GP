@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class Cie10Service {
+public class Cie10Service implements ICie10Service {
 
     @Value("${sigeclin.cie10.dir-path}")
     private String dirPath;
@@ -43,51 +43,47 @@ public class Cie10Service {
             return;
         }
 
-        String[] prioritizedFiles = {"diagnosticos_cie10.csv", "codigos_activos.csv", "procedimientos_cpt.csv", "laboratorio.csv", "imagenes.csv"};
-        Set<String> codigosProcesados = new HashSet<>();
         cie10Cache.clear();
-        searchCache.invalidateAll(); // Limpiar el caché de Guava al recargar
+        searchCache.invalidateAll();
 
-        for (String fileName : prioritizedFiles) {
-            File file = new File(folder, fileName);
-            if (!file.exists()) continue;
-            
-            log.info("Procesando archivo CIE-10: {}", file.getName());
-            int count = 0;
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-                String line;
-                br.readLine(); // Saltar cabecera
-                
-                while ((line = br.readLine()) != null) {
-                    try {
-                        if (line.trim().isEmpty()) continue;
-                        
-                        String[] parts = parseCsvLine(line);
-                        if (parts.length >= 2) {
-                            String codigo = parts[0].replace("\"", "").trim();
-                            String descripcion = parts[1].replace("\"", "").trim();
-
-                            if (!codigo.isEmpty()) {
-                                if (!codigosProcesados.contains(codigo)) {
-                                    Cie10 item = new Cie10();
-                                    item.setCodigo(codigo);
-                                    item.setDescripcion(descripcion);
-                                    cie10Cache.add(item);
-                                    codigosProcesados.add(codigo);
-                                    count++;
-                                }
-                            }
-                        }
-                    } catch (Exception inner) {
-                        // Skip malformed line
-                    }
-                }
-                log.info("Archivo {} cargado: {} registros nuevos.", file.getName(), count);
-            } catch (Exception e) {
-                log.error("Error al cargar {}: {}", file.getName(), e.getMessage());
-            }
+        File file = new File(folder, "diagnosticos_cie10.csv");
+        if (!file.exists()) {
+            log.error("CRITICAL: Archivo diagnosticos_cie10.csv no encontrado en: {}", file.getAbsolutePath());
+            return;
         }
-        log.info("=== CARGA FINALIZADA: {} diagnósticos únicos en memoria ===", cie10Cache.size());
+
+        int count = 0;
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+            String line;
+            br.readLine(); // Saltar cabecera
+
+            while ((line = br.readLine()) != null) {
+                try {
+                    if (line.trim().isEmpty()) continue;
+
+                    String[] parts = parseCsvLine(line);
+                    if (parts.length >= 3) {
+                        String codigo = parts[0].replace("\"", "").trim();
+                        String descripcion = parts[1].replace("\"", "").trim();
+                        String servicios = parts.length >= 3 ? parts[2].replace("\"", "").trim() : "";
+
+                        if (!codigo.isEmpty() && !descripcion.isEmpty()) {
+                            Cie10 item = new Cie10();
+                            item.setCodigo(codigo);
+                            item.setDescripcion(descripcion);
+                            item.setServicios(servicios);
+                            cie10Cache.add(item);
+                            count++;
+                        }
+                    }
+                } catch (Exception inner) {
+                    // Skip malformed line
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error al cargar diagnosticos_cie10.csv: {}", e.getMessage());
+        }
+        log.info("=== CARGA CURADA FINALIZADA: {} diagnósticos esenciales en memoria ===", cie10Cache.size());
     }
 
     private String[] parseCsvLine(String line) {
@@ -116,21 +112,29 @@ public class Cie10Service {
     }
 
     public List<Cie10> search(String q) {
+        return search(q, null);
+    }
+
+    public List<Cie10> search(String q, String servicio) {
         if (q == null || q.trim().isEmpty()) return new ArrayList<>();
-        
+
         String normalizedQuery = normalize(q);
         try {
-            return searchCache.get(normalizedQuery, () -> cie10Cache.stream()
-                    .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(normalizedQuery)) || 
+            String cacheKey = servicio != null ? servicio + ":" + normalizedQuery : normalizedQuery;
+            return searchCache.get(cacheKey, () -> cie10Cache.stream()
+                    .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(normalizedQuery)) ||
                                 (c.getDescripcion() != null && normalize(c.getDescripcion()).contains(normalizedQuery)))
+                    .filter(c -> servicio == null || c.getServicios() == null || c.getServicios().isEmpty() ||
+                                c.getServicios().toUpperCase().contains(servicio.toUpperCase()))
                     .limit(25)
                     .collect(Collectors.toList()));
         } catch (Exception e) {
             log.error("Error al consultar caché de Guava para query '{}': {}", q, e.getMessage());
-            // Fallback a búsqueda directa en caso de error
             return cie10Cache.stream()
-                    .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(normalizedQuery)) || 
+                    .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(normalizedQuery)) ||
                                 (c.getDescripcion() != null && normalize(c.getDescripcion()).contains(normalizedQuery)))
+                    .filter(c -> servicio == null || c.getServicios() == null || c.getServicios().isEmpty() ||
+                                c.getServicios().toUpperCase().contains(servicio.toUpperCase()))
                     .limit(25)
                     .collect(Collectors.toList());
         }

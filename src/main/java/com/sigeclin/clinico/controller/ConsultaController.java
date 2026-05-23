@@ -5,11 +5,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.sigeclin.clinico.model.Consulta;
 import com.sigeclin.clinico.model.Triaje;
 import com.sigeclin.clinico.model.AlergiaPaciente;
-import com.sigeclin.clinico.repository.AlergiaRepository;
-import com.sigeclin.clinico.service.ConsultaService;
-import com.sigeclin.filiacion.service.PacienteService;
+import com.sigeclin.clinico.dto.ApiResponse;
+import com.sigeclin.clinico.dto.ConsultaRequest;
+import com.sigeclin.clinico.repository.AlergiaPacienteRepository;
+import com.sigeclin.clinico.service.IConsultaService;
+import com.sigeclin.filiacion.service.IPacienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -37,12 +40,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ConsultaController {
 
-    private final ConsultaService consultaService;
-    private final AlergiaRepository alergiaRepository;
-    private final PacienteService pacienteService;
+    private final IConsultaService consultaService;
+    private final AlergiaPacienteRepository alergiaRepository;
+    private final IPacienteService pacienteService;
     private final TriajeRepository triajeRepository;
     private final ConsultaRepository consultaRepository;
-    private final com.sigeclin.maestras.service.Cie10Service cie10Service;
+    private final com.sigeclin.maestras.service.ICie10Service cie10Service;
     private final com.sigeclin.filiacion.repository.PersonalRepository personalRepository;
     private final ObjectMapper objectMapper = new ObjectMapper()
             .registerModule(new JavaTimeModule())
@@ -52,8 +55,8 @@ public class ConsultaController {
 
     @GetMapping("/api/cie10/search")
     @ResponseBody
-    public List<com.sigeclin.maestras.model.Cie10> searchCie10(@RequestParam String q) {
-        return cie10Service.search(q);
+    public List<com.sigeclin.maestras.model.Cie10> searchCie10(@RequestParam String q, @RequestParam(required = false) String servicio) {
+        return cie10Service.search(q, servicio);
     }
 
     @GetMapping("/api/detalle/{id}")
@@ -97,12 +100,13 @@ public class ConsultaController {
             if (moduloNormalizado.equals("MEDICINA_GENERAL")) moduloNormalizado = "MEDICINA GENERAL";
 
             model.addAttribute("modulo", moduloNormalizado);
+            model.addAttribute("moduloJson", moduloNormalizado);
             // Obtener triajes que están en espera
             List<Triaje> triajes = consultaService.obtenerPacientesEnEsperaPorModulo(moduloNormalizado);
             model.addAttribute("pacientes", triajes != null ? triajes : new ArrayList<>());
             return "clinico/consulta_cola";
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error al cargar cola del módulo: {}", e.getMessage(), e);
             return "redirect:/dashboard";
         }
     }
@@ -152,8 +156,7 @@ public class ConsultaController {
             model.addAttribute("triaje", triaje);
             return "clinico/consulta_espera";
         } catch (Exception e) {
-            System.err.println("Error en atenderPaciente: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error en atenderPaciente: {}", e.getMessage(), e);
             return "redirect:/consulta/modulo/CONSULTA";
         }
     }
@@ -166,33 +169,25 @@ public class ConsultaController {
 
     @PostMapping("/guardar")
     @ResponseBody
-    public Map<String, Object> guardarAtencion(@RequestBody Map<String, Object> payload) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<ApiResponse<Void>> guardarAtencion(@RequestBody ConsultaRequest request) {
         try {
-            System.out.println("Guardando atención: " + payload);
-            
-            Object triajeIdObj = payload.get("triajeId");
-            if (triajeIdObj == null) throw new RuntimeException("ID de triaje ausente.");
-            
-            Integer triajeId = Integer.parseInt(triajeIdObj.toString());
-            
-            // GUARDAR LA ATENCIÓN REAL EN BD
-            consultaService.guardarConsultaCompleta(triajeId, payload);
-            
-            // ACTUALIZAR ESTADO DEL PACIENTE A 'ATENDIDO'
-            Triaje triaje = triajeRepository.findById(triajeId).orElse(null);
+            if (request.getTriajeId() == null) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("ID de triaje ausente."));
+            }
+            log.debug("Guardando atención para triajeId: {}", request.getTriajeId());
+
+            consultaService.guardarConsultaCompleta(request.getTriajeId(), objectMapper.convertValue(request, Map.class));
+
+            Triaje triaje = triajeRepository.findById(request.getTriajeId()).orElse(null);
             if (triaje != null && triaje.getPaciente() != null) {
                 pacienteService.actualizarEstado(triaje.getPaciente().getIdPersona(), "ATENDIDO");
             }
-            
-            response.put("success", true);
-            response.put("message", "Atención registrada y finalizada correctamente.");
+
+            return ResponseEntity.ok(ApiResponse.ok("Atención registrada y finalizada correctamente."));
         } catch (Exception e) {
-            e.printStackTrace();
-            response.put("success", false);
-            response.put("message", "Error: " + e.getMessage());
+            log.error("Error al guardar atención: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
-        return response;
     }
 
     @GetMapping("/receta/preview")

@@ -1,8 +1,13 @@
 package com.sigeclin.clinico.repository;
 
+import com.sigeclin.clinico.model.AlergiaPaciente;
 import org.springframework.data.jpa.repository.JpaRepository;
-import com.sigeclin.clinico.model.Triaje; // Placeholder
+import org.springframework.stereotype.Repository;
 
-public interface AlergiaPacienteRepository extends JpaRepository<Triaje, Integer> {
-    // List<AlergiaPaciente> findByIdPacienteAndActivaTrue(Integer idPaciente);
+import java.util.List;
+
+@Repository
+public interface AlergiaPacienteRepository extends JpaRepository<AlergiaPaciente, Integer> {
+
+    List<AlergiaPaciente> findByPacienteIdPersonaAndActivaTrue(Integer idPaciente);
 }

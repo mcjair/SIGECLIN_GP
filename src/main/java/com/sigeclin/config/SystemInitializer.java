@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.util.Optional;
 
 @Configuration
+@Profile("!test")
 @RequiredArgsConstructor
 @Slf4j
 @Order(1)
@@ -68,18 +70,11 @@ public class SystemInitializer implements CommandLineRunner {
 
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS servicio_solicitado VARCHAR(50)");
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS referencia_direccion VARCHAR(255)");
+
+            // Columna servicios para filtrado por módulo en catálogo CIE-10 curado
+            jdbcTemplate.execute("ALTER TABLE maestras.cie10 ADD COLUMN IF NOT EXISTS servicios VARCHAR(255)");
             
-            // Resolver inconsistencias de columnas heredadas no utilizadas de esquemas antiguos
-            try {
-                jdbcTemplate.execute("ALTER TABLE clinico.detalle_receta ALTER COLUMN duracion DROP NOT NULL");
-            } catch (Exception e) {
-                log.warn("No se pudo alterar la columna duracion en detalle_receta: {}", e.getMessage());
-            }
-            try {
-                jdbcTemplate.execute("ALTER TABLE clinico.detalle_receta ALTER COLUMN indicaciones DROP NOT NULL");
-            } catch (Exception e) {
-                log.warn("No se pudo alterar la columna indicaciones en detalle_receta: {}", e.getMessage());
-            }
+
         } catch (Exception e) {
             log.warn("No se pudo completar la consistencia de esquema: {}", e.getMessage());
         }

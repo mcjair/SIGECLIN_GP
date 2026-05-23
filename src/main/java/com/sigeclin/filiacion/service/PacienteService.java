@@ -3,14 +3,15 @@ package com.sigeclin.filiacion.service;
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class PacienteService {
+public class PacienteService implements IPacienteService {
 
     private final PacienteRepository pacienteRepository;
 
@@ -36,21 +37,19 @@ public class PacienteService {
             p.setEstado("PENDIENTE_PAGO");
             p.setFechaCreacion(LocalDateTime.now()); // Actualizar fecha para orden de llegada
             
-            System.out.println("Actualizando paciente recurrente: " + p.getNumeroDocumento() + " - Estado: PENDIENTE_PAGO - Nueva fecha: " + p.getFechaCreacion());
+            log.debug("Actualizando paciente recurrente: {} - HC: {}", p.getNumeroDocumento(), p.getNumeroHistoriaClinica());
             return pacienteRepository.save(p);
         }
 
-        // 1. Generar número de Historia Clínica (AÑO-CORRELATIVO)
-        String correlativo = String.format("%06d", pacienteRepository.count() + 1);
-        String numeroHC = LocalDate.now().getYear() + "-" + correlativo;
-        paciente.setNumeroHistoriaClinica(numeroHC);
+        // El número de historia clínica es el número de documento del paciente
+        paciente.setNumeroHistoriaClinica(paciente.getNumeroDocumento());
         
         // 2. Metadatos
         paciente.setFechaCreacion(LocalDateTime.now());
         paciente.setFechaRegistro(LocalDateTime.now());
         paciente.setEstado("PENDIENTE_PAGO");
 
-        System.out.println("Guardando nuevo paciente: " + paciente.getNumeroDocumento() + " con HC: " + numeroHC);
+        log.info("Nuevo paciente registrado: {} - HC: {}", paciente.getNumeroDocumento(), paciente.getNumeroHistoriaClinica());
         return pacienteRepository.save(paciente);
     }
 
@@ -87,9 +86,9 @@ public class PacienteService {
         buscarPorDniOHC(doc).ifPresentOrElse(p -> {
             p.setEstado(nuevoEstado);
             pacienteRepository.save(p);
-            System.out.println("Estado actualizado a " + nuevoEstado + " para paciente: " + doc);
+            log.debug("Estado actualizado a {} para paciente: {}", nuevoEstado, doc);
         }, () -> {
-            System.err.println("No se pudo actualizar estado. Paciente no encontrado con: " + doc);
+            log.warn("No se pudo actualizar estado. Paciente no encontrado con: {}", doc);
         });
     }
 

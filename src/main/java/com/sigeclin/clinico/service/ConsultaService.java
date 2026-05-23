@@ -7,25 +7,25 @@ import com.sigeclin.maestras.model.Servicio;
 import com.sigeclin.filiacion.repository.PersonalRepository;
 import com.sigeclin.filiacion.model.Personal;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class ConsultaService {
+public class ConsultaService implements IConsultaService {
 
     private final TriajeRepository triajeRepository;
     private final ServicioRepository servicioRepository;
     private final ConsultaRepository consultaRepository;
-    private final RecetaRepository recetaRepository;
-    private final DetalleRecetaRepository detalleRecetaRepository;
     private final DiagnosticoConsultaRepository diagnosticoConsultaRepository;
     private final com.sigeclin.maestras.repository.Cie10Repository cie10Repository;
-    private final com.sigeclin.maestras.repository.MedicamentoRepository medicamentoRepository;
     private final PersonalRepository personalRepository;
+    private final IRecetaService recetaService;
 
     public List<com.sigeclin.clinico.model.Consulta> obtenerHistorialPaciente(Integer idPaciente) {
         return consultaRepository.findByPacienteIdPersonaOrderByFechaHoraInicioDesc(idPaciente);
@@ -95,7 +95,7 @@ public class ConsultaService {
             try {
                 consulta.setProximoControl(java.time.LocalDate.parse(data.get("proximoControl").toString()));
             } catch (Exception e) {
-                System.err.println("Error al parsear proximoControl: " + e.getMessage());
+                log.warn("Error al parsear proximoControl: {}", e.getMessage());
             }
         }
 
@@ -106,8 +106,7 @@ public class ConsultaService {
 
         consulta = consultaRepository.save(consulta);
 
-        // Actualizar triaje
-        // triaje.setEstado("ATENDIDO");
+        // Actualizar estado del triaje
         triajeRepository.save(triaje);
 
         @SuppressWarnings("unchecked")
@@ -141,69 +140,8 @@ public class ConsultaService {
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> medicamentos = (List<Map<String, Object>>) data.get("medicamentos");
         if (medicamentos != null && !medicamentos.isEmpty()) {
-            RecetaMedica receta = new RecetaMedica();
-            receta.setConsulta(consulta);
-            receta.setPaciente(paciente);
-            receta.setMedico(medico);
-            receta.setIndicacionesGenerales((String) data.get("planTratamiento"));
-            receta.setFechaEmision(LocalDateTime.now());
-            receta.setEstado("emitida");
-            receta = recetaRepository.save(receta);
-
-            for (Map<String, Object> medData : medicamentos) {
-                DetalleReceta detalle = new DetalleReceta();
-                detalle.setReceta(receta);
-                
-                com.sigeclin.maestras.model.Medicamento medicamento = null;
-                // Intentar buscar por ID si viene del frontend
-                if (medData.get("id") != null && !medData.get("id").toString().equals("1")) {
-                    try {
-                        medicamento = medicamentoRepository.findById(Integer.parseInt(medData.get("id").toString())).orElse(null);
-                    } catch (Exception e) {}
-                }
-                
-                // Si no se encuentra o es mock, buscar por nombre
-                if (medicamento == null && medData.get("nombre") != null) {
-                    List<com.sigeclin.maestras.model.Medicamento> found = medicamentoRepository.buscarPorNombre((String) medData.get("nombre"));
-                    if (!found.isEmpty()) {
-                        medicamento = found.get(0);
-                    }
-                }
-
-                // Fallback: Si sigue siendo nulo, no podemos guardar el detalle a menos que permitamos nulos o usemos un comodín
-                if (medicamento == null) {
-                    // Para evitar que falle la transacción, buscamos el primero disponible o lanzamos advertencia
-                    medicamento = medicamentoRepository.findAll().stream().findFirst().orElse(null);
-                }
-
-                if (medicamento != null) {
-                    detalle.setMedicamento(medicamento);
-                    detalle.setDosis((String) medData.get("dosis"));
-                    detalle.setFrecuencia((String) medData.get("frecuencia"));
-                    
-                    int duracion = 1;
-                    if (medData.get("duracion") != null) {
-                        try {
-                            String durStr = medData.get("duracion").toString().replaceAll("[^0-9]", "");
-                            if (!durStr.isEmpty()) {
-                                duracion = Integer.parseInt(durStr);
-                            }
-                        } catch (Exception e) {
-                            duracion = 1;
-                        }
-                    }
-                    detalle.setDuracionDias(duracion);
-                    
-                    Object cantObj = medData.get("cantidad");
-                    detalle.setCantidadTotal(cantObj != null ? Integer.parseInt(cantObj.toString()) : 1);
-                    
-                    // Asegurar vía de administración por defecto (1 = Oral)
-                    detalle.setIdViaAdministracion(1);
-                    detalle.setEstadoDispensacion("pendiente");
-                    
-                    detalleRecetaRepository.save(detalle);
-                }
-            }
+            recetaService.emitirReceta(consulta, paciente, medico,
+                    (String) data.get("planTratamiento"), medicamentos);
         }
     }
 }

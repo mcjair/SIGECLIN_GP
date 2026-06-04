@@ -109,24 +109,25 @@
     </main>
 
     <div id="lab-modals">
-            <div class="modal fade" id="modalResultados" tabindex="-1">
-                <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                    <div class="modal-content border-0 shadow-premium">
-                        <div class="modal-header bg-primary-soft border-0">
-                            <h5 class="modal-title fw-800 text-primary"><i class="bi bi-file-earmark-medical me-2"></i>INGRESAR RESULTADOS</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body" id="modalResultadosBody">
-                            <div class="text-center py-4 text-muted">Seleccione una orden para ingresar resultados.</div>
-                        </div>
-                        <div class="modal-footer border-0">
-                            <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">CERRAR</button>
-                            <button class="btn btn-success rounded-pill px-4 fw-800 shadow-sm" id="btnValidarOrden" onclick="validarOrden()" style="display:none"><i class="bi bi-check-circle me-1"></i> VALIDAR ORDEN</button>
-                        </div>
+        <div class="modal fade" id="modalResultados" tabindex="-1">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+                <div class="modal-content border-0 shadow-premium" style="border-radius: 20px; overflow: hidden;">
+                    <div class="modal-header bg-primary-soft border-0 px-4 py-3">
+                        <h5 class="modal-title fw-900 text-primary"><i class="bi bi-clipboard2-pulse me-2"></i>MÓDULO DE INGRESO DE RESULTADOS</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-0" id="modalResultadosBody">
+                        <div class="text-center py-5 text-muted">Seleccione una orden para ingresar resultados.</div>
+                    </div>
+                    <div class="modal-footer border-0 bg-light px-4 py-3">
+                        <button class="btn btn-outline-secondary rounded-pill px-4 fw-800" data-bs-dismiss="modal">CERRAR</button>
+                        <button class="btn btn-success rounded-pill px-4 fw-800 shadow-sm" id="btnValidarOrden" onclick="validarOrden()" style="display:none"><i class="bi bi-check-circle me-1"></i> VALIDAR Y FINALIZAR</button>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+    
     <div th:replace="~{layout :: footer}"></div>
 
     <style>
@@ -140,13 +141,135 @@
         .examen-check:checked + label { background: var(--primary-soft); border-color: var(--primary); }
         .examen-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; transition: var(--transition); cursor: pointer; }
         .examen-item:hover { border-color: var(--primary); background: rgba(99,102,241,0.04); }
+
+        /* Premium Split Layout styles */
+        .modal-xl { max-width: 92vw; }
+        .form-pane { background: #ffffff; padding: 25px; overflow-y: auto; max-height: 75vh; }
+        .preview-pane { background: #f8fafc; padding: 25px; overflow-y: auto; max-height: 75vh; border-left: 1px solid #e2e8f0; }
+        
+        .result-input-card {
+            border: 2px solid #f1f5f9;
+            border-radius: 14px;
+            background: #ffffff;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            padding: 16px;
+        }
+        .result-input-card:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.03);
+        }
+        .result-input-card.is-success {
+            border-left: 5px solid #10b981 !important;
+            background: #f0fdf4;
+            border-color: #d1fae5;
+        }
+        .result-input-card.is-warning {
+            border-left: 5px solid #ef4444 !important;
+            background: #fef2f2;
+            border-color: #fee2e2;
+        }
+        
+        .autosave-badge {
+            font-size: 7.5pt;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            background: #f1f5f9;
+            color: #64748b;
+            font-weight: 700;
+        }
+        .autosave-badge.saving { background: #eff6ff; color: #2563eb; }
+        .autosave-badge.saved { background: #ecfdf5; color: #059669; }
+        
+        .preview-paper {
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            border-radius: 6px;
+            padding: 24px;
+            width: 100%;
+            max-width: 550px;
+            position: relative;
+            min-height: 750px;
+            font-size: 8pt !important;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+        }
+        .preview-paper * { font-size: inherit; }
+        
+        /* Dropdown custom styling */
+        .dropdown-item-premium {
+            padding: 10px 15px;
+            transition: all 0.15s;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .dropdown-item-premium:hover {
+            background-color: #f8fafc;
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 
-    <script>
+    <script th:inline="javascript">
         let examenesData = {};
         let ordenesData = [];
         let codigoToArea = {};
         let currentIdOrden = null;
+
+        const nameMap = {
+            "HEM-001": "Hemoglobina", "HEM-002": "Hematocrito", "HEM-003": "Leucocitos", "HEM-004": "Plaquetas", "HEM-005": "VSG", "HEM-006": "TP (Tiempo Protrombina)", "HEM-007": "TPT (Tiempo Tromboplastina)",
+            "BIO-001": "Glucosa en ayunas", "BIO-002": "Urea", "BIO-003": "Creatinina", "BIO-004": "Colesterol Total", "BIO-005": "Triglicéridos", "BIO-006": "TGO (AST)", "BIO-007": "TGP (ALT)", "BIO-008": "Bilirrubina Total", "BIO-009": "Ácido Úrico", "BIO-010": "Proteínas Totales",
+            "MIC-001": "Examen de orina completo", "MIC-002": "Coproparasitológico", "MIC-003": "Baciloscopía (BK)", "MIC-004": "Cultivo general",
+            "INM-001": "Prueba rápida VIH", "INM-002": "VDRL (Sífilis)", "INM-003": "HBsAg (Hepatitis B)", "INM-004": "Anti-HCV (Hepatitis C)", "INM-005": "Prueba de embarazo",
+            "URO-001": "Uroanálisis físico", "URO-002": "Uroanálisis químico", "URO-003": "Sedimento urinario",
+            "COP-001": "Coproparasitológico directo", "COP-002": "Sangre oculta en heces"
+        };
+
+        const defaultExamConfigs = {
+            "HEM-001": { placeholder: "14.5", rangoMinimo: 12.0, rangoMaximo: 16.0, rangoTexto: "12.0 - 16.0", unidad: "g/dL" },
+            "HEM-002": { placeholder: "42.0", rangoMinimo: 37.0, rangoMaximo: 47.0, rangoTexto: "37.0 - 47.0", unidad: "%" },
+            "HEM-003": { placeholder: "6500", rangoMinimo: 4500, rangoMaximo: 11000, rangoTexto: "4500 - 11000", unidad: "/mm³" },
+            "HEM-004": { placeholder: "250000", rangoMinimo: 150000, rangoMaximo: 450000, rangoTexto: "150000 - 450000", unidad: "/mm³" },
+            "HEM-005": { placeholder: "10", rangoMinimo: 0, rangoMaximo: 20, rangoTexto: "0 - 20", unidad: "mm/h" },
+            "HEM-006": { placeholder: "12.5", rangoMinimo: 11.0, rangoMaximo: 13.5, rangoTexto: "11.0 - 13.5", unidad: "seg" },
+            "HEM-007": { placeholder: "30.0", rangoMinimo: 25.0, rangoMaximo: 35.0, rangoTexto: "25.0 - 35.0", unidad: "seg" },
+            
+            "BIO-001": { placeholder: "90.0", rangoMinimo: 70.0, rangoMaximo: 110.0, rangoTexto: "70.0 - 110.0", unidad: "mg/dL" },
+            "BIO-002": { placeholder: "25.0", rangoMinimo: 15.0, rangoMaximo: 45.0, rangoTexto: "15.0 - 45.0", unidad: "mg/dL" },
+            "BIO-003": { placeholder: "0.90", rangoMinimo: 0.6, rangoMaximo: 1.2, rangoTexto: "0.6 - 1.2", unidad: "mg/dL" },
+            "BIO-004": { placeholder: "170.0", rangoMinimo: 100.0, rangoMaximo: 200.0, rangoTexto: "100.0 - 200.0", unidad: "mg/dL" },
+            "BIO-005": { placeholder: "120.0", rangoMinimo: 30.0, rangoMaximo: 150.0, rangoTexto: "30.0 - 150.0", unidad: "mg/dL" },
+            "BIO-006": { placeholder: "25.0", rangoMinimo: 5.0, rangoMaximo: 40.0, rangoTexto: "5.0 - 40.0", unidad: "U/L" },
+            "BIO-007": { placeholder: "20.0", rangoMinimo: 5.0, rangoMaximo: 35.0, rangoTexto: "5.0 - 35.0", unidad: "U/L" },
+            "BIO-008": { placeholder: "0.80", rangoMinimo: 0.2, rangoMaximo: 1.2, rangoTexto: "0.2 - 1.2", unidad: "mg/dL" },
+            "BIO-009": { placeholder: "5.00", rangoMinimo: 3.5, rangoMaximo: 7.2, rangoTexto: "3.5 - 7.2", unidad: "mg/dL" },
+            "BIO-010": { placeholder: "7.20", rangoMinimo: 6.0, rangoMaximo: 8.3, rangoTexto: "6.0 - 8.3", unidad: "g/dL" },
+            
+            "MIC-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-003": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-004": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            
+            "INM-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-003": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-004": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-005": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            
+            "URO-001": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            "URO-002": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            "URO-003": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            
+            "COP-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "COP-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" }
+        };
 
         function cargarExamenes() {
             fetch('/api/laboratorio/examenes')
@@ -261,72 +384,217 @@
         }
 
         function abrirResultados(idOrden) {
-            let body;
-            try {
-                currentIdOrden = idOrden;
-                const modalEl = document.getElementById('modalResultados');
-                if (!modalEl) { console.error('modalResultados no encontrado en el DOM'); return; }
-                body = document.getElementById('modalResultadosBody');
-                if (!body) { console.error('modalResultadosBody no encontrado'); return; }
-                body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Cargando exámenes disponibles...</p></div>';
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
-                const btnVal = document.getElementById('btnValidarOrden');
-                if (btnVal) btnVal.style.display = 'none';
-            } catch (e) { console.error('Error en abrirResultados:', e); return; }
-
-            fetch('/api/laboratorio/examenes')
-                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-                .then(areas => {
-                    let html = `<div class="mb-3"><h6 class="fw-800 text-ink">Orden: <span class="text-primary">ORD-${String(idOrden).padStart(5,'0')}</span></h6></div>`;
-                    html += '<div class="row g-2 mb-4">';
-                    const areaMap = {HEMATOLOGIA:'Hematología',BIOQUIMICA:'Bioquímica',MICROBIOLOGIA:'Microbiología',INMUNOLOGIA:'Inmunología',UROANALISIS:'Uroanálisis',COPROLOGIA:'Coprología'};
-                    for (const [key, examenes] of Object.entries(areas)) {
-                        html += `<div class="col-12"><h6 class="fw-800 text-primary small text-uppercase mt-2 mb-2"><i class="bi bi-tag me-1"></i>${areaMap[key]||key}</h6><div class="row g-1">`;
-                        examenes.forEach(ex => {
-                            html += `<div class="col-md-4 col-lg-3"><div class="examen-item" onclick="seleccionarExamen('${ex.codigo}','${ex.nombre}','${ex.unidad||''}',${ex.rangoMinimo||'null'},${ex.rangoMaximo||'null'},'${(ex.rangoTexto||(ex.rangoMinimo?ex.rangoMinimo+' - '+ex.rangoMaximo:'')).replace(/'/g,"\\'")}')">
-                                <div class="small fw-800 text-ink">${ex.nombre}</div>
-                                <div class="extra-small text-muted">${ex.codigo} ${ex.unidad ? '| '+ex.unidad : ''}</div>
-                            </div></div>`;
-                        });
-                        html += '</div></div>';
-                    }
-                    html += '</div>';
-                    html += `<div id="resultadosPendientes" class="mt-3"></div>`;
-                    html += `<div class="mt-3 p-3 bg-light rounded-4"><div class="row g-2 align-items-end">
-                        <div class="col-md-4"><label class="label-premium">Examen</label><select class="form-select-premium" id="selExamen"></select></div>
-                        <div class="col-md-3"><label class="label-premium">Valor</label><input type="text" class="form-control-premium" id="inpValor" placeholder="Ej: 14.5"></div>
-                        <div class="col-md-2"><label class="label-premium">Unidad</label><input type="text" class="form-control-premium" id="inpUnidad" readonly></div>
-                        <div class="col-md-2"><label class="label-premium">Rango Ref.</label><input type="text" class="form-control-premium" id="inpRango" readonly></div>
-                        <div class="col-md-1"><button class="btn btn-primary rounded-pill w-100 mt-2 fw-800" onclick="guardarResultado(${idOrden})"><i class="bi bi-plus-lg"></i></button></div>
-                    </div></div>`;
-                    body.innerHTML = html;
-                })
-                .catch(e => { console.error('Error cargando exámenes:', e); if (body) body.innerHTML = '<div class="alert alert-danger">Error al cargar exámenes: ' + e.message + '</div>'; });
+            currentIdOrden = idOrden;
+            const modalEl = document.getElementById('modalResultados');
+            if (!modalEl) return;
+            
+            const body = document.getElementById('modalResultadosBody');
+            if (!body) return;
+            
+            const orden = ordenesData.find(o => o.idOrden === idOrden);
+            if (!orden) return;
+            
+            if (!orden.resultados) {
+                orden.resultados = [];
+            }
+            
+            // Build modern split screen layout
+            body.innerHTML = `
+                <div class="row g-0 h-100 flex-grow-1" style="min-height: 75vh;">
+                    <!-- LEFT COLUMN: Forms -->
+                    <div class="col-md-6 form-pane d-flex flex-column border-end custom-scrollbar">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="badge bg-primary-soft text-primary fw-800 rounded-pill px-3 py-1 text-uppercase extra-small mb-1">Orden de Análisis</span>
+                                <h4 class="fw-900 text-ink mb-0">ORD-${String(idOrden).padStart(5,'0')}</h4>
+                            </div>
+                        </div>
+                        
+                        <!-- Search to add more exams -->
+                        <div class="position-relative mb-4">
+                            <label class="label-premium mb-2"><i class="bi bi-plus-circle me-1 text-primary"></i> Agregar examen adicional a esta orden</label>
+                            <div class="position-relative">
+                                <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
+                                <input type="text" class="form-control rounded-pill ps-5 border-2 border-light bg-light" id="searchExamenAdd" placeholder="Buscar examen por nombre o código (ej. Glucosa)..." oninput="filterAddExamsList()">
+                            </div>
+                            <div id="addExamsDropdown" class="position-absolute bg-white border rounded-4 w-100 mt-1 shadow-premium custom-scrollbar" style="max-height: 220px; display: none; z-index: 1050;"></div>
+                        </div>
+                        
+                        <div class="border-top pt-3 flex-grow-1">
+                            <label class="label-premium mb-3"><i class="bi bi-card-list me-1 text-indigo"></i> Resultados de Exámenes en la Orden</label>
+                            <div id="inputCardsContainer" class="pe-2">
+                                <!-- Rendered dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- RIGHT COLUMN: Real-time Live Preview -->
+                    <div class="col-md-6 preview-pane d-flex flex-column custom-scrollbar">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-soft text-success rounded-circle p-1"><i class="bi bi-eye-fill"></i></span>
+                                <span class="fw-800 text-muted extra-small text-uppercase tracking-wider">Vista Previa Real</span>
+                            </div>
+                            <button class="btn btn-sm btn-light border text-primary rounded-pill px-3 fw-bold shadow-sm" onclick="proyectarInforme(${idOrden})">
+                                <i class="bi bi-aspect-ratio me-1"></i> Proyectar Impresión
+                            </button>
+                        </div>
+                        
+                        <div id="previewPaperContainer" class="d-flex justify-content-center pb-4">
+                            <!-- Paper sheet component rendered dynamically -->
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+            
+            // Set footer validation button visibility
+            const btnVal = document.getElementById('btnValidarOrden');
+            if (btnVal) {
+                btnVal.style.display = (orden.resultados && orden.resultados.length > 0) ? 'inline-block' : 'none';
+            }
+            
+            renderInputCards(idOrden);
+            renderLivePreview(orden);
         }
 
-        function seleccionarExamen(codigo, nombre, unidad, rMin, rMax, rango) {
-            document.getElementById('inpValor').value = '';
-            document.getElementById('inpValor').focus();
-            document.getElementById('inpUnidad').value = unidad;
-            document.getElementById('inpRango').value = rango;
-            const sel = document.getElementById('selExamen');
-            sel.innerHTML = `<option value="${codigo}" data-rmin="${rMin}" data-rmax="${rMax}" data-unidad="${unidad}" data-rango="${rango}">${nombre} (${codigo})</option>`;
+        function checkIsAnormal(codigo, val, config) {
+            if (!val || val.trim() === "") return false;
+            const valNum = parseFloat(val);
+            if (!isNaN(valNum)) {
+                if (config.rangoMinimo !== null && valNum < config.rangoMinimo) return true;
+                if (config.rangoMaximo !== null && valNum > config.rangoMaximo) return true;
+            } else {
+                const text = val.toUpperCase();
+                if (text.includes('POS') || text.includes('REACTIVO') || text.includes('ANORMAL') || text.includes('PATOLOGICO')) return true;
+            }
+            return false;
         }
 
-        function guardarResultado(idOrden) {
-            const sel = document.getElementById('selExamen');
-            const val = document.getElementById('inpValor').value.trim();
-            if (!sel.options.length || !val) { alert('Seleccione un examen e ingrese un valor'); return; }
-            const opt = sel.options[0];
+        function renderInputCards(idOrden) {
+            const orden = ordenesData.find(o => o.idOrden === idOrden);
+            const container = document.getElementById('inputCardsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            if (!orden.resultados || orden.resultados.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-folder-plus fs-2 d-block mb-2"></i>
+                        No hay exámenes agregados a esta orden.<br>Use el buscador de arriba para agregar uno.
+                    </div>`;
+                return;
+            }
+            
+            orden.resultados.forEach(r => {
+                const config = defaultExamConfigs[r.codigoExamen] || { placeholder: "---", rangoMinimo: null, rangoMaximo: null, rangoTexto: "---", unidad: r.unidad || "" };
+                const examName = (nameMap[r.codigoExamen] || r.codigoExamen).toUpperCase();
+                
+                let valStr = r.valorResultado || '';
+                let cardClass = '';
+                let statusHtml = '<span class="badge bg-secondary-soft text-muted rounded-pill px-2">PENDIENTE</span>';
+                
+                if (valStr) {
+                    const isAnormal = checkIsAnormal(r.codigoExamen, valStr, config);
+                    cardClass = isAnormal ? 'is-warning' : 'is-success';
+                    statusHtml = isAnormal ? '<span class="badge bg-danger text-white rounded-pill px-2">⚠ ANORMAL</span>' : '<span class="badge bg-success text-white rounded-pill px-2">✓ NORMAL</span>';
+                }
+                
+                const card = document.createElement('div');
+                card.className = `card border-0 shadow-sm mb-3 rounded-4 p-3 result-input-card ${cardClass}`;
+                card.id = `input_card_${r.codigoExamen}`;
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h6 class="fw-800 text-ink mb-0">${examName}</h6>
+                            <small class="text-muted fw-bold text-uppercase extra-small">${r.codigoExamen}</small>
+                        </div>
+                    </div>
+                    <div class="row g-2 align-items-center">
+                        <div class="col-md-7">
+                            <div class="input-group">
+                                <input type="text" class="form-control rounded-start-pill ps-3 border-0 bg-light fw-700" 
+                                       id="val_${r.codigoExamen}" 
+                                       placeholder="Ej: ${config.placeholder}" 
+                                       value="${valStr}" 
+                                       oninput="updateSingleResult('${r.codigoExamen}', this.value)"
+                                       onblur="autoSaveResult(${idOrden}, '${r.codigoExamen}', this.value)">
+                                <span class="input-group-text rounded-end-pill border-0 bg-light text-muted fw-bold small">${r.unidad || config.unidad || '---'}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <span class="extra-small fw-bold text-muted d-block">Ref: ${config.rangoTexto}</span>
+                            <div class="mt-1 d-flex align-items-center justify-content-end gap-2">
+                                <div id="status_${r.codigoExamen}">${statusHtml}</div>
+                                <div class="autosave-badge" id="saved_${r.codigoExamen}"><i class="bi bi-cloud-check-fill text-success"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateSingleResult(codigo, val) {
+            const orden = ordenesData.find(o => o.idOrden === currentIdOrden);
+            if (!orden) return;
+            
+            const res = orden.resultados.find(r => r.codigoExamen === codigo);
+            const config = defaultExamConfigs[codigo] || {};
+            
+            if (res) {
+                res.valorResultado = val;
+                res.esAnormal = checkIsAnormal(codigo, val, config);
+            }
+            
+            // Update input card UI live
+            const cardEl = document.getElementById(`input_card_${codigo}`);
+            const statusEl = document.getElementById(`status_${codigo}`);
+            const badge = document.getElementById(`saved_${codigo}`);
+            
+            if (badge) {
+                badge.className = 'autosave-badge';
+                badge.innerHTML = '<i class="bi bi-cloud-slash text-muted"></i>';
+            }
+            
+            if (!val.trim()) {
+                if (cardEl) cardEl.className = 'card border-0 shadow-sm mb-3 rounded-4 p-3 result-input-card';
+                if (statusEl) statusEl.innerHTML = '<span class="badge bg-secondary-soft text-muted rounded-pill px-2">PENDIENTE</span>';
+            } else {
+                const isAnormal = checkIsAnormal(codigo, val, config);
+                if (cardEl) {
+                    cardEl.className = `card border-0 shadow-sm mb-3 rounded-4 p-3 result-input-card ${isAnormal ? 'is-warning' : 'is-success'}`;
+                }
+                if (statusEl) {
+                    statusEl.innerHTML = isAnormal 
+                        ? '<span class="badge bg-danger text-white rounded-pill px-2">⚠ ANORMAL</span>'
+                        : '<span class="badge bg-success text-white rounded-pill px-2">✓ NORMAL</span>';
+                }
+            }
+            
+            // Update preview panel instantly
+            renderLivePreview(orden);
+        }
+
+        function autoSaveResult(idOrden, codigo, val) {
+            const badge = document.getElementById(`saved_${codigo}`);
+            if (badge) {
+                badge.className = 'autosave-badge saving';
+                badge.innerHTML = '<span class="spinner-border spinner-border-sm text-primary" style="width: 10px; height: 10px;"></span>';
+            }
+            
+            const config = defaultExamConfigs[codigo] || {};
             const body = {
                 idOrden: idOrden,
-                codigoExamen: opt.value,
+                codigoExamen: codigo,
                 valor: val,
-                unidad: opt.dataset.unidad,
-                rangoMinimo: opt.dataset.rmin,
-                rangoMaximo: opt.dataset.rmax
+                unidad: config.unidad || '',
+                rangoMinimo: config.rangoMinimo,
+                rangoMaximo: config.rangoMaximo
             };
+            
             fetch('/api/laboratorio/resultado', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
@@ -334,18 +602,303 @@
             })
             .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
             .then(res => {
-                const div = document.getElementById('resultadosPendientes');
-                const anormal = res.esAnormal ? '<span class="badge bg-danger ms-2">ANORMAL</span>' : '<span class="badge bg-success ms-2">NORMAL</span>';
-                div.innerHTML += `<div class="alert ${res.esAnormal ? 'alert-danger' : 'alert-success'} py-2 small fw-800 d-flex justify-content-between align-items-center">
-                    ${opt.value}: ${val} ${opt.dataset.unidad} ${anormal}
-                    <span class="text-muted small">${opt.dataset.rango}</span>
-                </div>`;
-                document.getElementById('btnValidarOrden').style.display = 'inline-block';
-                document.getElementById('inpValor').value = '';
-                document.getElementById('inpValor').focus();
-                cargarOrdenes('todas');
+                if (badge) {
+                    badge.className = 'autosave-badge saved';
+                    badge.innerHTML = '<i class="bi bi-cloud-check-fill text-success"></i>';
+                }
+                // Update saved state in main array
+                const orden = ordenesData.find(o => o.idOrden === idOrden);
+                const r = orden.resultados.find(x => x.codigoExamen === codigo);
+                if (r) {
+                    r.esAnormal = res.esAnormal;
+                }
+                
+                const btnVal = document.getElementById('btnValidarOrden');
+                if (btnVal) btnVal.style.display = 'inline-block';
+                cargarOrdenes();
             })
-            .catch(e => { console.error('Error guardando resultado:', e); alert('Error: ' + e.message); });
+            .catch(e => {
+                console.error('Error auto-saving:', e);
+                if (badge) {
+                    badge.className = 'autosave-badge text-danger';
+                    badge.innerHTML = '<i class="bi bi-exclamation-circle-fill"></i>';
+                }
+            });
+        }
+
+        function filterAddExamsList() {
+            const q = document.getElementById('searchExamenAdd').value.toLowerCase().trim();
+            const dropdown = document.getElementById('addExamsDropdown');
+            if (!dropdown) return;
+            dropdown.innerHTML = '';
+            
+            if (!q) {
+                dropdown.style.display = 'none';
+                return;
+            }
+            
+            let matches = [];
+            const areaMap = {HEMATOLOGIA:'Hematología',BIOQUIMICA:'Bioquímica',MICROBIOLOGIA:'Microbiología',INMUNOLOGIA:'Inmunología',UROANALISIS:'Uroanálisis',COPROLOGIA:'Coprología'};
+            
+            for (const [key, examenes] of Object.entries(examenesData)) {
+                examenes.forEach(ex => {
+                    if (ex.nombre.toLowerCase().includes(q) || ex.codigo.toLowerCase().includes(q)) {
+                        matches.push({ ...ex, areaLabel: areaMap[key] || key });
+                    }
+                });
+            }
+            
+            if (matches.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-muted text-center small">No se encontraron exámenes</div>`;
+                dropdown.style.display = 'block';
+                return;
+            }
+            
+            matches.slice(0, 10).forEach(ex => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item dropdown-item-premium cursor-pointer';
+                item.style.cursor = 'pointer';
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="fw-800 small text-ink">${ex.nombre}</div>
+                            <span class="badge bg-light text-muted extra-small text-uppercase">${ex.areaLabel}</span>
+                        </div>
+                        <small class="text-primary fw-bold">${ex.codigo}</small>
+                    </div>
+                `;
+                item.onclick = function() {
+                    addExamToOrder(ex.codigo, ex.nombre, ex.unidad);
+                    document.getElementById('searchExamenAdd').value = '';
+                    dropdown.style.display = 'none';
+                };
+                dropdown.appendChild(item);
+            });
+            
+            dropdown.style.display = 'block';
+        }
+
+        function addExamToOrder(codigo, nombre, unidad) {
+            const orden = ordenesData.find(o => o.idOrden === currentIdOrden);
+            if (!orden) return;
+            
+            if (orden.resultados.some(r => r.codigoExamen === codigo)) {
+                alert('Este examen ya está agregado a la orden.');
+                return;
+            }
+            
+            const config = defaultExamConfigs[codigo] || {};
+            const newRes = {
+                codigoExamen: codigo,
+                valorResultado: "",
+                unidad: unidad || config.unidad || "",
+                rangoMinimo: config.rangoMinimo,
+                rangoMaximo: config.rangoMaximo,
+                esAnormal: false
+            };
+            
+            orden.resultados.push(newRes);
+            
+            renderInputCards(currentIdOrden);
+            renderLivePreview(orden);
+            
+            const btnVal = document.getElementById('btnValidarOrden');
+            if (btnVal) btnVal.style.display = 'inline-block';
+            
+            setTimeout(() => {
+                const input = document.getElementById(`val_${codigo}`);
+                if (input) {
+                    input.focus();
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 150);
+        }
+
+        function renderLivePreview(orden) {
+            const isCito = orden.indicaciones && (
+                orden.indicaciones.toLowerCase().includes('citopato') ||
+                orden.indicaciones.toLowerCase().includes('pap') ||
+                orden.indicaciones.toLowerCase().includes('cervix') ||
+                orden.indicaciones.toLowerCase().includes('cuello uterino')
+            );
+            
+            const previewContainer = document.getElementById('previewPaperContainer');
+            if (!previewContainer) return;
+            previewContainer.innerHTML = '';
+            
+            const docDate = orden.fechaSolicitud ? new Date(orden.fechaSolicitud).toLocaleString('es-PE') : new Date().toLocaleString('es-PE');
+            const docDateShort = orden.fechaSolicitud ? new Date(orden.fechaSolicitud).toLocaleDateString('es-PE') : new Date().toLocaleDateString('es-PE');
+            
+            let previewHtml = '';
+            
+            if (isCito) {
+                previewHtml = `
+                <div class="preview-paper">
+                    <img src="/img/logo_grocio_prado.png" style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); width: 60%; opacity: 0.035; pointer-events: none;" alt="Watermark">
+                    
+                    <div style="border-bottom: 1.5px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        <img src="/img/logo_grocio_prado.png" style="height: 45px;" alt="Logo">
+                        <div style="text-align: right;">
+                            <h1 style="font-size: 10pt !important; font-weight: 900; color: #1e3a8a; margin: 0; text-transform: uppercase;">Centro de Salud CLAS Grocio Prado</h1>
+                            <h2 style="font-size: 7.5pt !important; font-weight: 700; color: #4b5563; margin: 0;">Especialidades Médicas - Categoría I-3</h2>
+                        </div>
+                    </div>
+                    
+                    <h3 style="text-align: center; font-size: 11pt !important; font-weight: 900; text-decoration: underline; color: #1e3a8a; margin: 10px 0;">INFORME CITOPATOLÓGICO</h3>
+                    
+                    <div style="font-size: 8.5pt !important; font-weight: 800; color: #1e293b; margin-bottom: 10px; text-transform: uppercase;">
+                        Nombre: <span>${orden.pacienteNombre || '---'}</span>
+                    </div>
+                    
+                    <div style="border-top: 1.5px solid #1e293b; border-bottom: 1.5px solid #1e293b; padding: 6px 0; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); row-gap: 4px; column-gap: 20px; font-size: 7.5pt !important;">
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;"><span style="font-weight:800;">Informe:</span><span>PAP-2026-${String(orden.idOrden).padStart(4,'0')}</span></div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;"><span style="font-weight:800;">Espécimen:</span><span>CÉRVIX</span></div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;"><span style="font-weight:800;">Dep. Médico:</span><span>GINECOLOGÍA</span></div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;"><span style="font-weight:800;">Fecha Ingreso:</span><span>${docDateShort}</span></div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;"><span style="font-weight:800;">Méd. Solicitante:</span><span>${orden.medicoSolicitante || '---'}</span></div>
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e2e8f0;"><span style="font-weight:800;">DNI:</span><span>${orden.pacienteDni || '---'}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div style="font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 8pt !important;">DIAGNÓSTICO:</div>
+                    <div style="font-weight: 700; text-decoration: underline; color: #334155; margin-bottom: 6px; font-size: 7.5pt !important;">SISTEMA DE BETHESDA</div>
+                    
+                    <ul style="padding-left: 12px; margin-bottom: 15px; list-style-type: none;">
+                        <li style="margin-bottom: 4px; font-size: 7.5pt !important; padding-left: 10px; position: relative;"><span style="color:#ef4444; position:absolute; left:0;">•</span> <strong>TIPO DE MUESTRA:</strong> Convencional.</li>
+                        <li style="margin-bottom: 4px; font-size: 7.5pt !important; padding-left: 10px; position: relative;"><span style="color:#ef4444; position:absolute; left:0;">•</span> <strong>CALIDAD DE LA MUESTRA:</strong> Satisfactoria. Con células endocervicales.</li>
+                        <li style="margin-bottom: 4px; font-size: 7.5pt !important; padding-left: 10px; position: relative;"><span style="color:#ef4444; position:absolute; left:0;">•</span> <strong>INTERPRETACIÓN:</strong> <span>${orden.resultadoTexto || 'Negativo para lesión intraepitelial y/o malignidad.'}</span></li>
+                        <li style="margin-bottom: 4px; font-size: 7.5pt !important; padding-left: 10px; position: relative;"><span style="color:#ef4444; position:absolute; left:0;">•</span> <strong>OTROS HALLAZGOS:</strong> Inflamación aguda leve. Metaplasia escamosa.</li>
+                    </ul>
+                    
+                    <div style="font-weight: 800; color: #1e293b; margin-bottom: 6px; font-size: 8pt !important;">MACROSCOPÍA:</div>
+                    <p style="font-size: 7.5pt !important; color: #334155; line-height: 1.4; margin-bottom: 20px;">
+                        Se recibe extendido de citología convencional, el frotis se tiñe con el método de Papanicolau.
+                    </p>
+                    
+                    <div style="display: flex; justify-content: center; margin-top: 35px;">
+                        <div style="text-align: center;">
+                            <div style="border-top: 1px solid #475569; width: 180px; margin: 0 auto; padding-top: 3px; font-weight: 800;">M.C. Lissy Huauya Loayza</div>
+                            <div style="color: #64748b; font-size: 6.5pt !important;">Anatóma Patóloga</div>
+                            <div style="color: #64748b; font-size: 6.5pt !important;">CMP 63221 - RNE 36987</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 25px; font-weight: 800; font-size: 7.5pt !important;">
+                        FECHA DE RESULTADO: <span>${docDateShort}</span>
+                    </div>
+                </div>`;
+            } else {
+                const areas = {
+                    "HEMATOLOGIA": { name: "HEMATOLOGÍA", code: "HEM", results: [] },
+                    "BIOQUIMICA": { name: "BIOQUÍMICA", code: "BIO", results: [] },
+                    "MICROBIOLOGIA": { name: "MICROBIOLOGÍA", code: "MIC", results: [] },
+                    "INMUNOLOGIA": { name: "INMUNOLOGÍA", code: "INM", results: [] },
+                    "UROANALISIS": { name: "UROANÁLISIS", code: "URO", results: [] },
+                    "COPROLOGIA": { name: "COPROLOGÍA", code: "COP", results: [] }
+                };
+                
+                orden.resultados.forEach(r => {
+                    let matched = false;
+                    for (const [key, areaObj] of Object.entries(areas)) {
+                        if (r.codigoExamen.startsWith(areaObj.code)) {
+                            areaObj.results.push(r);
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        if (!areas["OTROS"]) {
+                            areas["OTROS"] = { name: "OTROS ANÁLISIS", code: "OTH", results: [] };
+                        }
+                        areas["OTROS"].results.push(r);
+                    }
+                });
+                
+                let tablesHtml = '';
+                for (const [key, areaObj] of Object.entries(areas)) {
+                    if (areaObj.results.length > 0) {
+                        tablesHtml += `
+                        <div style="margin-bottom: 12px;">
+                            <div style="background: #f1f5f9; color: #1e3a8a; font-weight: 800; padding: 4px 8px; border-radius: 4px; margin-bottom: 6px; border-left: 3px solid #ef4444; font-size: 7.5pt !important; text-transform: uppercase;">${areaObj.name}</div>
+                            <table style="width: 100%; border-collapse: collapse; margin-bottom: 8px;">
+                                <thead>
+                                    <tr style="border-bottom: 1.5px solid #cbd5e1; color: #475569; text-align: left; font-weight: 800; font-size: 7pt !important;">
+                                        <th style="width: 45%; padding: 4px 6px;">ANÁLISIS</th>
+                                        <th style="width: 20%; padding: 4px 6px;">RESULTADO</th>
+                                        <th style="width: 15%; padding: 4px 6px;">UNIDAD</th>
+                                        <th style="width: 20%; padding: 4px 6px;">RANGO REFERENCIAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                        
+                        areaObj.results.forEach(r => {
+                            const examName = (nameMap[r.codigoExamen] || r.codigoExamen).toUpperCase();
+                            const config = defaultExamConfigs[r.codigoExamen] || {};
+                            const isAnormal = r.valorResultado ? checkIsAnormal(r.codigoExamen, r.valorResultado, config) : false;
+                            const rStyle = isAnormal ? 'color: #dc2626; font-weight: 800;' : 'color: #059669; font-weight: 700;';
+                            const rango = config.rangoTexto || '---';
+                            
+                            tablesHtml += `
+                                    <tr style="border-bottom: 1px solid #e2e8f0; font-size: 7.5pt !important;">
+                                        <td style="padding: 4px 6px; color: #334155;">${examName}</td>
+                                        <td style="padding: 4px 6px; ${rStyle}">${r.valorResultado || '---'}</td>
+                                        <td style="padding: 4px 6px; color: #475569;">${r.unidad || config.unidad || '---'}</td>
+                                        <td style="padding: 4px 6px; color: #64748b;">${rango}</td>
+                                    </tr>`;
+                        });
+                        
+                        tablesHtml += `
+                                </tbody>
+                            </table>
+                        </div>`;
+                    }
+                }
+                
+                previewHtml = `
+                <div class="preview-paper">
+                    <img src="/img/logo_grocio_prado.png" style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); width: 60%; opacity: 0.035; pointer-events: none;" alt="Watermark">
+                    
+                    <div style="border-bottom: 1.5px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;">
+                        <img src="/img/logo_grocio_prado.png" style="height: 45px;" alt="Logo">
+                        <div style="text-align: right;">
+                            <h1 style="font-size: 10pt !important; font-weight: 900; color: #1e3a8a; margin: 0; text-transform: uppercase;">Centro de Salud CLAS Grocio Prado</h1>
+                            <h2 style="font-size: 7.5pt !important; font-weight: 700; color: #4b5563; margin: 0;">Especialidades Médicas - Categoría I-3</h2>
+                        </div>
+                    </div>
+                    
+                    <div style="border: 1.5px solid #ef4444; border-radius: 6px; padding: 10px; margin-bottom: 15px; background: #fffdfd;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); row-gap: 4px; column-gap: 20px; font-size: 7.5pt !important;">
+                            <div><span style="font-weight: 700; color: #1e293b; display: inline-block; width: 95px;">Paciente:</span><span style="color: #334155; font-weight: 600;">${orden.pacienteNombre || '---'}</span></div>
+                            <div><span style="font-weight: 700; color: #1e293b; display: inline-block; width: 95px;">Fecha Atención:</span><span style="color: #334155; font-weight: 600;">${docDate}</span></div>
+                            <div><span style="font-weight: 700; color: #1e293b; display: inline-block; width: 95px;">DNI:</span><span style="color: #334155; font-weight: 600;">${orden.pacienteDni || '---'}</span></div>
+                            <div><span style="font-weight: 700; color: #1e293b; display: inline-block; width: 95px;">N° Solicitud:</span><span style="color: #334155; font-weight: 600;">0126${String(orden.idOrden).padStart(5,'0')}</span></div>
+                            <div><span style="font-weight: 700; color: #1e293b; display: inline-block; width: 95px;">Indicado Dr(a):</span><span style="color: #334155; font-weight: 600;">${orden.medicoSolicitante || '---'}</span></div>
+                            <div><span style="font-weight: 700; color: #1e293b; display: inline-block; width: 95px;">ID Orden:</span><span style="color: #334155; font-weight: 600;">ORD-${String(orden.idOrden).padStart(5,'0')}</span></div>
+                        </div>
+                    </div>
+                    
+                    <div id="previewTablesContainer">${tablesHtml || '<div class="text-center py-5 text-muted">Complete los análisis en el panel izquierdo para visualizarlos aquí.</div>'}</div>
+                    
+                    <div style="display: flex; justify-content: center; margin-top: 35px;">
+                        <div style="text-align: center;">
+                            <div style="border-top: 1px solid #475569; width: 190px; margin: 0 auto; padding-top: 3px; font-weight: 800;">Mg. Blgo. Luis U. Moscoso García</div>
+                            <div style="color: #64748b; font-size: 6.5pt !important; line-height: 1.2;">CBP 12224 - RNBE 0696</div>
+                            <div style="color: #64748b; font-size: 6.5pt !important; line-height: 1.2;">BIÓLOGO - MICROBIÓLOGO</div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            previewContainer.innerHTML = previewHtml;
+        }
+
+        function proyectarInforme(idOrden) {
+            const orden = ordenesData.find(o => o.idOrden === idOrden);
+            if (orden) {
+                localStorage.setItem('lab_report', JSON.stringify(orden));
+                window.open('/apoyo/laboratorio/informe/' + idOrden, '_blank');
+            }
         }
 
         function validarOrden() {
@@ -353,6 +906,7 @@
             const btn = document.getElementById('btnValidarOrden');
             btn.disabled = true;
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> VALIDANDO...';
+            
             fetch('/api/laboratorio/orden/' + currentIdOrden + '/validar', { method: 'POST' })
                 .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
                 .then(res => {
@@ -362,10 +916,15 @@
                     setTimeout(() => {
                         const modal = bootstrap.Modal.getInstance(document.getElementById('modalResultados'));
                         if (modal) modal.hide();
-                        cargarOrdenes('todas');
+                        cargarOrdenes();
                     }, 1000);
                 })
-                .catch(e => { console.error('Error validando:', e); alert('Error: ' + e.message); btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> VALIDAR ORDEN'; });
+                .catch(e => { 
+                    console.error('Error validando:', e); 
+                    alert('Error: ' + e.message); 
+                    btn.disabled = false; 
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> VALIDAR Y FINALIZAR'; 
+                });
         }
 
         function imprimirInforme(idOrden) {
@@ -377,7 +936,20 @@
         }
 
         function recargarPanel() { cargarOrdenes(); cargarExamenes(); }
-        document.addEventListener('DOMContentLoaded', function() { cargarExamenes(); cargarOrdenes(); });
+
+        document.addEventListener('DOMContentLoaded', function() { 
+            cargarExamenes(); 
+            cargarOrdenes(); 
+            
+            // Dropdown click outside listener
+            document.addEventListener('click', function(e) {
+                const dropdown = document.getElementById('addExamsDropdown');
+                const search = document.getElementById('searchExamenAdd');
+                if (dropdown && search && !search.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        });
     </script>
 </body>
 </html>

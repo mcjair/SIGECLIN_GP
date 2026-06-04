@@ -81,19 +81,21 @@ public class PersonalServiceTest {
     @Test
     public void testGuardar_ActualizarPersonal() {
         Personal p = crearPersonalBase();
+        when(personalRepository.findById(1)).thenReturn(Optional.of(p));
         when(personalRepository.save(any(Personal.class))).thenReturn(p);
 
         Personal result = personalService.guardar(p);
 
         assertNotNull(result);
         assertNotNull(result.getFechaActualizacion());
-        verify(personalRepository, times(1)).save(p);
+        verify(personalRepository, times(1)).save(any(Personal.class));
     }
 
     @Test
     public void testGuardar_UpperCaseColegiatura() {
         Personal p = crearPersonalBase();
         p.setNumeroColegiatura("cmp-12345");
+        when(personalRepository.findById(1)).thenReturn(Optional.of(p));
         when(personalRepository.save(any(Personal.class))).thenReturn(p);
 
         personalService.guardar(p);

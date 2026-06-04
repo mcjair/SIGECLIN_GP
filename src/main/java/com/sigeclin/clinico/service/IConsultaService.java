@@ -36,5 +36,5 @@ public interface IConsultaService {
      * Guarda la consulta completa incluyendo diagnósticos CIE-10,
      * receta médica (delegado a {@link IRecetaService}) y referencias.
      */
-    void guardarConsultaCompleta(Integer triajeId, Map<String, Object> data);
+    Consulta guardarConsultaCompleta(Integer triajeId, Map<String, Object> data);
 }

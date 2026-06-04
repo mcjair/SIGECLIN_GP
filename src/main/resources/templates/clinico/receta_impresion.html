@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Receta Médica - SIGECLIN</title>
-    <!-- Usando Outfit para un look más moderno y profesional -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/main.css(v='3.2')}">
     <style>
         @page { 
@@ -15,7 +14,7 @@
         body { 
             background: #f1f5f9; 
             color: #0f172a; 
-            font-family: 'Outfit', sans-serif; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
             padding: 20px;
             display: flex;
             justify-content: center;
@@ -318,30 +317,31 @@
     </div>
 
     <script th:inline="javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            const data = JSON.parse(localStorage.getItem('current_prescription'));
-            if (!data) return;
-
+        function renderPrescription(data) {
             // Header & Meta
             document.getElementById('headerHC').innerText = data.paciente.numeroHistoriaClinica || '---';
             document.getElementById('headerFecha').innerText = data.fecha;
 
             // Nro Receta
-            const nro = data.triaje ? data.triaje.idTriaje.toString().padStart(6, '0') : '000000';
+            const nro = (data.triaje && data.triaje.idTriaje) ? data.triaje.idTriaje.toString().padStart(6, '0') : '000000';
             document.getElementById('recetaNro').innerText = 'N° ' + nro;
 
             // Paciente
-            const p = data.paciente;
-            document.getElementById('pacNombre').innerText = `${p.apellidoPaterno} ${p.apellidoMaterno}, ${p.nombres}`;
-            document.getElementById('pacDni').innerText = p.numeroDocumento;
-            document.getElementById('pacEdad').innerText = data.edad;
-            document.getElementById('pacSexo').innerText = p.sexo === 'M' ? 'MASCULINO' : 'FEMENINO';
+            const p = data.paciente || {};
+            const apePat = p.apellidoPaterno || '';
+            const apeMat = p.apellidoMaterno || '';
+            const nom = p.nombres || '';
+            document.getElementById('pacNombre').innerText = `${apePat} ${apeMat}, ${nom}`.trim() === ',' ? '---' : `${apePat} ${apeMat}, ${nom}`.replace(' ,', ',');
+            document.getElementById('pacDni').innerText = p.numeroDocumento || '---';
+            document.getElementById('pacEdad').innerText = data.edad || '---';
+            document.getElementById('pacSexo').innerText = p.sexo === 'M' ? 'MASCULINO' : (p.sexo === 'F' ? 'FEMENINO' : '---');
             
             // Plan
             document.getElementById('planTxt').innerText = data.planTratamiento || 'No se registraron indicaciones adicionales.';
 
             // Medicamentos
             const tbody = document.getElementById('medList');
+            tbody.innerHTML = '';
             if (data.medicamentos && data.medicamentos.length > 0) {
                 tbody.innerHTML = data.medicamentos.map(m => `
                     <tr>
@@ -360,6 +360,50 @@
                 // Rellenar hasta 8 filas
                 for(let i = data.medicamentos.length; i < 8; i++) {
                     tbody.innerHTML += `<tr><td style="height: 40px;"></td><td></td><td></td><td></td><td></td></tr>`;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idConsulta = urlParams.get('idConsulta');
+
+            if (idConsulta) {
+                fetch('/consulta/api/detalle/' + idConsulta)
+                    .then(r => { if(!r.ok) throw new Error('Error al obtener detalle'); return r.json(); })
+                    .then(c => {
+                        let parsedDate = new Date(c.fechaHoraInicio);
+                        if (Array.isArray(c.fechaHoraInicio)) {
+                            parsedDate = new Date(c.fechaHoraInicio[0], c.fechaHoraInicio[1]-1, c.fechaHoraInicio[2], c.fechaHoraInicio[3]||0, c.fechaHoraInicio[4]||0);
+                        }
+                        const formattedDate = parsedDate.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' }) + ' - ' + parsedDate.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        
+                        const data = {
+                            paciente: c.paciente,
+                            triaje: c.triaje,
+                            edad: c.paciente.edad || '---',
+                            planTratamiento: c.planTratamiento,
+                            fecha: formattedDate,
+                            medicamentos: (c.recetas && c.recetas.length > 0) ? c.recetas[0].detalles.map(d => ({
+                                codigo: c.diagnosticos && c.diagnosticos.length > 0 ? c.diagnosticos[0].cie10.codigo : '---',
+                                dx: c.diagnosticos && c.diagnosticos.length > 0 ? c.diagnosticos[0].cie10.descripcion : '',
+                                medicamento: d.medicamento ? d.medicamento.nombreGenerico : '---',
+                                dosis: d.dosis || '',
+                                frecuencia: d.frecuencia || '',
+                                duracion: d.duracionDias ? (d.duracionDias + ' días') : '',
+                                cantidad: d.cantidadTotal || 0
+                            })) : []
+                        };
+                        renderPrescription(data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('No se pudo cargar la receta del historial: ' + err.message);
+                    });
+            } else {
+                const data = JSON.parse(localStorage.getItem('current_prescription'));
+                if (data) {
+                    renderPrescription(data);
                 }
             }
         });

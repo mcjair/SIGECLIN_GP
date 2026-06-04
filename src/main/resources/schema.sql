@@ -197,6 +197,19 @@ CREATE TABLE maestras.tipo_seguro (
     activo BOOLEAN DEFAULT true
 );
 
+CREATE TABLE maestras.examen (
+    id_examen SERIAL PRIMARY KEY,
+    codigo VARCHAR(20) UNIQUE NOT NULL,
+    nombre VARCHAR(200) NOT NULL,
+    area VARCHAR(30) NOT NULL CHECK (area IN ('HEMATOLOGIA','BIOQUIMICA','MICROBIOLOGIA','INMUNOLOGIA','UROANALISIS','COPROLOGIA')),
+    unidad VARCHAR(30),
+    rango_minimo NUMERIC(10,2),
+    rango_maximo NUMERIC(10,2),
+    rango_texto VARCHAR(100),
+    tiempo_proceso_min INT DEFAULT 60,
+    activo BOOLEAN DEFAULT true
+);
+
 CREATE TABLE maestras.catalogo_vacunas (
     id_vacuna SERIAL PRIMARY KEY,
     codigo VARCHAR(20) UNIQUE NOT NULL,
@@ -307,7 +320,7 @@ CREATE TABLE clinico.diagnostico_consulta (
     id_diagnostico SERIAL PRIMARY KEY,
     id_consulta INT NOT NULL REFERENCES clinico.consulta(id_consulta),
     codigo_cie10 VARCHAR(10) NOT NULL REFERENCES maestras.cie10(codigo),
-    tipo VARCHAR(20) DEFAULT 'principal',
+    tipo VARCHAR(20) DEFAULT 'PRESUNTIVO',
     observaciones TEXT,
     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

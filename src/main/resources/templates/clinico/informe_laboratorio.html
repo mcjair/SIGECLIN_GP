@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Laboratorio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        @page { margin: 15mm; size: A4; }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: white; color: #1e293b; font-size: 11pt; line-height: 1.5; }
+        .header { text-align: center; border-bottom: 3px solid #4f46e5; padding-bottom: 15px; margin-bottom: 20px; }
+        .header h1 { font-size: 16pt; font-weight: 900; color: #4f46e5; letter-spacing: 1px; }
+        .header h2 { font-size: 12pt; font-weight: 600; color: #64748b; margin-top: 4px; }
+        .header p { font-size: 8pt; color: #94a3b8; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #f8fafc; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 9pt; }
+        .info-grid .label { font-weight: 800; color: #4f46e5; }
+        table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+        th { background: #4f46e5; color: white; padding: 8px 10px; text-align: left; font-weight: 800; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) td { background: #f8fafc; }
+        .anormal { color: #dc2626; font-weight: 800; }
+        .normal { color: #059669; font-weight: 800; }
+        .footer { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 9pt; }
+        .footer .firma { border-top: 1px solid #1e293b; padding-top: 4px; margin-top: 40px; text-align: center; font-weight: 600; }
+        .badge-area { display: inline-block; background: #eef2ff; color: #4f46e5; padding: 2px 8px; border-radius: 4px; font-weight: 800; font-size: 7pt; }
+        @media print { .no-print { display: none; } body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        .no-print { text-align: center; margin-bottom: 15px; }
+        .no-print button { background: #4f46e5; color: white; border: none; padding: 8px 24px; border-radius: 20px; font-weight: 800; cursor: pointer; font-size: 10pt; }
+    </style>
+</head>
+<body>
+    <div class="no-print"><button onclick="window.print()">🖨️ IMPRIMIR INFORME</button></div>
+    <div class="header">
+        <h1>MINISTERIO DE SALUD</h1>
+        <h2>INFORME DE RESULTADOS — PATOLOGÍA CLÍNICA</h2>
+        <p id="headerInstitucion">Centro de Salud CLAS Grocio Prado — Categoría I-3</p>
+    </div>
+    <div class="info-grid" id="infoGrid">
+        <div><span class="label">Paciente:</span> <span id="lblPaciente">---</span></div>
+        <div><span class="label">N° Historia Clínica:</span> <span id="lblHC">---</span></div>
+        <div><span class="label">N° Orden:</span> <span id="lblOrden">---</span></div>
+        <div><span class="label">Fecha Solicitud:</span> <span id="lblFecha">---</span></div>
+        <div><span class="label">Médico Solicitante:</span> <span id="lblMedico">---</span></div>
+        <div><span class="label">Fecha Resultado:</span> <span id="lblFechaResultado">---</span></div>
+    </div>
+    <table>
+        <thead><tr><th>Examen</th><th>Código</th><th>Área</th><th>Resultado</th><th>Unidad</th><th>Rango Referencial</th><th>Indicador</th></tr></thead>
+        <tbody id="resultadosBody"></tbody>
+    </table>
+    <div class="footer">
+        <div>
+            <div class="firma">Firma del Médico Solicitante</div>
+        </div>
+        <div>
+            <div class="firma">Firma del Profesional de Laboratorio</div>
+        </div>
+    </div>
+    <script>
+        try {
+            const data = JSON.parse(localStorage.getItem('lab_report') || '{}');
+            document.getElementById('lblOrden').textContent = 'ORD-' + String(data.idOrden || '').padStart(5,'0');
+            document.getElementById('lblPaciente').textContent = data.pacienteNombre || '---';
+            document.getElementById('lblHC').textContent = data.pacienteId ? 'HC-' + String(data.pacienteId).padStart(5,'0') : '---';
+            document.getElementById('lblMedico').textContent = data.medicoSolicitante || '---';
+            document.getElementById('lblFecha').textContent = data.fecha ? new Date(data.fecha).toLocaleDateString('es-PE') : '---';
+            document.getElementById('lblFechaResultado').textContent = data.fecha ? new Date(data.fecha).toLocaleDateString('es-PE') : '---';
+            if (data.resultados && data.resultados.length) {
+                const tb = document.getElementById('resultadosBody');
+                let html = '';
+                data.resultados.forEach(r => {
+                    const isAnormal = r.esAnormal;
+                    const rango = r.rangoMinimo != null ? r.rangoMinimo + ' — ' + r.rangoMaximo : '---';
+                    html += `<tr>
+                        <td class="fw-800">${r.codigoExamen || '---'}</td>
+                        <td>${r.codigoExamen || '---'}</td>
+                        <td><span class="badge-area">LAB</span></td>
+                        <td class="${isAnormal ? 'anormal' : 'normal'}">${r.valorResultado || '---'}</td>
+                        <td>${r.unidad || ''}</td>
+                        <td>${rango}</td>
+                        <td>${isAnormal ? '<span class="anormal">⚠ ANORMAL</span>' : '<span class="normal">✓ NORMAL</span>'}</td>
+                    </tr>`;
+                });
+                tb.innerHTML = html;
+            }
+        } catch(e) { document.getElementById('resultadosBody').innerHTML = '<tr><td colspan="7" style="color:#dc2626;">Error al cargar datos.</td></tr>'; }
+    </script>
+</body>
+</html>

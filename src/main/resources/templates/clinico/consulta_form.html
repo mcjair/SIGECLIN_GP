@@ -5,7 +5,40 @@
     <div th:replace="~{layout :: sidebar}"></div>
     
     <main th:replace="~{layout :: main(pageTitle='Atención Médica', content=~{::#consulta-content}, modals=null)}">
-        <div id="consulta-content" class="animate-fade-in">
+        <div id="skeleton-container" class="row g-4 p-4">
+            <!-- Skeleton Cabecera -->
+            <div class="col-12">
+                <div class="card p-4 border-0 glass-panel-premium placeholder-glow">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="placeholder rounded-circle" style="width: 60px; height: 60px;"></div>
+                        <div>
+                            <span class="placeholder col-6 mb-2"></span>
+                            <span class="placeholder col-4"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Skeleton Triaje -->
+            <div class="col-lg-3">
+                <div class="card p-4 h-100 glass-panel-premium border-0 placeholder-glow">
+                    <span class="placeholder col-8 mb-4"></span>
+                    <span class="placeholder col-12 mb-3"></span>
+                    <span class="placeholder col-12 mb-3"></span>
+                    <span class="placeholder col-12 mb-3"></span>
+                    <span class="placeholder col-12 mb-3"></span>
+                </div>
+            </div>
+            <!-- Skeleton HC -->
+            <div class="col-lg-9">
+                <div class="card p-4 h-100 glass-panel-premium border-0 placeholder-glow">
+                    <span class="placeholder col-4 mb-4"></span>
+                    <div class="mb-3"><span class="placeholder col-12" style="height: 100px;"></span></div>
+                    <div class="mb-3"><span class="placeholder col-12" style="height: 100px;"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="consulta-content" class="animate-fade-in" style="display: none;">
             <!-- Alerta Clínica de Triaje (Crítico - Posición Centrada Superior) -->
             <div th:if="${triaje.alertaClinica}" class="d-flex justify-content-center mb-4">
                 <div class="alert-clinical-premium-centered animate-pulse-glow">
@@ -15,7 +48,7 @@
                         </div>
                         <div class="text-start">
                             <label class="alert-label text-uppercase mb-0">Riesgo Clínico Detectado</label>
-                            <h5 class="alert-detail mb-0 fw-950 text-white" th:text="${triaje.detalleAlerta}">ALERTA DE TRIAJE</h5>
+                            <h5 class="alert-detail mb-0 fw-800 text-dark" th:text="${triaje.detalleAlerta}">ALERTA DE TRIAJE</h5>
                         </div>
                     </div>
                 </div>
@@ -25,25 +58,22 @@
                 <input type="hidden" th:field="*{paciente.idPersona}">
                 <input type="hidden" th:field="*{triaje.idTriaje}">
 
-                    </div>
-                </div>
-
                 <div class="row g-4">
                     <!-- Cabecera del Paciente -->
                     <div class="col-12">
-                        <div class="card p-4 border-primary border-opacity-25 bg-primary bg-opacity-5">
+                        <div class="card p-4 border-0 glass-panel-premium">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="avatar-md rounded-circle bg-primary bg-opacity-10 p-1 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <div class="avatar-md rounded-circle bg-primary-soft p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                                         <i class="bi bi-person-fill fs-2 text-primary"></i>
                                     </div>
                                     <div>
-                                        <h3 class="mb-0 text-white" th:text="${consulta.paciente.nombres + ' ' + consulta.paciente.apellidoPaterno}">Juan Pérez</h3>
-                                        <p class="text-muted mb-0" th:text="'DNI: ' + ${consulta.paciente.numeroDocumento} + ' | HC: ' + ${consulta.paciente.idPersona}">DNI: 00000000</p>
+                                        <h3 class="mb-0 text-dark fw-800" th:text="${consulta.paciente.nombres + ' ' + consulta.paciente.apellidoPaterno}">Juan Pérez</h3>
+                                        <p class="text-muted mb-0 small fw-bold" th:text="'DNI: ' + ${consulta.paciente.numeroDocumento} + ' | HC: ' + ${consulta.paciente.idPersona}">DNI: 00000000</p>
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 fs-6">
+                                    <span class="badge bg-primary-soft text-primary px-3 py-2 fw-800">
                                         <i class="bi bi-clock-history me-1"></i> Iniciado: <span th:text="${#temporals.format(consulta.fechaHoraInicio, 'HH:mm')}">10:00</span>
                                     </span>
                                 </div>
@@ -53,34 +83,34 @@
 
                     <!-- Datos de Triaje (Solo Lectura) -->
                     <div class="col-lg-3">
-                        <div class="card p-4 h-100">
-                            <h5 class="mb-4 text-warning"><i class="bi bi-heart-pulse me-2"></i> Triaje Actual</h5>
+                        <div class="card p-4 h-100 glass-panel-premium border-0">
+                            <h5 class="mb-4 fw-800 text-dark"><i class="bi bi-heart-pulse me-2 text-primary"></i> Triaje Actual</h5>
                             <div class="d-flex flex-column gap-3">
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted small">Presión Arterial</span>
-                                    <span class="fw-bold" 
-                                          th:classappend="${triaje.presionArterialSistolica >= 140 or triaje.presionArterialDiastolica >= 90 ? 'text-danger' : 'text-white'}"
+                                    <span class="fw-800" 
+                                          th:classappend="${triaje.presionArterialSistolica >= 140 or triaje.presionArterialDiastolica >= 90 ? 'text-danger' : 'text-dark'}"
                                           th:text="${triaje.presionArterialSistolica + '/' + triaje.presionArterialDiastolica}">120/80</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted small">Temperatura</span>
-                                    <span class="fw-bold" 
-                                          th:classappend="${triaje.temperatura >= 38.0 or triaje.temperatura < 35.5 ? 'text-danger' : 'text-white'}"
+                                    <span class="fw-800" 
+                                          th:classappend="${triaje.temperatura >= 38.0 or triaje.temperatura < 35.5 ? 'text-danger' : 'text-dark'}"
                                           th:text="${triaje.temperatura + ' °C'}">36.5 °C</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted small">Frec. Cardiaca</span>
-                                    <span class="fw-bold" 
-                                          th:classappend="${triaje.frecuenciaCardiaca > 100 or triaje.frecuenciaCardiaca < 60 ? 'text-danger' : 'text-white'}"
+                                    <span class="fw-800" 
+                                          th:classappend="${triaje.frecuenciaCardiaca > 100 or triaje.frecuenciaCardiaca < 60 ? 'text-danger' : 'text-dark'}"
                                           th:text="${triaje.frecuenciaCardiaca + ' bpm'}">75 bpm</span>
                                 </div>
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted small">Saturación SpO2</span>
-                                    <span class="fw-bold" 
-                                          th:classappend="${triaje.saturacionOxigeno < 95 ? 'text-danger' : 'text-white'}"
+                                    <span class="fw-800" 
+                                          th:classappend="${triaje.saturacionOxigeno < 95 ? 'text-danger' : 'text-dark'}"
                                           th:text="${triaje.saturacionOxigeno + ' %'}">98 %</span>
                                 </div>
-                                <hr class="border-secondary opacity-25">
+                                <hr class="opacity-25">
                                 <div class="d-flex justify-content-between">
                                     <span class="text-muted small">IMC</span>
                                     <span class="badge bg-primary bg-opacity-10 text-primary" 
@@ -93,7 +123,7 @@
 
                     <!-- Formulario de Historia Clínica -->
                     <div class="col-lg-9">
-                        <div class="card p-4">
+                        <div class="card p-4 glass-panel-premium border-0">
                             <ul class="nav nav-pills mb-4 gap-2" id="attendanceTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link active rounded-3" id="anamnesis-tab" data-bs-toggle="pill" data-bs-target="#anamnesis" type="button">1. Anamnesis</button>
@@ -139,14 +169,14 @@
                                 <div class="tab-pane fade" id="dx" role="tabpanel">
                                     <div class="mb-3">
                                         <label class="form-label text-muted small fw-bold">BUSCAR DIAGNÓSTICO (CIE-10)</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-transparent border-secondary text-white"><i class="bi bi-search"></i></span>
-                                            <input type="text" id="dxSearch" class="form-control border-secondary text-white bg-dark" placeholder="Escriba código o descripción (ej: A00)..." autocomplete="off">
+                                        <div class="input-premium-group">
+                                            <span class="input-premium-icon"><i class="bi bi-search"></i></span>
+                                            <input type="text" id="dxSearch" class="fw-800" placeholder="Escriba código o descripción (ej: A00)..." autocomplete="off">
                                         </div>
-                                        <div id="dxResults" class="list-group position-absolute w-50 shadow-lg z-3" style="display:none; max-height: 200px; overflow-y: auto; border: 1px solid #444;"></div>
+                                        <div id="dxResults" class="list-group position-absolute w-50 shadow-lg z-3" style="display:none; max-height: 200px; overflow-y: auto;"></div>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-dark table-sm align-middle" id="dxTable">
+                                        <table class="table table-sm align-middle" id="dxTable">
                                             <thead>
                                                 <tr><th style="width: 80px;">CIE-10</th><th>Descripción</th><th style="width: 50px;"></th></tr>
                                             </thead>
@@ -171,51 +201,47 @@
                                     <div class="row g-3 mb-4">
                                         <div class="col-md-6">
                                             <label class="form-label text-muted small fw-bold">BUSCAR MEDICAMENTO</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-transparent border-secondary"><i class="bi bi-capsule-pill text-primary"></i></span>
-                                                <input type="text" class="form-control border-secondary" placeholder="Nombre del fármaco...">
+                                            <div class="input-group shadow-sm rounded-3 overflow-hidden">
+                                                <span class="input-group-text bg-white border-0"><i class="bi bi-capsule-pill text-primary"></i></span>
+                                                <input type="text" id="medSearch" class="form-control border-0 fw-800" placeholder="Nombre del fármaco..." autocomplete="off" style="background: white;">
                                             </div>
+                                            <div id="medResults" class="list-group position-absolute shadow-lg z-3 rounded-3 overflow-hidden" style="display:none; max-height: 200px; overflow-y: auto; width: 40%;"></div>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label text-muted small fw-bold">INDICACIONES GENERALES</label>
-                                            <input type="text" class="form-control border-secondary" placeholder="Dieta, reposo, etc.">
+                                            <input type="text" id="indicacionesGenerales" class="form-control fw-800" placeholder="Dieta, reposo, etc.">
                                         </div>
                                     </div>
 
-                                    <div class="table-responsive">
-                                        <table class="table table-dark table-hover align-middle">
-                                            <thead class="small text-muted">
+                                    <div class="table-responsive rounded-3 border">
+                                        <table class="table table-hover align-middle mb-0">
+                                            <thead class="bg-primary-soft small text-muted">
                                                 <tr>
-                                                    <th>Medicamento</th>
-                                                    <th>Dosis</th>
-                                                    <th>Frecuencia</th>
-                                                    <th>Duración</th>
-                                                    <th>Cant.</th>
-                                                    <th></th>
+                                                    <th class="fw-800 py-3">Medicamento</th>
+                                                    <th class="fw-800 py-3">Dosis</th>
+                                                    <th class="fw-800 py-3">Frecuencia</th>
+                                                    <th class="fw-800 py-3">Duración</th>
+                                                    <th class="fw-800 py-3" style="width: 80px;">Cant.</th>
+                                                    <th class="fw-800 py-3" style="width: 50px;"></th>
                                                 </tr>
                                             </thead>
                                             <tbody id="recetaDetalle">
-                                                <tr class="glass-effect-subtle">
-                                                    <td>
-                                                        <div class="fw-bold">Paracetamol 500mg</div>
-                                                        <div class="small text-muted">Tableta</div>
-                                                    </td>
-                                                    <td><input type="text" class="form-control form-control-sm w-75" value="1 tableta"></td>
-                                                    <td><input type="text" class="form-control form-control-sm" value="C/8 horas"></td>
-                                                    <td><input type="text" class="form-control form-control-sm" value="3 días"></td>
-                                                    <td><input type="number" class="form-control form-control-sm" value="9" style="width: 60px;"></td>
-                                                    <td><button class="btn btn-link text-danger p-0"><i class="bi bi-trash"></i></button></td>
+                                                <tr id="noRecetaRow">
+                                                    <td colspan="6" class="text-center text-muted small py-4">No hay medicamentos agregados</td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                        <button type="button" class="btn btn-outline-primary btn-sm mt-2">
-                                            <i class="bi bi-plus-circle me-1"></i> Agregar Medicamento
-                                        </button>
+                                        <div class="p-3 bg-light bg-opacity-25 border-top">
+                                            <button type="button" class="btn btn-primary rounded-pill px-4 fw-800 shadow-sm btn-sm" onclick="document.getElementById('medSearch').focus()">
+                                                <i class="bi bi-plus-circle me-1"></i> Agregar Medicamento
+                                            </button>
+                                        </div>
                                     </div>
+                                    <input type="hidden" name="recetaJson" id="recetaJson">
                                 </div>
                             </div>
 
-                            <div class="mt-5 pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-end gap-3">
+                            <div class="mt-5 pt-3 border-top d-flex justify-content-end gap-3">
                                 <a th:href="@{/consulta/espera}" class="btn btn-outline-secondary px-4">Cancelar</a>
                                 <button type="submit" class="btn btn-primary px-5 fw-bold shadow-glow" onclick="prepareSubmit()">
                                     <i class="bi bi-check2-circle me-2"></i> Finalizar y Emitir Receta
@@ -227,7 +253,7 @@
             </form>
 
             <script>
-                // Logic for CIE-10 Search
+                // DIAFNÓSTICO CIE-10 Search
                 const dxSearch = document.getElementById('dxSearch');
                 const dxResults = document.getElementById('dxResults');
                 const dxBody = document.getElementById('dxBody');
@@ -243,13 +269,14 @@
                     }
 
                     try {
-                        const resp = await fetch(`/api/cie10/search?q=${encodeURIComponent(q)}`);
+                        const resp = await fetch(`/consulta/api/cie10/search?q=${encodeURIComponent(q)}`);
                         const data = await resp.json();
                         
                         dxResults.innerHTML = data.map(dx => `
-                            <button type="button" class="list-group-item list-group-item-action bg-dark text-white border-secondary small" 
+                            <button type="button" class="list-group-item list-group-item-action border-0 py-2 px-3 small d-flex align-items-center gap-2" 
                                     onclick="addDx('${dx.codigo}', '${dx.descripcion}')">
-                                <span class="fw-bold text-primary">${dx.codigo}</span> - ${dx.descripcion}
+                                <span class="badge bg-primary-soft text-primary fw-800 px-2 py-1 rounded-2">${dx.codigo}</span>
+                                <span class="text-dark">${dx.descripcion}</span>
                             </button>
                         `).join('');
                         dxResults.style.display = 'block';
@@ -265,31 +292,185 @@
                     if (noDxRow) noDxRow.style.display = 'none';
                     
                     const tr = document.createElement('tr');
+                    tr.className = 'animate-fade-in';
                     tr.innerHTML = `
-                        <td class="fw-bold text-primary">${codigo}</td>
-                        <td class="small">${descripcion}</td>
+                        <td><span class="badge bg-primary-soft text-primary fw-800 px-2 py-1">${codigo}</span></td>
+                        <td class="fw-600">${descripcion}</td>
                         <td><button type="button" class="btn btn-link text-danger p-0" onclick="removeDx('${codigo}', this)"><i class="bi bi-trash"></i></button></td>
                     `;
                     dxBody.appendChild(tr);
                     dxSearch.value = '';
                     dxResults.style.display = 'none';
+                    updateDxJson();
                 };
 
                 window.removeDx = function(codigo, btn) {
                     selectedDx = selectedDx.filter(d => d.codigo !== codigo);
                     btn.closest('tr').remove();
                     if (selectedDx.length === 0) noDxRow.style.display = '';
+                    updateDxJson();
                 };
 
-                window.prepareSubmit = function() {
+                window.updateDxJson = function() {
                     dxJsonInput.value = JSON.stringify(selectedDx);
                 };
 
-                // Close results on click outside
+                // Close CIE-10 results on click outside
                 document.addEventListener('click', (e) => {
-                    if (!dxSearch.contains(e.target) && !dxResults.contains(e.target)) {
+                    if (dxSearch && !dxSearch.contains(e.target) && !dxResults.contains(e.target)) {
                         dxResults.style.display = 'none';
                     }
+                });
+
+                // RECETARIO - Medication search
+                const medSearch = document.getElementById('medSearch');
+                const medResults = document.getElementById('medResults');
+                const recetaDetalle = document.getElementById('recetaDetalle');
+                const noRecetaRow = document.getElementById('noRecetaRow');
+                const recetaJsonInput = document.getElementById('recetaJson');
+                let selectedMeds = [];
+
+                // Sample medication catalog (in production, fetch from API)
+                const medicationCatalog = [
+                    { nombre: 'Paracetamol 500mg', presentacion: 'Tableta' },
+                    { nombre: 'Paracetamol 100mg/mL', presentacion: 'Solución oral' },
+                    { nombre: 'Ibuprofeno 400mg', presentacion: 'Tableta' },
+                    { nombre: 'Ibuprofeno 600mg', presentacion: 'Tableta' },
+                    { nombre: 'Amoxicilina 500mg', presentacion: 'Cápsula' },
+                    { nombre: 'Amoxicilina 250mg/5mL', presentacion: 'Suspensión oral' },
+                    { nombre: 'Azitromicina 500mg', presentacion: 'Tableta' },
+                    { nombre: 'Losartán 50mg', presentacion: 'Tableta' },
+                    { nombre: 'Enalapril 10mg', presentacion: 'Tableta' },
+                    { nombre: 'Metformina 850mg', presentacion: 'Tableta' },
+                    { nombre: 'Omeprazol 20mg', presentacion: 'Cápsula' },
+                    { nombre: 'Salbutamol 100mcg', presentacion: 'Inhalador' },
+                    { nombre: 'Dexametasona 4mg', presentacion: 'Ampolla' },
+                    { nombre: 'Diclofenaco 75mg', presentacion: 'Ampolla' },
+                    { nombre: 'Cetirizina 10mg', presentacion: 'Tableta' },
+                ];
+
+                medSearch.addEventListener('input', (e) => {
+                    const q = e.target.value.toLowerCase();
+                    if (q.length < 2) {
+                        medResults.style.display = 'none';
+                        return;
+                    }
+                    const filtered = medicationCatalog.filter(m => 
+                        m.nombre.toLowerCase().includes(q) || m.presentacion.toLowerCase().includes(q)
+                    );
+                    if (filtered.length === 0) {
+                        medResults.style.display = 'none';
+                        return;
+                    }
+                    medResults.innerHTML = filtered.map(m => `
+                        <button type="button" class="list-group-item list-group-item-action border-0 py-2 px-3 small d-flex align-items-center gap-2"
+                                onclick="addMed('${m.nombre}', '${m.presentacion}')">
+                            <i class="bi bi-capsule text-primary"></i>
+                            <span class="fw-bold text-dark">${m.nombre}</span>
+                            <span class="text-muted">- ${m.presentacion}</span>
+                        </button>
+                    `).join('');
+                    medResults.style.display = 'block';
+                });
+
+                window.updateRecetaJson = function() {
+                    recetaJsonInput.value = JSON.stringify(selectedMeds);
+                };
+
+                // Bloqueo por Alergias (RF38)
+                const alergiasPaciente = ['Ibuprofeno', 'Penicilina', 'Aspirina']; // MOCK: Esto vendría del backend
+
+                window.addMed = function(nombre, presentacion) {
+                    if (selectedMeds.some(m => m.nombre === nombre)) return;
+                    
+                    // Verificar Alergias
+                    const principioActivo = nombre.split(' ')[0];
+                    if (alergiasPaciente.some(alergia => principioActivo.toLowerCase().includes(alergia.toLowerCase()))) {
+                        Swal.fire({
+                            title: '¡ALERTA CRÍTICA!',
+                            text: `El paciente presenta alergia a ${principioActivo}. Prescripción bloqueada por seguridad.`,
+                            icon: 'error',
+                            background: '#ffe5e5',
+                            color: '#d32f2f',
+                            confirmButtonColor: '#d32f2f',
+                            confirmButtonText: 'Entendido',
+                            customClass: {
+                                popup: 'shadow-lg border-danger border'
+                            }
+                        });
+                        medSearch.value = '';
+                        medResults.style.display = 'none';
+                        return; // Bloquea la adición
+                    }
+                    
+                    const indicaciones = document.getElementById('indicacionesGenerales').value;
+                    selectedMeds.push({ nombre, presentacion, dosis: '', frecuencia: '', duracion: '', cantidad: 1 });
+                    if (noRecetaRow) noRecetaRow.style.display = 'none';
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = 'animate-fade-in';
+                    const idx = selectedMeds.length - 1;
+                    tr.innerHTML = `
+                        <td>
+                            <div class="fw-bold">${nombre}</div>
+                            <div class="small text-muted">${presentacion}</div>
+                        </td>
+                        <td><input type="text" class="form-control form-control-sm fw-700" placeholder="1 tableta" onchange="updateMed(${idx}, 'dosis', this.value)"></td>
+                        <td><input type="text" class="form-control form-control-sm fw-700" placeholder="C/8 horas" onchange="updateMed(${idx}, 'frecuencia', this.value)"></td>
+                        <td><input type="text" class="form-control form-control-sm fw-700" placeholder="3 días" onchange="updateMed(${idx}, 'duracion', this.value)"></td>
+                        <td><input type="number" class="form-control form-control-sm fw-700" value="1" min="1" style="width: 65px;" onchange="updateMed(${idx}, 'cantidad', parseInt(this.value) || 1)"></td>
+                        <td><button type="button" class="btn btn-link text-danger p-0" onclick="removeMed(${idx}, this)"><i class="bi bi-trash"></i></button></td>
+                    `;
+                    recetaDetalle.appendChild(tr);
+                    medSearch.value = '';
+                    medResults.style.display = 'none';
+                    document.getElementById('indicacionesGenerales').value = indicaciones;
+                    updateRecetaJson();
+                };
+
+                window.updateMed = function(idx, field, value) {
+                    if (selectedMeds[idx]) {
+                        selectedMeds[idx][field] = value;
+                        updateRecetaJson();
+                    }
+                };
+
+                window.removeMed = function(idx, btn) {
+                    selectedMeds.splice(idx, 1);
+                    btn.closest('tr').remove();
+                    // Re-index rows
+                    const rows = recetaDetalle.querySelectorAll('tr:not(#noRecetaRow)');
+                    rows.forEach((row, i) => {
+                        const inputs = row.querySelectorAll('input');
+                        if (inputs[0]) inputs[0].onchange = function(v) { updateMed(i, 'dosis', v.target.value); };
+                        if (inputs[1]) inputs[1].onchange = function(v) { updateMed(i, 'frecuencia', v.target.value); };
+                        if (inputs[2]) inputs[2].onchange = function(v) { updateMed(i, 'duracion', v.target.value); };
+                        if (inputs[3]) inputs[3].onchange = function(v) { updateMed(i, 'cantidad', parseInt(v.target.value) || 1); };
+                        const btn = row.querySelector('.btn-link');
+                        if (btn) btn.onclick = function() { removeMed(i, btn); };
+                    });
+                    if (selectedMeds.length === 0) noRecetaRow.style.display = '';
+                    updateRecetaJson();
+                };
+
+                // Close med results on click outside
+                document.addEventListener('click', (e) => {
+                    if (medSearch && !medSearch.contains(e.target) && !medResults.contains(e.target)) {
+                        medResults.style.display = 'none';
+                    }
+                });
+
+                window.prepareSubmit = function() {
+                    updateDxJson();
+                    updateRecetaJson();
+                };
+                
+                // Simular carga de Skeleton (RNF12)
+                document.addEventListener('DOMContentLoaded', () => {
+                    setTimeout(() => {
+                        document.getElementById('skeleton-container').style.display = 'none';
+                        document.getElementById('consulta-content').style.display = 'block';
+                    }, 800); // 800ms de carga simulada
                 });
             </script>
 

@@ -3,47 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <title>Hoja de Referencia - SIGECLIN</title>
-    <link rel="stylesheet" th:href="@{/css/main.css(v='3.2')}">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap');
         @page { size: A4; margin: 0; }
-        body { background: #f1f5f9; color: #0f172a; font-family: 'Inter', sans-serif; padding: 40px; }
-        .referencia-container { width: 100%; max-width: 800px; margin: auto; background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 40px; min-height: 1050px; display: flex; flex-direction: column; position: relative; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
-        .header-referencia { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #0f172a; padding-bottom: 20px; margin-bottom: 30px; }
-        .institution-title { font-weight: 900; font-size: 1.8rem; letter-spacing: -0.5px; color: #1e293b; line-height: 1.1; margin-bottom: 5px; text-transform: uppercase; }
-        .institution-subtitle { font-size: 0.8rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
-        
-        .doc-title { font-size: 1.6rem; font-weight: 900; text-align: center; margin-bottom: 35px; letter-spacing: 2px; text-transform: uppercase; color: #0f172a; }
-        
-        .section-box { border: 2px solid #e2e8f0; background: #f8fafc; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
-        .section-label { font-weight: 800; text-transform: uppercase; color: #475569; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px; display: block; }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body { background: #f1f5f9; color: #0f172a; font-family: 'Plus Jakarta Sans', sans-serif; padding: 40px; }
+        .referencia-container { width: 100%; max-width: 800px; margin: auto; background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 45px; min-height: 1050px; display: flex; flex-direction: column; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); }
+        .header-referencia { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; }
+        .institution-title { font-weight: 900; font-size: 1.6rem; letter-spacing: -0.5px; color: #0f172a; line-height: 1.2; margin-bottom: 5px; text-transform: uppercase; }
+        .institution-subtitle { font-size: 0.7rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
+
+        .doc-title { font-size: 1.3rem; font-weight: 900; text-align: center; margin-bottom: 30px; letter-spacing: 1px; text-transform: uppercase; color: #4f46e5; }
+
+        .section-box { border: 1px solid #e2e8f0; background: #f8fafc; padding: 20px; margin-bottom: 20px; border-radius: 12px; border-left: 4px solid #4f46e5; }
+        .section-label { font-weight: 800; text-transform: uppercase; color: #4f46e5; font-size: 0.75rem; letter-spacing: 1px; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; display: block; }
+
         .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
-        .data-item { margin-bottom: 10px; }
-        .data-label { font-weight: 700; text-transform: uppercase; color: #64748b; font-size: 0.65rem; display: block; margin-bottom: 2px; }
-        .data-value { font-weight: 700; color: #0f172a; font-size: 0.9rem; border-bottom: 1px dashed #cbd5e1; padding-bottom: 2px; width: 100%; display: block; }
+        .data-item { margin-bottom: 8px; }
+        .data-label { font-weight: 700; text-transform: uppercase; color: #64748b; font-size: 0.65rem; display: block; margin-bottom: 2px; letter-spacing: 0.3px; }
+        .data-value { font-weight: 700; color: #0f172a; font-size: 0.95rem; border-bottom: 1px solid #e2e8f0; padding: 4px 0 2px; width: 100%; display: block; }
 
         .footer-referencia { margin-top: auto; padding-top: 40px; }
-        .signatures-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; padding: 0 20px; }
-        .signature-line { border-top: 1px solid #0f172a; width: 280px; text-align: center; padding-top: 8px; font-size: 0.75rem; font-weight: 700; color: #1e293b; text-transform: uppercase; }
-        
-        .sys-code { text-align: center; margin-top: 20px; color: #94a3b8; font-size: 0.7rem; font-weight: 600; }
-        
+        .signatures-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; padding: 0 20px; }
+        .signature-box { text-align: center; width: 280px; }
+        .signature-line { border-top: 2px solid #4f46e5; width: 100%; padding-top: 10px; font-size: 0.75rem; font-weight: 700; color: #1e293b; text-transform: uppercase; }
+
+        .sys-code { text-align: center; margin-top: 20px; color: #94a3b8; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.5px; }
+
         @media print {
             .no-print { display: none; }
             body { padding: 0; background: white; }
-            .referencia-container { border: none; box-shadow: none; padding: 0; min-height: 100%; }
+            .referencia-container { border: none; box-shadow: none; padding: 30px; min-height: 100%; }
             .section-box { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
 <body>
-    <div class="no-print p-3 text-center bg-dark text-white mb-4 rounded-3 mx-auto shadow" style="max-width: 800px;">
-        <h5 class="mb-3 fw-bold">PREVISUALIZACIÓN DE HOJA DE REFERENCIA</h5>
+    <div class="no-print p-3 text-center mb-4 rounded-4 mx-auto shadow-lg" style="max-width: 800px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+        <h5 class="mb-3 fw-800 text-white"><i class="bi bi-file-earmark-text me-2"></i> PREVISUALIZACIÓN DE HOJA DE REFERENCIA</h5>
         <div class="d-flex justify-content-center gap-3">
-            <button onclick="window.print()" class="btn btn-primary px-4 py-2 fw-bold shadow-sm rounded-pill">
+            <button onclick="window.print()" class="btn px-4 py-2 fw-800 shadow-sm rounded-pill border-0" style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white;">
                 <i class="bi bi-printer me-2"></i> IMPRIMIR DOCUMENTO
             </button>
-            <button onclick="window.close()" class="btn btn-outline-light px-4 py-2 fw-bold rounded-pill">
+            <button onclick="window.close()" class="btn btn-outline-light px-4 py-2 fw-800 rounded-pill">
                 <i class="bi bi-x-circle me-2"></i> CERRAR VISTA
             </button>
         </div>
@@ -59,16 +63,15 @@
                 </div>
             </div>
             <div class="text-end" style="min-width: 200px;">
-                <div class="fw-900 fs-5 text-dark" style="letter-spacing: 1px;">REF. Nº <span id="refNum">2026-0001</span></div>
+                <div class="fw-900 fs-5" style="color: #4f46e5; letter-spacing: 1px;">REF. Nº <span id="refNum">2026-0001</span></div>
                 <div class="fw-bold text-muted mt-1" style="font-size: 0.85rem;">FECHA: <span id="fechaActual" class="text-dark">-- / -- / --</span></div>
             </div>
         </div>
 
         <div class="doc-title">
-            <span style="border-bottom: 3px double #0f172a; padding-bottom: 5px;">HOJA DE REFERENCIA DEL PACIENTE</span>
+            <span style="border-bottom: 3px solid #4f46e5; padding-bottom: 5px;">HOJA DE REFERENCIA DEL PACIENTE</span>
         </div>
 
-        <!-- 1. DATOS DEL PACIENTE -->
         <div class="section-box">
             <label class="section-label">I. DATOS DE IDENTIFICACIÓN DEL PACIENTE</label>
             <div class="data-grid">
@@ -95,7 +98,6 @@
             </div>
         </div>
 
-        <!-- 2. DATOS DE TRIAJE -->
         <div class="section-box">
             <label class="section-label">II. EVALUACIÓN DE SIGNOS VITALES (TRIAJE)</label>
             <div class="data-grid" style="grid-template-columns: repeat(4, 1fr);">
@@ -122,7 +124,6 @@
             </div>
         </div>
 
-        <!-- 3. MOTIVO Y DIAGNÓSTICO -->
         <div class="section-box">
             <label class="section-label">III. RESUMEN CLÍNICO Y DIAGNÓSTICO</label>
             <div class="data-item mb-4">
@@ -135,7 +136,6 @@
             </div>
         </div>
 
-        <!-- 4. INDICACIONES -->
         <div class="section-box" style="flex-grow: 1;">
             <label class="section-label">IV. INDICACIONES Y DESTINO DE REFERENCIA</label>
             <div style="min-height: 150px; font-weight: 600; line-height: 1.6; font-size: 0.95rem;">
@@ -147,10 +147,10 @@
 
         <div class="footer-referencia">
             <div class="signatures-row">
-                <div class="text-center">
+                <div class="signature-box">
                     <div class="signature-line">Firma del Profesional que Refiere</div>
                 </div>
-                <div class="text-center">
+                <div class="signature-box">
                     <div class="signature-line">Sello del Establecimiento de Salud</div>
                 </div>
             </div>
@@ -160,13 +160,7 @@
     </div>
 
     <script th:inline="javascript">
-        document.addEventListener('DOMContentLoaded', function() {
-            const data = JSON.parse(localStorage.getItem('current_referral'));
-            if (!data) {
-                alert("No se encontraron datos para la hoja de referencia.");
-                return;
-            }
-
+        function renderReferral(data) {
             document.getElementById('pacNombre').innerText = data.nombre.toUpperCase();
             document.getElementById('pacDni').innerText = data.dni;
             document.getElementById('pacHc').innerText = data.hc;
@@ -187,8 +181,55 @@
             
             document.getElementById('fechaActual').innerText = data.fecha;
             
-            // Random ref number for preview
             document.getElementById('refNum').innerText = '2026-' + Math.floor(Math.random() * 9000 + 1000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const idConsulta = urlParams.get('idConsulta');
+
+            if (idConsulta) {
+                fetch('/consulta/api/detalle/' + idConsulta)
+                    .then(r => { if(!r.ok) throw new Error('Error al obtener detalle'); return r.json(); })
+                    .then(c => {
+                        let parsedDate = new Date(c.fechaHoraInicio);
+                        if (Array.isArray(c.fechaHoraInicio)) {
+                            parsedDate = new Date(c.fechaHoraInicio[0], c.fechaHoraInicio[1]-1, c.fechaHoraInicio[2], c.fechaHoraInicio[3]||0, c.fechaHoraInicio[4]||0);
+                        }
+                        const formattedDate = parsedDate.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+                        
+                        const pac = c.paciente;
+                        const data = {
+                            nombre: `${pac.apellidoPaterno} ${pac.apellidoMaterno || ''}, ${pac.nombres}`,
+                            dni: pac.numeroDocumento,
+                            hc: pac.numeroHistoriaClinica,
+                            edad: pac.edad || '---',
+                            sexo: pac.sexo === 'M' ? 'MASCULINO' : 'FEMENINO',
+                            pa: (c.triaje?.presionArterialSistolica || '--') + '/' + (c.triaje?.presionArterialDiastolica || '--'),
+                            temp: c.triaje?.temperatura || '--',
+                            fc: c.triaje?.frecuenciaCardiaca || '--',
+                            sat: c.triaje?.saturacionOxigeno || '--',
+                            urgencia: c.triaje?.clasificacionUrgencia || 'normal',
+                            diagnostico: (c.diagnosticos && c.diagnosticos.length > 0) ? (c.diagnosticos[0].cie10.codigo + ' - ' + c.diagnosticos[0].cie10.descripcion) : 'Sin diagnóstico',
+                            alergias: 'Sin observaciones de alergia registradas',
+                            motivo: c.motivoConsulta,
+                            plan: c.planTratamiento,
+                            fecha: formattedDate
+                        };
+                        renderReferral(data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('No se pudo cargar la referencia del historial: ' + err.message);
+                    });
+            } else {
+                const data = JSON.parse(localStorage.getItem('current_referral'));
+                if (data) {
+                    renderReferral(data);
+                } else {
+                    alert("No se encontraron datos para la hoja de referencia.");
+                }
+            }
         });
     </script>
 </body>

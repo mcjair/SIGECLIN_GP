@@ -11,7 +11,7 @@
             <div class="card glass-panel-premium border-0 p-4 mb-4 shadow-sm">
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary p-3 rounded-4 shadow-glow">
+                        <div class="module-header-icon rounded-4">
                             <i class="bi bi-heart-pulse-fill fs-3 text-white"></i>
                         </div>
                         <div>
@@ -53,7 +53,7 @@
                                         th:text="${(p.nombres + ' ' + (p.apellidoPaterno ?: '')).toUpperCase()}">MARIA TINCO</h4>
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="badge-hc px-3 py-1 fw-900" th:text="'HC: ' + ${p.numeroHistoriaClinica}">HC: 2026-000001</span>
-                                        <div class="dot-active animate-pulse" style="background: var(--p-rose); box-shadow: 0 0 10px var(--p-rose);"></div>
+                                        <div class="dot-active animate-pulse"></div>
                                     </div>
                                 </div>
                             </div>
@@ -100,35 +100,10 @@
             </div>
         </div>
 
-        <style>
-            .avatar-caja { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.2rem; background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
-            .service-tag-premium { background: rgba(79, 70, 229, 0.05); color: #4f46e5; padding: 6px 12px; border-radius: 10px; font-size: 0.7rem; font-weight: 800; display: inline-flex; align-items: center; width: fit-content; }
-            .card-hover-effect { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.03) !important; }
-            .card-hover-effect:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08) !important; border-color: rgba(79, 70, 229, 0.2) !important; }
-            .extra-small { font-size: 0.65rem; }
-        </style>
+
     </main>
 
-    <style>
-        :root { --p-indigo: #4f46e5; --p-emerald: #10b981; --p-amber: #f59e0b; --p-rose: #ef4444; }
-        .card-medical-glass { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid rgba(0,0,0,0.08) !important; background: #fff; }
-        .card-medical-glass:hover { transform: translateY(-8px); box-shadow: 0 30px 60px rgba(79, 70, 229, 0.12) !important; border-color: var(--p-indigo) !important; }
-        .avatar-premium { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; background: linear-gradient(135deg, var(--p-indigo), #6366f1); color: white; }
-        .badge-hc { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 0.75rem; letter-spacing: 0.5px; }
-        .dot-active { width: 10px; height: 10px; background: var(--p-emerald); border-radius: 50%; box-shadow: 0 0 12px var(--p-emerald); }
-        .glass-info-card { padding: 14px; border-radius: 18px; border: 1px solid rgba(0,0,0,0.04); transition: all 0.3s ease; }
-        .glass-info-card label { display: block; font-size: 0.65rem; font-weight: 900; letter-spacing: 1.2px; margin-bottom: 6px; text-transform: uppercase; opacity: 0.8; }
-        .glass-info-card .data-value { font-size: 1.15rem; font-weight: 950; color: #0f172a; }
-        .info-indigo { background: rgba(79, 70, 229, 0.08); border-left: 5px solid var(--p-indigo); }
-        .info-emerald { background: rgba(16, 185, 129, 0.08); border-left: 5px solid var(--p-emerald); }
-        .info-amber { background: rgba(245, 158, 11, 0.08); border-left: 5px solid var(--p-amber); }
-        .info-rose { background: rgba(239, 68, 68, 0.08); border-left: 5px solid var(--p-rose); }
-        .status-pill { padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 900; display: flex; align-items: center; gap: 8px; letter-spacing: 0.5px; }
-        .btn-premium { border: none; padding: 12px 28px; border-radius: 100px; font-weight: 950; font-size: 0.9rem; transition: all 0.3s ease; display: flex; align-items: center; letter-spacing: 0.5px; background: var(--p-indigo); color: white; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.25); }
-        .btn-premium:hover { background: #4338ca; transform: scale(1.05); box-shadow: 0 15px 30px rgba(79, 70, 229, 0.35); }
-        .fw-950 { font-weight: 950; }
-        .tracking-tighter { letter-spacing: -1px; }
-    </style>
+
 
     <div th:replace="~{layout :: footer}"></div>
 </body>

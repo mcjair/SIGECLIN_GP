@@ -4,9 +4,19 @@
 <body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
     
-    <main th:replace="~{layout :: main(pageTitle='Gestión de Personal Médico', content=~{::#personal-content}, modals=~{::#modalPersonal})}">
+    <main th:replace="~{layout :: main(pageTitle='Gestión de Personal Médico', content=~{::#personal-content})}">
         <div id="personal-content" class="animate-fade-in">
             
+            <!-- Flash Messages -->
+            <div th:if="${success}" class="alert alert-success d-flex align-items-center gap-2 rounded-4 border-0 shadow-sm py-3 px-4 mb-3" role="alert" style="background: rgba(16,185,129,0.1); color: #0d9488;">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <span class="fw-bold" th:text="${success}">Operación exitosa</span>
+            </div>
+            <div th:if="${error}" class="alert alert-danger d-flex align-items-center gap-2 rounded-4 border-0 shadow-sm py-3 px-4 mb-3" role="alert" style="background: rgba(239,68,68,0.1); color: #e11d48;">
+                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                <span class="fw-bold" th:text="${error}">Error en la operación</span>
+            </div>
+
             <!-- SECCIÓN CABECERA -->
             <div class="card glass-panel-premium border-0 p-4 mb-3">
                 <div class="d-flex justify-content-between align-items-center">
@@ -33,17 +43,17 @@
                         </div>
                         <div class="col">
                             <div class="d-flex align-items-center gap-3 mb-1">
-                                <h5 class="fw-800 mb-0" style="color: var(--text-main);" th:text="${p.nombres + ' ' + p.apellidoPaterno}">Ricardo Gómez</h5>
-                                <span class="badge bg-success bg-opacity-10 text-success extra-small fw-800 px-3 rounded-pill"
+                                <h5 class="fw-800 mb-0" style="color: var(--text-main);" th:text="${p.nombres + ' ' + p.apellidoPaterno + ' ' + (p.apellidoMaterno ?: '')}">Ricardo Gómez</h5>
+                                <span class="badge bg-success bg-opacity-10 text-success extra-small fw-800 px-3 py-1 rounded-pill align-self-center"
                                       th:if="${p.estadoLaboral == 'activo'}">ACTIVO</span>
-                                <span class="badge bg-danger bg-opacity-10 text-danger extra-small fw-800 px-3 rounded-pill"
+                                <span class="badge bg-danger bg-opacity-10 text-danger extra-small fw-800 px-3 py-1 rounded-pill align-self-center"
                                       th:unless="${p.estadoLaboral == 'activo'}">INACTIVO</span>
                             </div>
                             <div class="d-flex flex-wrap gap-4 text-muted extra-small fw-bold text-uppercase opacity-75">
                                 <span><i class="bi bi-card-text me-1 text-primary"></i> DNI: <span style="color: var(--text-main);" th:text="${p.numeroDocumento}">00000000</span></span>
                                 <span><i class="bi bi-patch-check me-1 text-primary"></i> Colegiatura: <span style="color: var(--text-main);" th:text="${p.numeroColegiatura != null ? p.numeroColegiatura : 'NO REGISTRADA'}">---</span></span>
                                 <span><i class="bi bi-briefcase me-1 text-primary"></i> Categoría: 
-                                    <span class="text-primary" th:text="${p.idTipoPersonal == 1 ? 'MÉDICO' : (p.idTipoPersonal == 2 ? 'ENFERMERO' : (p.idTipoPersonal == 3 ? 'OBSTETRA' : (p.idTipoPersonal == 4 ? 'ADMIN' : 'ESPECIALISTA')))}">MÉDICO</span>
+                                    <span class="text-primary" th:text="${p.idTipoPersonal == 1 ? 'MÉDICO' : (p.idTipoPersonal == 2 ? 'ENFERMERO' : (p.idTipoPersonal == 3 ? 'OBSTETRA' : (p.idTipoPersonal == 4 ? 'INGENIERO' : (p.idTipoPersonal == 6 ? 'ODONTÓLOGO' : (p.idTipoPersonal == 7 ? 'PSICÓLOGO' : (p.idTipoPersonal == 8 ? 'NUTRICIONISTA' : 'ESPECIALISTA'))))))}">MÉDICO</span>
                                 </span>
                                 <span><i class="bi bi-calendar me-1 text-primary"></i> Ingreso: <span style="color: var(--text-main);" th:text="${p.fechaIngreso}">---</span></span>
                             </div>
@@ -79,8 +89,7 @@
     </main>
 
     <!-- MODAL PERSONAL (CREAR/EDITAR) -->
-    <div th:fragment="modalPersonal">
-        <div id="modalPersonal" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="modalPersonal" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
                     <form th:action="@{/personal/guardar}" method="post">
@@ -105,7 +114,11 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label-premium">Colegiatura</label>
-                                    <input type="text" name="numeroColegiatura" class="form-control-premium w-100 rounded-3 p-2 fw-bold" placeholder="CMP-12345">
+                                    <div class="d-flex align-items-center rounded-3 overflow-hidden border form-control-premium p-0 bg-white">
+                                        <div class="bg-light px-3 py-2 fw-900 text-muted border-end" id="prefixColegiatura">CMP-</div>
+                                        <input type="hidden" name="numeroColegiatura" id="hiddenColegiatura">
+                                        <input type="text" id="inputColegiatura" class="form-control border-0 px-3 py-2 fw-bold shadow-none" placeholder="Solo números..." oninput="updateColegiatura()" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                                    </div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label-premium">Nombres</label>
@@ -140,7 +153,10 @@
                                         <option value="1">MÉDICO</option>
                                         <option value="2">ENFERMERO</option>
                                         <option value="3">OBSTETRA</option>
-                                        <option value="4">ADMIN</option>
+                                        <option value="6">ODONTÓLOGO</option>
+                                        <option value="7">PSICÓLOGO</option>
+                                        <option value="8">NUTRICIONISTA</option>
+                                        <option value="4">INGENIERO</option>
                                         <option value="5">ESPECIALISTA</option>
                                     </select>
                                 </div>
@@ -162,11 +178,9 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- MODAL DE PERMISOS -->
-    <div th:fragment="modalPermisos">
-        <div id="modalPermisos" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div id="modalPermisos" class="modal fade" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 24px;">
                     <div class="modal-header border-0 p-4 pb-0">
@@ -224,7 +238,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     <div th:replace="~{layout :: footer}"></div>
     
@@ -233,7 +246,7 @@
         
         function abrirModalPersonal(id) {
             const modalEl = document.getElementById('modalPersonal');
-            const modal = new bootstrap.Modal(modalEl);
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             const form = modalEl.querySelector('form');
             
             if (id !== null) {
@@ -250,6 +263,8 @@
                         form.querySelector('[name="idTipoPersonal"]').value = p.idTipoPersonal || 1;
                         form.querySelector('[name="telefonoPrincipal"]').value = p.telefonoPrincipal || '';
                         form.querySelector('[name="correoElectronico"]').value = p.correoElectronico || '';
+                        form.querySelector('[name="correoElectronico"]').value = p.correoElectronico || '';
+                        
                         if (p.tipoDocumento) {
                             form.querySelector('[name="tipoDocumento.idTipoDocumento"]').value = p.tipoDocumento.idTipoDocumento || 1;
                         }
@@ -265,21 +280,71 @@
                                 : p.fechaIngreso.substring(0, 10);
                             form.querySelector('[name="fechaIngreso"]').value = fi;
                         }
+                        
+                        updateColegiaturaPrefix();
+                        if (p.numeroColegiatura) {
+                            const prefix = document.getElementById('prefixColegiatura').innerText;
+                            if (p.numeroColegiatura.startsWith(prefix)) {
+                                document.getElementById('inputColegiatura').value = p.numeroColegiatura.substring(prefix.length);
+                            } else if (p.numeroColegiatura.includes('-')) {
+                                document.getElementById('inputColegiatura').value = p.numeroColegiatura.split('-')[1] || p.numeroColegiatura;
+                            } else {
+                                document.getElementById('inputColegiatura').value = p.numeroColegiatura;
+                            }
+                        } else {
+                            document.getElementById('inputColegiatura').value = '';
+                        }
+                        updateColegiatura();
                     })
                     .catch(err => {
                         console.error('Error cargando personal:', err);
                         Swal.fire('Error', 'No se pudo cargar los datos del personal.', 'error');
                     });
             } else {
+                form.querySelector('[name="idPersona"]').value = '';
                 form.querySelectorAll('input, select').forEach(el => {
-                    if (el.type !== 'submit' && el.type !== 'hidden') el.value = '';
+                    if (el.type !== 'submit' && el.name !== 'idPersona' && el.name !== 'numeroColegiatura' && el.type !== 'hidden') {
+                        if(el.tagName === 'SELECT') {
+                           el.selectedIndex = 0;
+                        } else {
+                           el.value = '';
+                        }
+                    }
                 });
+                document.getElementById('inputColegiatura').value = '';
+                updateColegiaturaPrefix();
                 modal.show();
                 return;
             }
             
             modal.show();
         }
+
+        function updateColegiaturaPrefix() {
+            const select = document.querySelector('[name="idTipoPersonal"]');
+            const prefixEl = document.getElementById('prefixColegiatura');
+            const val = select.options[select.selectedIndex].text;
+            
+            let prefix = 'CMP-';
+            if (val === 'ENFERMERO') prefix = 'CEP-';
+            else if (val === 'OBSTETRA' || val === 'ODONTÓLOGO') prefix = 'COP-';
+            else if (val === 'PSICÓLOGO') prefix = 'CPsP-';
+            else if (val === 'NUTRICIONISTA') prefix = 'CNP-';
+            else if (val === 'INGENIERO') prefix = 'CIP-';
+            else if (val === 'ESPECIALISTA') prefix = 'REG-';
+
+            prefixEl.innerText = prefix;
+            updateColegiatura();
+        }
+
+        function updateColegiatura() {
+            const prefix = document.getElementById('prefixColegiatura').innerText;
+            const number = document.getElementById('inputColegiatura').value;
+            document.getElementById('hiddenColegiatura').value = prefix + number;
+        }
+
+        // Add event listener to idTipoPersonal
+        document.querySelector('[name="idTipoPersonal"]').addEventListener('change', updateColegiaturaPrefix);
 
         function abrirConfiguracionPermisos(id) {
             const modalEl = document.getElementById('modalPermisos');

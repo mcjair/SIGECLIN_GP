@@ -11,7 +11,7 @@
                 <div class="col-md-4 col-xl-3" th:each="servicio : ${servicios}">
                     <div class="card h-100 p-4 border-0 shadow-sm transition-all hover-translate-y">
                         <div class="mb-4">
-                            <div class="bg-primary-soft text-primary d-inline-flex align-items-center justify-content-center rounded-4 mb-3" style="width: 64px; height: 64px;">
+                            <div class="service-card-icon d-inline-flex align-items-center justify-content-center rounded-4 mb-3">
                                 <i th:class="${'bi ' + (servicio.icono != null ? servicio.icono : 'bi-shield-plus') + ' fs-1'}"></i>
                             </div>
                             <h4 class="fw-bold text-ink mb-2" th:text="${servicio.nombre}">Servicio</h4>
@@ -47,9 +47,6 @@
         .hover-translate-y:hover {
             transform: translateY(-10px);
             box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1) !important;
-        }
-        .transition-all {
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
     </style>
     <div th:replace="~{layout :: footer}"></div>

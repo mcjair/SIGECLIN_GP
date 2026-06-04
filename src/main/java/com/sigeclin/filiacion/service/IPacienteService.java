@@ -1,6 +1,8 @@
 package com.sigeclin.filiacion.service;
 
 import com.sigeclin.filiacion.model.Paciente;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +27,12 @@ public interface IPacienteService {
 
     /** Obtiene todos los pacientes registrados. */
     List<Paciente> obtenerTodos();
+
+    /** Obtiene todos los pacientes filtrados por servicio. */
+    List<Paciente> obtenerTodos(String servicioFiltro);
+
+    /** Obtiene todos los pacientes registrados de forma paginada y filtrable. */
+    Page<Paciente> obtenerTodosPaginado(String search, String servicioFiltro, Pageable pageable);
 
     /** Obtiene pacientes pendientes de triaje (PENDIENTE_TRIAJE). */
     List<Paciente> obtenerPendientesTriaje();

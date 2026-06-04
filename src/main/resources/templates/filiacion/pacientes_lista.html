@@ -4,354 +4,225 @@
 <body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
     
-    <main th:replace="~{layout :: main(pageTitle='Directorio de Pacientes', content=~{::#pacientes-content}, modals=null)}">
-        <div id="pacientes-content" style="height: calc(100vh - 120px); display: flex; flex-direction: column;">
+    <main th:replace="~{layout :: main(pageTitle='Gestión de Pacientes', content=~{::#pacientes-content}, modals=null)}">
+        <div id="pacientes-content" class="h-100 d-flex gap-4 p-4" style="max-height: 100vh; margin-top: -15px;">
             
-            <!-- SECCIÓN CABECERA -->
-            <div class="card glass-panel-premium border-0 p-4 mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="fw-800 text-dark mb-1">Gestión de Pacientes</h4>
-                        <p class="text-muted small mb-0">Consulte el historial de atenciones y la evolución de sus pacientes.</p>
+            <!-- LEFT COLUMN: Patient Search and List -->
+            <div class="card glass-panel-premium border-0 shadow-sm d-flex flex-column" style="width: 350px; min-width: 350px;">
+                <div class="p-4 border-bottom border-light">
+                    <h6 class="fw-800 text-dark mb-3 text-uppercase small tracking-wider">Buscar Paciente</h6>
+                    <div class="position-relative">
+                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                        <input type="text" id="searchInput" class="form-control rounded-pill ps-5 border-0 shadow-sm bg-light py-2" placeholder="Nombre, apellidos o DNI..." onkeyup="filterPatients(this)">
                     </div>
-                    <div class="d-flex gap-3 align-items-center">
-                        <div class="position-relative" style="width: 300px;">
-                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                            <input type="text" id="patientFilter" class="form-control rounded-pill ps-5 border-0 shadow-sm" placeholder="Buscar por DNI o Nombre..." onkeyup="filterPatients(this)">
+                </div>
+                <div class="flex-grow-1 overflow-y-auto custom-scrollbar p-3" id="patientListContainer">
+                    <div th:each="p : ${pacientes}" class="patient-row p-3 mb-2 rounded-4 border bg-white shadow-sm cursor-pointer transition-all"
+                         style="border-color: #f1f5f9 !important;"
+                         onclick="abrirHistorialFromCard(this)"
+                         th:data-id="${p.idPersona}"
+                         th:data-dni="${p.numeroDocumento}"
+                         th:data-nombre="|${p.apellidoPaterno ?: ''} ${p.apellidoMaterno ?: ''}, ${p.nombres ?: ''}|"
+                         th:data-fecha-nacimiento="${p.fechaNacimiento}"
+                         th:data-telefono="${p.telefonoPrincipal}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-800 text-dark mb-1" style="font-size: 0.85rem; line-height: 1.3;" th:text="|${p.apellidoPaterno ?: ''} ${p.apellidoMaterno ?: ''}, ${p.nombres ?: ''}|">Nombre</h6>
+                                <div class="extra-small text-muted fw-bold">DNI: <span th:text="${p.numeroDocumento}"></span></div>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted small"></i>
                         </div>
-                        <a th:href="@{/pacientes/export/excel}" class="btn btn-success rounded-pill px-3 shadow-sm fw-800 d-flex align-items-center gap-2">
-                            <i class="bi bi-file-earmark-excel-fill"></i> EXPORTAR EXCEL
-                        </a>
-                        <span class="badge bg-primary text-white rounded-pill px-4 py-2 fw-bold" th:text="${pacientes.size() + ' REGISTROS'}">0 REGISTROS</span>
                     </div>
                 </div>
             </div>
 
-            <!-- TABLA DE PACIENTES -->
-            <div class="card glass-panel-premium border-0 shadow-sm flex-grow-1 overflow-hidden p-0">
-                <div class="table-responsive h-100 custom-scrollbar">
-                    <table class="table table-hover align-middle mb-0" id="pacientesTable">
-                        <thead class="bg-light position-sticky top-0 z-1" style="border-bottom: 2px solid #eee;">
-                            <tr>
-                                <th class="ps-4 py-3 fw-800 text-muted small text-uppercase">Paciente</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Documento</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">H. Clínica</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Estado</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Último Registro</th>
-                                <th class="pe-4 py-3 text-center fw-800 text-muted small text-uppercase" style="min-width: 150px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pacientesBody">
-                            <tr th:each="p : ${pacientes}" class="patient-row">
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="bg-primary bg-opacity-10 text-primary fw-900 rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
-                                             style="width: 40px; height: 40px;"
-                                             th:text="${p.nombres != null and !p.nombres.isEmpty() ? p.nombres.substring(0,1) : 'P'}">P</div>
-                                        <div>
-                                            <div class="fw-800 text-dark" th:text="${(p.apellidoPaterno ?: '') + ' ' + (p.apellidoMaterno ?: '') + ', ' + (p.nombres ?: '')}">PEREZ, JUAN</div>
-                                            <div class="text-muted extra-small fw-bold" th:text="${p.sexo == 'M' ? 'MASCULINO' : 'FEMENINO'}">M</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="fw-bold text-dark" th:text="${p.numeroDocumento}">00000000</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-light text-dark border px-3 rounded-pill" th:text="${p.numeroHistoriaClinica}">HC-001</span>
-                                </td>
-                                <td>
-                                    <span class="badge rounded-pill px-3 py-1 fw-bold"
-                                          th:classappend="${p.estado == 'ATENDIDO' ? 'bg-success' : 'bg-primary'}"
-                                          th:text="${p.estado}">ESTADO</span>
-                                </td>
-                                <td>
-                                    <div class="small fw-bold text-dark" th:text="${#temporals.format(p.fechaCreacion, 'dd/MM/yyyy')}">---</div>
-                                    <div class="extra-small text-muted" th:text="${#temporals.format(p.fechaCreacion, 'HH:mm')}">---</div>
-                                </td>
-                                <td class="pe-4 text-center">
-                                    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-800 shadow-sm"
-                                            onclick="abrirHistorial(this)"
-                                            th:data-id="${p.idPersona}"
-                                            th:data-nombre="${(p.apellidoPaterno ?: '') + ' ' + (p.apellidoMaterno ?: '') + ', ' + (p.nombres ?: '')}"
-                                            th:data-hc="${p.numeroHistoriaClinica}">
-                                        <i class="bi bi-clock-history me-1"></i> DETALLES
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            
-            <script>
-                console.log("SIGECLIN: Script de Gestión de Pacientes v3 inicializado.");
+            <!-- RIGHT COLUMN: Timeline & Details -->
+            <div class="flex-grow-1 d-flex flex-column overflow-hidden" id="patientDetailContainer">
                 
-                // Función de filtrado global
-                window.filterPatients = function(input) {
-                    const q = input.value.toUpperCase();
-                    document.querySelectorAll(".patient-row").forEach(tr => {
-                        const content = tr.innerText.toUpperCase();
-                        tr.style.display = content.includes(q) ? "" : "none";
-                    });
-                };
-
-                window.abrirHistorial = async function(btn) {
-                    const id = btn.getAttribute('data-id');
-                    const nombre = btn.getAttribute('data-nombre');
-                    const hc = btn.getAttribute('data-hc');
-                    
-                    console.log("🔥 Solicitando historial para:", {id, nombre, hc});
-
-                    // Loader inicial
-                    Swal.fire({
-                        title: 'Consultando Expediente...',
-                        html: '<div class="spinner-border text-primary" role="status"></div><p class="mt-2 small text-muted">Buscando atenciones en el servidor...</p>',
-                        showConfirmButton: false,
-                        allowOutsideClick: false,
-                        customClass: { popup: 'rounded-5' }
-                    });
-
-                    try {
-                        const resp = await fetch('/pacientes/api/historial/' + id);
-                        if (!resp.ok) throw new Error('No se pudo conectar con el servidor.');
-                        const historial = await resp.json();
-                        window.currentHistorial = historial;
-                        
-                        console.log("✅ Datos recibidos:");
-                        console.table(historial);
-
-                        let timelineHtml = `
-                            <div class="p-2 text-start">
-                                <div class="d-flex justify-content-between align-items-center mb-4 bg-light p-4 rounded-4 border">
-                                    <div>
-                                        <h6 class="fw-900 mb-0 text-dark" style="font-size: 1.2rem;">${nombre}</h6>
-                                        <span class="badge bg-primary px-3 rounded-pill">HISTORIA CLÍNICA: ${hc}</span>
+                <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-center opacity-25" id="placeholderDetail">
+                    <!-- Placeholder vacio a pedido -->
+                </div>
+                
+                <div id="activePatientView" style="display: none;" class="h-100 d-flex flex-column">
+                    <!-- HEADER INFO -->
+                    <div class="card glass-panel-premium border-0 shadow-sm p-4 mb-4 flex-shrink-0">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="d-flex gap-3 align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary fw-900 rounded-circle d-flex align-items-center justify-content-center fs-4 shadow-sm" style="width: 60px; height: 60px;" id="detInitials">P</div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <h4 class="fw-900 text-dark mb-0" id="detName">Nombre Paciente</h4>
+                                        <span class="badge bg-primary-soft text-primary rounded-pill fw-800 px-3 py-2">Particular</span>
                                     </div>
-                                    <input type="date" id="tFilter" class="form-control form-control-sm w-auto rounded-pill border-primary shadow-sm" onchange="filterT()">
-                                </div>
-                                <div class="d-flex gap-4 overflow-x-auto pb-4 custom-scrollbar" id="tContainer" style="min-height: 400px; scroll-behavior: smooth;">
-                        `;
-
-                        if (historial.length === 0) {
-                            timelineHtml += `
-                                <div class="w-100 text-center py-5 opacity-50">
-                                    <i class="bi bi-calendar-x display-1 d-block mb-3"></i>
-                                    <h4 class="fw-800">SIN ATENCIONES PREVIAS</h4>
-                                    <p>Este paciente aún no registra consultas en el sistema.</p>
-                                </div>`;
-                        } else {
-                            historial.forEach((h, i) => {
-                                timelineHtml += `
-                                    <div class="t-card p-0 flex-shrink-0 animate-fade-in shadow-premium overflow-hidden" 
-                                         data-date="${h.fecha.split(' ')[0]}"
-                                         style="width: 350px; background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 28px; border: 1px solid rgba(255,255,255,0.5); position: relative;">
-                                        
-                                        <!-- Barra de Estado Vertical (Neon Accent) -->
-                                        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: linear-gradient(to bottom, #4f46e5, #0ea5e9);"></div>
-
-                                        <div class="p-4">
-                                            <!-- Header: Index & Meta -->
-                                            <div class="d-flex justify-content-between align-items-start mb-4">
-                                                <div class="initial-box bg-dark text-white d-flex align-items-center justify-content-center fw-900 shadow-glow" 
-                                                     style="width: 42px; height: 42px; border-radius: 12px; font-size: 1.1rem; background: #1e293b;">${i+1}</div>
-                                                <div class="text-end">
-                                                    <div class="extra-small fw-800 text-primary text-uppercase" style="letter-spacing: 1px;">Registro Clínico</div>
-                                                    <div class="fw-900 text-dark" style="font-size: 1.1rem;">${h.fecha.split(' ')[0]}</div>
-                                                    <div class="extra-small text-muted fw-bold opacity-75">${h.fecha.split(' ')[1]}</div>
-                                                </div>
-                                            </div>
-
-                                            <!-- Body: Service & Doctor -->
-                                            <div class="mb-4">
-                                                <h4 class="fw-900 text-dark mb-1" style="letter-spacing: -0.5px; line-height: 1.2;">${h.servicio.toUpperCase()}</h4>
-                                                <div class="d-flex align-items-center gap-2">
-                                                    <div class="bg-primary bg-opacity-10 rounded-circle p-1" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
-                                                        <i class="bi bi-person-check-fill text-primary" style="font-size: 0.75rem;"></i>
-                                                    </div>
-                                                    <span class="extra-small text-muted fw-800">DR(A). ${h.medico.toUpperCase()}</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Dx Panel (Glass Inner) -->
-                                            <div class="bg-white bg-opacity-50 p-4 rounded-4 mb-4 border border-white shadow-sm" style="backdrop-filter: blur(5px);">
-                                                <label class="extra-small fw-900 text-primary text-uppercase mb-2 d-block" style="letter-spacing: 1.5px; opacity: 0.6;">Diagnóstico Principal</label>
-                                                <h5 class="fw-900 text-dark mb-0" style="font-size: 1rem;">${h.diagnostico ? h.diagnostico.toUpperCase() : 'POR DEFINIR'}</h5>
-                                            </div>
-
-                                            <!-- Footer: Vitals & Action -->
-                                            <div class="d-flex align-items-center justify-content-between pt-2">
-                                                <div class="d-flex gap-2">
-                                                    <div class="p-2 bg-white rounded-3 border shadow-sm text-center" style="min-width: 65px;">
-                                                        <span class="d-block extra-small text-muted fw-800" style="font-size: 0.55rem;">P.A.</span>
-                                                        <span class="fw-900 text-primary" style="font-size: 0.75rem;">${h.pa || '--/--'}</span>
-                                                    </div>
-                                                    <div class="p-2 bg-white rounded-3 border shadow-sm text-center" style="min-width: 65px;">
-                                                        <span class="d-block extra-small text-muted fw-800" style="font-size: 0.55rem;">TEMP</span>
-                                                        <span class="fw-900 text-primary" style="font-size: 0.75rem;">${h.temp || '--'}°C</span>
-                                                    </div>
-                                                </div>
-                                                <button class="btn btn-dark rounded-circle d-flex align-items-center justify-content-center shadow-glow-primary" 
-                                                        style="width: 48px; height: 48px; background: #4f46e5; border: none;"
-                                                        onclick="mostrarMas(${i})">
-                                                    <i class="bi bi-arrow-right-short fs-3 text-white"></i>
-                                                </button>
-                                            </div>
-                                        </div>
+                                    <div class="d-flex flex-wrap gap-4 small text-muted fw-bold mt-1">
+                                        <div class="d-flex align-items-center gap-2"><i class="bi bi-card-text text-primary opacity-75"></i> DNI: <span id="detDni" class="text-dark">---</span></div>
+                                        <div class="d-flex align-items-center gap-2"><i class="bi bi-calendar-event text-primary opacity-75"></i> Edad: <span id="detEdad" class="text-dark">---</span></div>
+                                        <div class="d-flex align-items-center gap-2"><i class="bi bi-telephone text-primary opacity-75"></i> Celular: <span id="detCelular" class="text-dark">---</span></div>
                                     </div>
-                                `;
-                            });
-                        }
-
-                        timelineHtml += '</div></div>';
-
-                        // Mostramos el modal final
-                        Swal.fire({
-                            title: '<h3 class="fw-900 text-dark mb-0 mt-2"><i class="bi bi-clock-history me-2 text-primary"></i>Expediente Clínico</h3>',
-                            html: timelineHtml,
-                            width: '90%',
-                            showConfirmButton: false,
-                            showCloseButton: true,
-                            customClass: { 
-                                popup: 'rounded-5 shadow-premium overflow-hidden',
-                                closeButton: 'rounded-circle shadow-sm'
-                            }
-                        });
-
-                    } catch (e) {
-                        console.error("❌ Error en abrirHistorial:", e);
-                        Swal.fire({
-                            title: 'Error de Conexión',
-                            text: 'No se pudo recuperar el historial del paciente. Intente nuevamente.',
-                            icon: 'error',
-                            confirmButtonColor: '#4f46e5',
-                            customClass: { popup: 'rounded-5' }
-                        });
-                    }
-                }
-
-                window.filterT = function() {
-                    const val = document.getElementById('tFilter').value;
-                    const fmt = val ? val.split('-').reverse().join('/') : '';
-                    console.log("Filtrando historial por fecha:", fmt);
-                    document.querySelectorAll('.t-card').forEach(c => {
-                        c.style.display = !fmt || c.dataset.date === fmt ? "" : "none";
-                    });
-                }
-
-                window.mostrarMas = function(index) {
-                    const h = window.currentHistorial[index];
-                    
-                    // Helper para formatear fecha (YYYY-MM-DD a DD/MM/YYYY)
-                    const formatDate = (d) => {
-                        if(!d || d === '---') return '---';
-                        if(d.includes('-')) {
-                            const parts = d.split('-');
-                            return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                        }
-                        return d;
-                    };
-
-                    Swal.fire({
-                        title: '<h5 class="fw-900 text-white mb-0">EXPEDIENTE: DETALLE DE ATENCIÓN</h5>',
-                        html: `
-                            <div class="text-start mt-3">
-                                <!-- Bloque Principal: Diagnóstico y Motivo -->
-                                <div class="glass-panel-premium p-4 border-start border-primary border-5 mb-4 shadow-sm" style="background: rgba(79, 70, 229, 0.03);">
-                                    <div class="d-flex align-items-center gap-2 mb-3">
-                                        <div class="bg-primary text-white p-2 rounded-3 small"><i class="bi bi-clipboard2-pulse-fill"></i></div>
-                                        <label class="extra-small fw-900 text-primary text-uppercase tracking-wider mb-0">DIAGNÓSTICO FINAL</label>
-                                    </div>
-                                    <h4 class="fw-900 text-dark mb-3" style="font-size: 1.3rem; letter-spacing: -0.5px;">${h.diagnostico || 'POR DEFINIR'}</h4>
-                                    
-                                    <div class="p-3 bg-white rounded-4 border border-light">
-                                        <label class="extra-small fw-800 text-muted text-uppercase d-block mb-1">Motivo / Anamnesis</label>
-                                        <p class="small text-muted mb-0" style="line-height: 1.7; font-style: italic;">"${h.motivo || '---'}"<br>${h.anamnesis || ''}</p>
-                                    </div>
-                                </div>
-
-                                <!-- Grilla de Signos Vitales (Más grandes y profesionales) -->
-                                <div class="row g-3 mb-4">
-                                    <div class="col-3">
-                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
-                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">P.A.</div>
-                                            <div class="fw-900 text-primary fs-5">${h.pa || '--/--'}</div>
-                                            <div class="extra-small text-muted opacity-50 fw-bold">mmHg</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-3">
-                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
-                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">TEMP</div>
-                                            <div class="fw-900 text-primary fs-5">${h.temp || '--'}°C</div>
-                                            <div class="extra-small text-muted opacity-50 fw-bold">Celsius</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-3">
-                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
-                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">F.C.</div>
-                                            <div class="fw-900 text-primary fs-5">${h.fc || '--'}</div>
-                                            <div class="extra-small text-muted opacity-50 fw-bold">lpm</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-3">
-                                        <div class="p-3 bg-white rounded-4 border shadow-sm text-center card-hover-effect">
-                                            <div class="extra-small fw-800 text-muted text-uppercase mb-1">SAT.</div>
-                                            <div class="fw-900 text-primary fs-5">${h.sat || '--'}%</div>
-                                            <div class="extra-small text-muted opacity-50 fw-bold">SpO2</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Plan Terapéutico y Próxima Cita -->
-                                <div class="p-4 bg-dark text-white rounded-5 shadow-lg position-relative overflow-hidden">
-                                    <div style="position: absolute; top:0; right:0; padding: 20px; opacity: 0.1; font-size: 4rem;"><i class="bi bi-prescription2"></i></div>
-                                    <label class="extra-small fw-800 text-info text-uppercase d-block mb-2 letter-spacing-1">PLAN TERAPÉUTICO / TRATAMIENTO</label>
-                                    <p class="small fw-bold mb-4" style="line-height: 1.6; opacity: 0.9;">${h.plan || 'Sin indicaciones terapéuticas registradas.'}</p>
-                                    
-                                    ${h.proximoControl && h.proximoControl !== '---' ? `
-                                    <div class="p-3 bg-white bg-opacity-10 rounded-4 border border-white border-opacity-10 d-flex align-items-center justify-content-between">
-                                        <div class="d-flex align-items-center gap-3">
-                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                <i class="bi bi-calendar-check-fill fs-5"></i>
-                                            </div>
-                                            <div>
-                                                <span class="extra-small fw-900 text-info d-block text-uppercase">PRÓXIMA CITA (RECITA)</span>
-                                                <span class="fw-900 text-white fs-5">${formatDate(h.proximoControl)}</span>
-                                            </div>
-                                        </div>
-                                        <i class="bi bi-clock-history fs-4 text-info opacity-50"></i>
-                                    </div>` : ''}
                                 </div>
                             </div>
-                        `,
-                        width: '750px',
-                        confirmButtonText: 'ENTENDIDO',
-                        confirmButtonColor: '#4f46e5',
-                        background: '#ffffff',
-                        customClass: { 
-                            popup: 'rounded-5 border-0 shadow-2xl', 
-                            confirmButton: 'rounded-pill fw-800 px-5 py-3 shadow-glow-primary',
-                            header: 'bg-primary p-4 rounded-top-5'
+                            <!-- Alergias -->
+                            <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-4 d-none" style="max-width: 320px;" id="detAlergias">
+                                <div class="extra-small fw-900 text-uppercase mb-1 tracking-wider"><i class="bi bi-activity me-1"></i> Alergias / Alertas Clínicas</div>
+                                <div class="small fw-bold" id="detAlergiasText"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TIMELINE BOX -->
+                    <div class="card glass-panel-premium border-0 shadow-sm p-4 flex-grow-1 d-flex flex-column overflow-hidden">
+                        <div class="d-flex justify-content-between align-items-center mb-4 flex-shrink-0">
+                            <h5 class="fw-800 text-dark mb-0">Timeline de Evolución Clínica</h5>
+                        </div>
+                        <div class="timeline-container flex-grow-1 overflow-y-auto custom-scrollbar pe-2" id="timelineList">
+                            <!-- Injected -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function filterPatients(input) {
+                    const q = input.value.toLowerCase();
+                    document.querySelectorAll('.patient-row').forEach(row => {
+                        const name = row.getAttribute('data-nombre').toLowerCase();
+                        const dni = row.querySelector('.text-muted span').innerText.toLowerCase();
+                        if (name.includes(q) || dni.includes(q)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
                         }
                     });
                 }
+
+                function abrirHistorialFromCard(element) {
+                    const idPersona = element.getAttribute('data-id');
+                    const nombre = element.getAttribute('data-nombre');
+                    const dni = element.getAttribute('data-dni');
+                    const fechaNacimiento = element.getAttribute('data-fecha-nacimiento');
+                    const telefono = element.getAttribute('data-telefono') || 'No registrado';
+                    
+                    let edadStr = '---';
+                    if (fechaNacimiento && fechaNacimiento !== 'null') {
+                        const birthDate = new Date(fechaNacimiento);
+                        const today = new Date();
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        const m = today.getMonth() - birthDate.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+                        edadStr = age + ' años';
+                    }
+                    
+                    abrirHistorial(element, idPersona, nombre, dni, edadStr, telefono);
+                }
+
+                document.addEventListener("DOMContentLoaded", () => {
+                    const firstPatient = document.querySelector('.patient-row');
+                    if (firstPatient) {
+                        abrirHistorialFromCard(firstPatient);
+                    }
+                });
+
+                async function abrirHistorial(element, idPersona, nombre, dni, edad, telefono) {
+                    // Update active state in list
+                    document.querySelectorAll('.patient-row').forEach(r => {
+                        r.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
+                        r.style.borderColor = '#f1f5f9';
+                    });
+                    element.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
+                    element.style.borderColor = '#4f46e5';
+
+                    // Switch view
+                    document.getElementById('placeholderDetail').style.display = 'none';
+                    document.getElementById('activePatientView').style.display = 'flex';
+                    document.getElementById('activePatientView').classList.remove('d-flex'); // For standardizing with toggle
+                    document.getElementById('activePatientView').classList.add('d-flex');
+
+                    // Set header info
+                    document.getElementById('detName').innerText = nombre;
+                    document.getElementById('detInitials').innerText = nombre ? nombre.charAt(0) : 'P';
+                    document.getElementById('detDni').innerText = dni;
+                    document.getElementById('detEdad').innerText = edad;
+                    document.getElementById('detCelular').innerText = telefono;
+
+                    const timelineList = document.getElementById('timelineList');
+                    timelineList.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+
+                    try {
+                        const resp = await fetch('/pacientes/api/historial/' + idPersona);
+                        if (!resp.ok) throw new Error('Error de conexión');
+                        const historial = await resp.json();
+                        
+                        if (historial.length === 0) {
+                            timelineList.innerHTML = `
+                                <div class="text-center py-5 opacity-50">
+                                    <i class="bi bi-calendar-x display-3 d-block mb-3"></i>
+                                    <h5 class="fw-800">SIN EVOLUCIONES</h5>
+                                    <p class="small">El paciente no registra atenciones previas.</p>
+                                </div>`;
+                            return;
+                        }
+
+                        let html = '<div class="position-relative ms-3 ps-4 border-start border-2 border-primary border-opacity-25">';
+                        historial.forEach(h => {
+                            const [datePart, timePart] = h.fecha.split(' ');
+                            const title = 'Atención Médica en ' + (h.servicio ? h.servicio.toUpperCase() : 'GENERAL');
+                            const price = h.servicio === 'ODONTOLOGIA' ? '80.00' : h.servicio === 'MEDICINA GENERAL' ? '50.00' : '60.00';
+                            
+                            let dxHtml = '';
+                            if (h.diagnostico) {
+                                const dtoList = h.diagnostico.split(';');
+                                dxHtml = dtoList.map(dx => `<div class="mb-1">${dx.trim()}</div>`).join('');
+                            } else {
+                                dxHtml = '<div>Evaluación inicial completa</div>';
+                            }
+                            
+                            html += `
+                            <div class="mb-4 position-relative">
+                                <!-- Node -->
+                                <div class="position-absolute bg-primary rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style="width: 24px; height: 24px; left: -37px; top: 15px;">
+                                    <i class="bi bi-activity" style="font-size: 0.7rem;"></i>
+                                </div>
+                                
+                                <div class="card border border-light shadow-sm rounded-4 overflow-hidden">
+                                    <div class="card-header bg-white border-0 p-3 pb-0 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#col_${h.idAtencion}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2 mb-1">
+                                                    <i class="bi bi-calendar-event text-muted small"></i>
+                                                    <span class="small fw-bold text-muted">${datePart}</span>
+                                                    <span class="badge bg-success-soft text-success rounded-pill extra-small fw-900 tracking-wider">COMPLETADO</span>
+                                                </div>
+                                                <h6 class="fw-800 text-dark mb-0">${title}</h6>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <span class="fw-900 text-dark">S/ ${price}</span>
+                                                <i class="bi bi-chevron-down text-muted"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="col_${h.idAtencion}" class="collapse">
+                                        <div class="card-body bg-white border-0 p-4">
+                                            <div class="small fw-bold text-dark mb-2">Evolución / Descripción:</div>
+                                            <div class="bg-light p-3 rounded-3 border-0 small text-muted fw-bold">
+                                                ${dxHtml}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += '</div>';
+                        timelineList.innerHTML = html;
+                    } catch (e) {
+                        timelineList.innerHTML = '<div class="alert alert-danger rounded-4 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Error al cargar el historial clínico.</div>';
+                    }
+                }
             </script>
-            
             <style>
-                .patient-row:hover { background: var(--primary-soft) !important; cursor: pointer; }
-                .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 6px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(79, 70, 229, 0.2); border-radius: 10px; }
-                .t-card:hover { transform: scale(1.02); }
-                .btn-white { 
-                    background: var(--bg-card); 
-                    color: var(--primary); 
-                    border: 1px solid var(--glass-border); 
-                    transition: var(--transition);
-                }
-                .btn-white:hover {
-                    background: var(--primary-soft);
-                    border-color: var(--primary);
-                }
+                .patient-row:hover { background: #f8fafc !important; }
+                .tracking-wider { letter-spacing: 0.05rem; }
             </style>
         </div>
     </main>

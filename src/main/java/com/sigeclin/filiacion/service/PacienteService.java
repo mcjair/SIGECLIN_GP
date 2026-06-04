@@ -2,8 +2,11 @@ package com.sigeclin.filiacion.service;
 
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.repository.PacienteRepository;
+import com.sigeclin.filiacion.repository.specification.PacienteSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
@@ -17,8 +20,12 @@ public class PacienteService implements IPacienteService {
 
     @Transactional
     public Paciente registrarPaciente(Paciente paciente) {
-        // Buscar si ya existe por Documento para evitar duplicados o actualizar datos
-        java.util.Optional<Paciente> existente = pacienteRepository.findByNumeroDocumento(paciente.getNumeroDocumento());
+        if (paciente.getTipoDocumento() == null || paciente.getTipoDocumento().getIdTipoDocumento() == null) {
+            throw new IllegalArgumentException("El tipo de documento es obligatorio");
+        }
+        // Buscar si ya existe por Documento y Tipo para evitar duplicados o actualizar datos
+        java.util.Optional<Paciente> existente = pacienteRepository.findByTipoDocumento_IdTipoDocumentoAndNumeroDocumento(
+                paciente.getTipoDocumento().getIdTipoDocumento(), paciente.getNumeroDocumento());
         
         if (existente.isPresent()) {
             Paciente p = existente.get();
@@ -63,6 +70,14 @@ public class PacienteService implements IPacienteService {
 
     public java.util.List<Paciente> obtenerTodos() {
         return pacienteRepository.findAll();
+    }
+
+    public java.util.List<Paciente> obtenerTodos(String servicioFiltro) {
+        return pacienteRepository.findAll(PacienteSpecification.conFiltro(null, servicioFiltro));
+    }
+
+    public Page<Paciente> obtenerTodosPaginado(String search, String servicioFiltro, Pageable pageable) {
+        return pacienteRepository.findAll(PacienteSpecification.conFiltro(search, servicioFiltro), pageable);
     }
 
     public java.util.List<Paciente> obtenerPendientesTriaje() {

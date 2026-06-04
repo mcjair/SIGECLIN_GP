@@ -10,6 +10,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -26,18 +30,64 @@ public class GestionPacienteController {
     private final IConsultaService consultaService;
 
     @GetMapping("/lista")
-    public String listarPacientes(Model model) {
-        // Cargar todos los pacientes registrados en el sistema
-        model.addAttribute("pacientes", pacienteService.obtenerTodos());
+    public String listarPacientes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            org.springframework.security.core.Authentication authentication,
+            Model model) {
+        
+        String rolFiltro = null;
+        if (authentication != null && authentication.getAuthorities() != null) {
+            String roleStr = authentication.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .findFirst().orElse("ADMIN");
+            
+            if (!roleStr.equals("ADMIN")) {
+                rolFiltro = roleStr;
+                if (rolFiltro.equals("MEDICO_GENERAL")) rolFiltro = "MEDICINA GENERAL";
+                if (rolFiltro.equals("ENFERMERIA")) rolFiltro = "ENFERMERÍA";
+                if (rolFiltro.equals("ODONTOLOGIA")) rolFiltro = "ODONTOLOGÍA";
+                if (rolFiltro.equals("PSICOLOGIA")) rolFiltro = "PSICOLOGÍA";
+                if (rolFiltro.equals("NUTRICION")) rolFiltro = "NUTRICIÓN";
+            }
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
+        Page<com.sigeclin.filiacion.model.Paciente> pacientesPage = pacienteService.obtenerTodosPaginado(search, rolFiltro, pageable);
+        
+        model.addAttribute("pacientesPage", pacientesPage);
+        model.addAttribute("pacientes", pacientesPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", pacientesPage.getTotalPages());
+        model.addAttribute("totalItems", pacientesPage.getTotalElements());
+        model.addAttribute("search", search != null ? search : "");
+        
         return "filiacion/pacientes_lista";
     }
 
     @GetMapping("/export/excel")
-    public void exportarAExcel(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+    public void exportarAExcel(org.springframework.security.core.Authentication authentication, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=pacientes_sigeclin.xlsx");
 
-        java.util.List<com.sigeclin.filiacion.model.Paciente> pacientes = pacienteService.obtenerTodos();
+        String rolFiltro = null;
+        if (authentication != null && authentication.getAuthorities() != null) {
+            String roleStr = authentication.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .findFirst().orElse("ADMIN");
+            
+            if (!roleStr.equals("ADMIN")) {
+                rolFiltro = roleStr;
+                if (rolFiltro.equals("MEDICO_GENERAL")) rolFiltro = "MEDICINA GENERAL";
+                if (rolFiltro.equals("ENFERMERIA")) rolFiltro = "ENFERMERÍA";
+                if (rolFiltro.equals("ODONTOLOGIA")) rolFiltro = "ODONTOLOGÍA";
+                if (rolFiltro.equals("PSICOLOGIA")) rolFiltro = "PSICOLOGÍA";
+                if (rolFiltro.equals("NUTRICION")) rolFiltro = "NUTRICIÓN";
+            }
+        }
+
+        java.util.List<com.sigeclin.filiacion.model.Paciente> pacientes = pacienteService.obtenerTodos(rolFiltro);
 
         try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Pacientes");

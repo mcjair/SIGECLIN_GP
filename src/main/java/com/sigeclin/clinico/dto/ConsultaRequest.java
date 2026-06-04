@@ -18,4 +18,5 @@ public class ConsultaRequest {
     private String tipoSalida;
     private List<Map<String, Object>> diagnosticos;
     private List<Map<String, Object>> medicamentos;
+    private List<Map<String, Object>> examenes;
 }

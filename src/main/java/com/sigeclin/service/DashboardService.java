@@ -165,6 +165,10 @@ public class DashboardService implements IDashboardService {
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ENFERMERÍA'", Integer.class);
             stats.put("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
 
+            Integer recetasPendientes = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM clinico.receta_medica WHERE estado = 'emitida'", Integer.class);
+            stats.put("recetasPendientes", recetasPendientes != null ? recetasPendientes : 0);
+
             Runtime runtime = Runtime.getRuntime();
             long usedMemory = runtime.totalMemory() - runtime.freeMemory();
             int memoryPercent = (int) ((usedMemory * 100) / runtime.maxMemory());

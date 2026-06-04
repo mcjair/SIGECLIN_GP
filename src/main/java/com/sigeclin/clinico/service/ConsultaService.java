@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,11 @@ public class ConsultaService implements IConsultaService {
     private final DiagnosticoConsultaRepository diagnosticoConsultaRepository;
     private final com.sigeclin.maestras.repository.Cie10Repository cie10Repository;
     private final PersonalRepository personalRepository;
+    private final com.sigeclin.filiacion.repository.UsuarioRepository usuarioRepository;
     private final IRecetaService recetaService;
+    private final OrdenMedicaRepository ordenMedicaRepository;
+    private final ResultadoLaboratorioRepository resultadoLaboratorioRepository;
+    private final JdbcTemplate jdbcTemplate;
 
     public List<com.sigeclin.clinico.model.Consulta> obtenerHistorialPaciente(Integer idPaciente) {
         return consultaRepository.findByPacienteIdPersonaOrderByFechaHoraInicioDesc(idPaciente);
@@ -55,7 +60,7 @@ public class ConsultaService implements IConsultaService {
     }
 
     @Transactional
-    public void guardarConsultaCompleta(Integer triajeId, Map<String, Object> data) {
+    public Consulta guardarConsultaCompleta(Integer triajeId, Map<String, Object> data) {
         Triaje triaje = triajeRepository.findById(triajeId)
                 .orElseThrow(() -> new RuntimeException("Triaje no encontrado"));
 
@@ -73,7 +78,10 @@ public class ConsultaService implements IConsultaService {
 
         Personal medico = null;
         if (username != null) {
-            medico = personalRepository.findByUsuarioUsername(username).orElse(null);
+            com.sigeclin.filiacion.model.Usuario userActivo = usuarioRepository.findByUsername(username).orElse(null);
+            if (userActivo != null) {
+                medico = personalRepository.findById(userActivo.getIdPersona()).orElse(null);
+            }
         }
         if (medico == null) {
             medico = personalRepository.findById(triaje.getUsuario().getIdPersona())
@@ -143,5 +151,43 @@ public class ConsultaService implements IConsultaService {
             recetaService.emitirReceta(consulta, paciente, medico,
                     (String) data.get("planTratamiento"), medicamentos);
         }
+
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> examenes = (List<Map<String, Object>>) data.get("examenes");
+        if (examenes != null && !examenes.isEmpty()) {
+            Integer idCiex;
+            try {
+                idCiex = jdbcTemplate.queryForObject(
+                    "SELECT id_ciex FROM maestras.catalogo_ciex WHERE codigo = 'LAB-ORD'", Integer.class);
+            } catch (Exception e) {
+                log.warn("No se encontró catalogo_ciex para LAB-ORD, se crea automáticamente");
+                jdbcTemplate.execute(
+                    "INSERT INTO maestras.catalogo_ciex (codigo, descripcion, tipo, activo) " +
+                    "VALUES ('LAB-ORD', 'ORDEN DE LABORATORIO', 'LABORATORIO', true) " +
+                    "ON CONFLICT (codigo) DO UPDATE SET activo = true");
+                idCiex = jdbcTemplate.queryForObject(
+                    "SELECT id_ciex FROM maestras.catalogo_ciex WHERE codigo = 'LAB-ORD'", Integer.class);
+            }
+
+            OrdenMedica orden = new OrdenMedica();
+            orden.setIdConsulta(consulta.getIdConsulta());
+            orden.setIdCiex(idCiex);
+            orden.setIdPersonalSolicitante(medico.getIdPersona());
+            orden.setTipo("LABORATORIO");
+            orden.setEstado("solicitada");
+            orden.setIndicaciones((String) data.get("planTratamiento"));
+
+            for (Map<String, Object> examData : examenes) {
+                ResultadoLaboratorio rl = new ResultadoLaboratorio();
+                rl.setCodigoExamen((String) examData.get("codigo"));
+                rl.setOrden(orden);
+                orden.getResultados().add(rl);
+            }
+
+            ordenMedicaRepository.save(orden);
+            log.info("Orden de laboratorio creada: idOrden={}, examenes={}",
+                orden.getIdOrden(), examenes.size());
+        }
+        return consulta;
     }
 }

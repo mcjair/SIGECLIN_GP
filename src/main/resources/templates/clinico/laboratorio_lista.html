@@ -1,70 +1,104 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{layout :: head(title='SIGECLIN - Laboratorio')}"></head>
+<head th:replace="~{layout :: head(title='SIGECLIN - Laboratorio Clínico')}"></head>
 <body class="bg-deep">
     <div th:replace="~{layout :: sidebar}"></div>
-    
-    <main th:replace="~{layout :: main(pageTitle='Gestión de Laboratorio', content=~{::#lab-content}, modals=null)}">
-        <div id="lab-content" class="p-4">
-            <div class="card glass-panel-premium border-0 p-4 mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h4 class="fw-800 text-dark mb-1">Órdenes de Examen</h4>
-                        <p class="text-muted small mb-0">Gestión de análisis clínicos y resultados MINSA.</p>
-                    </div>
-                    <button class="btn btn-primary rounded-pill px-4 fw-bold">
-                        <i class="bi bi-plus-lg me-2"></i> NUEVA ORDEN
-                    </button>
+    <main th:replace="~{layout :: main(pageTitle='Laboratorio Clínico', content=~{::#lab-content})}">
+        <div id="lab-content" class="h-100 d-flex flex-column p-4" style="max-height: 100vh; margin-top: -15px;">
+            
+            <!-- HEADER EXTENSION -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="text-muted small mb-0 fw-bold">Gestión de análisis clínicos por área — Norma Técnica I-3 MINSA</p>
+                <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="recargarPanel()">
+                    <i class="bi bi-arrow-clockwise me-2"></i> Actualizar
+                </button>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="position-relative" style="width: 300px;">
+                    <i class="bi bi-search position-absolute text-muted" style="left: 15px; top: 50%; transform: translateY(-50%);"></i>
+                    <input type="text" id="searchInput" class="form-control rounded-pill ps-5 border-0 shadow-sm" placeholder="Buscar orden o paciente..." onkeyup="filtrarTabla()">
+                </div>
+                
+                <div class="d-flex gap-2 flex-wrap" id="filterPills">
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" style="background-color: #1e293b; color: white;" onclick="aplicarFiltro('todas', this)">Todas</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('HEMATOLOGIA', this)">Hematología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('BIOQUIMICA', this)">Bioquímica</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('MICROBIOLOGIA', this)">Microbiología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('INMUNOLOGIA', this)">Inmunología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('UROANALISIS', this)">Uroanálisis</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('COPROLOGIA', this)">Coprología</span>
                 </div>
             </div>
 
-            <div class="card glass-panel-premium border-0 shadow-sm overflow-hidden p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
+            <!-- KPI CARDS -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #eff6ff; color: #3b82f6;">
+                            <i class="bi bi-file-earmark-medical fs-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-800 mb-0" id="kpiTotal">0</h4>
+                            <span class="text-muted extra-small fw-bold">Total Órdenes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #fefce8; color: #eab308;">
+                            <i class="bi bi-clock-history fs-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-800 mb-0" id="kpiPendientes">0</h4>
+                            <span class="text-muted extra-small fw-bold">Pendientes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #f0fdf4; color: #22c55e;">
+                            <i class="bi bi-check2-all fs-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-800 mb-0" id="kpiValidadas">0</h4>
+                            <span class="text-muted extra-small fw-bold">Validadas</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #fef2f2; color: #ef4444;">
+                            <i class="bi bi-exclamation-triangle fs-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-800 mb-0" id="kpiUrgentes">0</h4>
+                            <span class="text-muted extra-small fw-bold">Urgentes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DATA TABLE -->
+            <div class="card border-0 shadow-sm rounded-4 flex-grow-1 overflow-hidden d-flex flex-column">
+                <div class="table-responsive flex-grow-1 custom-scrollbar">
+                    <table class="table table-hover align-middle mb-0 border-0">
+                        <thead style="background-color: #f8fafc;">
                             <tr>
-                                <th class="ps-4 py-3 fw-800 text-muted small text-uppercase">N° Orden / CPT</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Paciente (DNI/HC)</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Análisis / Muestra</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Resultado (Campo LAB)</th>
-                                <th class="py-3 fw-800 text-muted small text-uppercase">Estado</th>
-                                <th class="pe-4 py-3 text-center fw-800 text-muted small text-uppercase">Acciones</th>
+                                <th class="ps-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">N° Orden</th>
+                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Paciente</th>
+                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Análisis</th>
+                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Área</th>
+                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Resultado</th>
+                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider text-center">Estado</th>
+                                <th class="pe-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider text-end">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr th:each="o, iter : ${ordenes}" class="hover-scale transition-all">
-                                <td class="ps-4">
-                                    <div class="fw-800 text-primary" th:text="${'ORD-' + #numbers.formatInteger(iter.count, 5)}">ORD-00001</div>
-                                    <div class="extra-small text-muted fw-bold" th:text="${o.get('codigoCpt') ?: 'CPT-85025'}">CPT-85025</div>
-                                </td>
-                                <td>
-                                    <div class="fw-800 text-dark text-uppercase" th:text="${o.get('paciente')}">JUAN PÉREZ</div>
-                                    <div class="extra-small text-muted fw-bold" th:text="${o.get('pacienteDni') ?: '45678901'}">45678901</div>
-                                </td>
-                                <td>
-                                    <div class="fw-800 text-dark" th:text="${o.get('examen')}">HEMOGRAMA COMPLETO</div>
-                                    <div class="badge bg-light text-muted border extra-small fw-bold" th:text="${o.get('muestra') ?: 'SANGRE TOTAL'}">SANGRE TOTAL</div>
-                                </td>
-                                <td>
-                                    <div class="fw-900 text-primary fs-5" th:text="${o.get('resultado') ?: '---'}">12.5</div>
-                                    <div class="extra-small text-muted fw-bold" th:text="${o.get('unidades') ?: 'g/dL'}">g/dL</div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-warning bg-opacity-10 text-warning px-3 rounded-pill fw-800" 
-                                          th:classappend="${o.get('estado') == 'VALIDADO' ? 'bg-success text-success' : ''}"
-                                          th:text="${o.get('estado')}">PENDIENTE</span>
-                                </td>
-                                <td class="pe-4 text-center">
-                                    <button class="btn btn-sm btn-primary rounded-pill px-3 fw-900 shadow-sm border-0" 
-                                            th:onclick="'abrirModalResultados(' + ${iter.index} + ')'">
-                                        <i class="bi bi-file-earmark-medical me-1"></i> RESULTADOS
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(ordenes)}">
-                                <td colspan="6" class="text-center py-5 text-muted">
+                        <tbody class="border-top-0" id="ordenesBody">
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                    No hay órdenes de laboratorio pendientes.
+                                    Cargando órdenes...
                                 </td>
                             </tr>
                         </tbody>
@@ -73,6 +107,277 @@
             </div>
         </div>
     </main>
+
+    <div id="lab-modals">
+            <div class="modal fade" id="modalResultados" tabindex="-1">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content border-0 shadow-premium">
+                        <div class="modal-header bg-primary-soft border-0">
+                            <h5 class="modal-title fw-800 text-primary"><i class="bi bi-file-earmark-medical me-2"></i>INGRESAR RESULTADOS</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" id="modalResultadosBody">
+                            <div class="text-center py-4 text-muted">Seleccione una orden para ingresar resultados.</div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">CERRAR</button>
+                            <button class="btn btn-success rounded-pill px-4 fw-800 shadow-sm" id="btnValidarOrden" onclick="validarOrden()" style="display:none"><i class="bi bi-check-circle me-1"></i> VALIDAR ORDEN</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     <div th:replace="~{layout :: footer}"></div>
+
+    <style>
+        .nav-tabs .nav-link { background: transparent; color: var(--text-muted); border: none; transition: var(--transition); }
+        .nav-tabs .nav-link:hover { background: rgba(99,102,241,0.08); color: var(--primary); }
+        .nav-tabs .nav-link.active { background: white !important; color: var(--primary) !important; box-shadow: 0 2px 8px rgba(99,102,241,0.15); }
+        .resultado-normal { color: #059669; font-weight: 800; }
+        .resultado-anormal { color: #dc2626; font-weight: 800; animation: pulse-glow 1.5s infinite; }
+        @keyframes pulse-glow { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .badge-urgente { background: rgba(220,38,38,0.12); color: #dc2626; }
+        .examen-check:checked + label { background: var(--primary-soft); border-color: var(--primary); }
+        .examen-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; transition: var(--transition); cursor: pointer; }
+        .examen-item:hover { border-color: var(--primary); background: rgba(99,102,241,0.04); }
+    </style>
+
+    <script>
+        let examenesData = {};
+        let ordenesData = [];
+        let codigoToArea = {};
+        let currentIdOrden = null;
+
+        function cargarExamenes() {
+            fetch('/api/laboratorio/examenes')
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(data => {
+                    examenesData = data;
+                    codigoToArea = {};
+                    for (const [area, examenes] of Object.entries(data)) {
+                        examenes.forEach(ex => { codigoToArea[ex.codigo] = area; });
+                    }
+                })
+                .catch(e => console.warn('Error cargando exámenes:', e));
+        }
+
+        let currentFiltroArea = 'todas';
+        let searchQuery = '';
+
+        function aplicarFiltro(area, element) {
+            document.querySelectorAll('.filter-pill').forEach(el => {
+                el.classList.remove('active');
+                el.classList.add('text-muted');
+                el.style.backgroundColor = '#f8fafc';
+                el.style.color = '';
+            });
+            element.classList.add('active');
+            element.classList.remove('text-muted');
+            element.style.backgroundColor = '#1e293b';
+            element.style.color = 'white';
+            
+            currentFiltroArea = area;
+            renderOrdenes(ordenesData);
+        }
+
+        function filtrarTabla() {
+            searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            renderOrdenes(ordenesData);
+        }
+
+        function cargarOrdenes() {
+            fetch('/api/laboratorio/ordenes')
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(data => {
+                    ordenesData = data;
+                    renderOrdenes(data);
+                })
+                .catch(e => {
+                    document.getElementById('ordenesBody').innerHTML =
+                        '<tr><td colspan="7" class="text-center py-5 text-muted">' +
+                        '<i class="bi bi-exclamation-triangle fs-1 d-block mb-2"></i>Error al cargar órdenes</td></tr>';
+                });
+        }
+
+        function renderOrdenes(ordenes) {
+            const tb = document.getElementById('ordenesBody');
+            let filtradas = ordenes;
+            
+            if (currentFiltroArea !== 'todas') {
+                filtradas = filtradas.filter(o => o.resultados && o.resultados.some(r => codigoToArea[r.codigoExamen] === currentFiltroArea));
+            }
+            
+            if (searchQuery) {
+                filtradas = filtradas.filter(o => {
+                    const searchStr = (`ORD-${o.idOrden} ${o.pacienteNombre||''} ${o.pacienteDni||''} ${o.indicaciones||''} ${o.estado||''}`).toLowerCase();
+                    return searchStr.includes(searchQuery);
+                });
+            }
+
+            const pendientes = ordenes.filter(o => o.estado === 'solicitada' || o.estado === 'resultado_ingresado').length;
+            const validadas = ordenes.filter(o => o.estado === 'validado').length;
+            const urgentes = ordenes.filter(o => o.urgente).length;
+            
+            if(document.getElementById('kpiTotal')) document.getElementById('kpiTotal').textContent = ordenes.length;
+            if(document.getElementById('kpiPendientes')) document.getElementById('kpiPendientes').textContent = pendientes;
+            if(document.getElementById('kpiValidadas')) document.getElementById('kpiValidadas').textContent = validadas;
+            if(document.getElementById('kpiUrgentes')) document.getElementById('kpiUrgentes').textContent = urgentes;
+
+            if (!filtradas.length) {
+                tb.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">' +
+                    '<i class="bi bi-inbox fs-1 d-block mb-2"></i>No se encontraron órdenes.</td></tr>';
+                return;
+            }
+            let html = '';
+            filtradas.forEach((o, i) => {
+                const r = o.resultados && o.resultados.length ? o.resultados[0] : null;
+                const valor = r ? r.valorResultado : '---';
+                const unidad = r ? (r.unidad || '') : '';
+                const esAnormal = r ? r.esAnormal : false;
+                const valClass = r ? (esAnormal ? 'resultado-anormal' : 'resultado-normal') : 'text-muted';
+                const urgClass = o.urgente ? 'badge-urgente' : '';
+                const isPendiente = o.estado === 'solicitada' || o.estado === 'resultado_ingresado';
+                
+                let areaPill = 'GENERAL';
+                if(r && codigoToArea[r.codigoExamen]) {
+                    const a = codigoToArea[r.codigoExamen];
+                    areaPill = a.charAt(0).toUpperCase() + a.slice(1).toLowerCase();
+                }
+
+                html += `<tr class="hover-scale transition-all">
+                    <td class="ps-4"><div class="fw-800 text-primary">ORD-${String(o.idOrden).padStart(5,'0')}</div></td>
+                    <td><div class="fw-800 text-ink text-uppercase small">${o.pacienteNombre || 'PACIENTE #' + o.idOrden}</div><div class="extra-small text-muted fw-bold">${o.pacienteDni || '---'}</div></td>
+                    <td><div class="fw-800 text-ink">${o.indicaciones || 'Análisis clínico'}</div></td>
+                    <td><span class="badge bg-primary-soft text-primary fw-800 rounded-pill px-3">${areaPill}</span></td>
+                    <td><div class="${valClass} fs-5">${valor} <span class="fs-6">${unidad}</span></div></td>
+                    <td class="text-center"><span class="badge ${o.estado === 'validado' ? 'bg-success-soft text-success' : o.estado === 'resultado_ingresado' ? 'bg-primary-soft text-primary' : 'bg-warning-soft text-warning'} px-3 rounded-pill fw-800 ${urgClass}">${o.estado.toUpperCase()}</span></td>
+                    <td class="pe-4 text-end">
+                        ${isPendiente ? `<button class="btn btn-sm btn-indigo-grad rounded-pill px-3 fw-900 shadow-sm" onclick="abrirResultados(${o.idOrden})"><i class="bi bi-pencil-square me-1"></i> RESULTADOS</button>` :
+                        `<button class="btn btn-sm btn-light border text-muted rounded-pill px-3 fw-900 shadow-sm" onclick="imprimirInforme(${o.idOrden})"><i class="bi bi-printer me-1"></i> INFORME</button>`}
+                    </td>
+                </tr>`;
+            });
+            tb.innerHTML = html;
+        }
+
+        function abrirResultados(idOrden) {
+            let body;
+            try {
+                currentIdOrden = idOrden;
+                const modalEl = document.getElementById('modalResultados');
+                if (!modalEl) { console.error('modalResultados no encontrado en el DOM'); return; }
+                body = document.getElementById('modalResultadosBody');
+                if (!body) { console.error('modalResultadosBody no encontrado'); return; }
+                body.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary"></div><p class="mt-2 text-muted">Cargando exámenes disponibles...</p></div>';
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+                const btnVal = document.getElementById('btnValidarOrden');
+                if (btnVal) btnVal.style.display = 'none';
+            } catch (e) { console.error('Error en abrirResultados:', e); return; }
+
+            fetch('/api/laboratorio/examenes')
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(areas => {
+                    let html = `<div class="mb-3"><h6 class="fw-800 text-ink">Orden: <span class="text-primary">ORD-${String(idOrden).padStart(5,'0')}</span></h6></div>`;
+                    html += '<div class="row g-2 mb-4">';
+                    const areaMap = {HEMATOLOGIA:'Hematología',BIOQUIMICA:'Bioquímica',MICROBIOLOGIA:'Microbiología',INMUNOLOGIA:'Inmunología',UROANALISIS:'Uroanálisis',COPROLOGIA:'Coprología'};
+                    for (const [key, examenes] of Object.entries(areas)) {
+                        html += `<div class="col-12"><h6 class="fw-800 text-primary small text-uppercase mt-2 mb-2"><i class="bi bi-tag me-1"></i>${areaMap[key]||key}</h6><div class="row g-1">`;
+                        examenes.forEach(ex => {
+                            html += `<div class="col-md-4 col-lg-3"><div class="examen-item" onclick="seleccionarExamen('${ex.codigo}','${ex.nombre}','${ex.unidad||''}',${ex.rangoMinimo||'null'},${ex.rangoMaximo||'null'},'${(ex.rangoTexto||(ex.rangoMinimo?ex.rangoMinimo+' - '+ex.rangoMaximo:'')).replace(/'/g,"\\'")}')">
+                                <div class="small fw-800 text-ink">${ex.nombre}</div>
+                                <div class="extra-small text-muted">${ex.codigo} ${ex.unidad ? '| '+ex.unidad : ''}</div>
+                            </div></div>`;
+                        });
+                        html += '</div></div>';
+                    }
+                    html += '</div>';
+                    html += `<div id="resultadosPendientes" class="mt-3"></div>`;
+                    html += `<div class="mt-3 p-3 bg-light rounded-4"><div class="row g-2 align-items-end">
+                        <div class="col-md-4"><label class="label-premium">Examen</label><select class="form-select-premium" id="selExamen"></select></div>
+                        <div class="col-md-3"><label class="label-premium">Valor</label><input type="text" class="form-control-premium" id="inpValor" placeholder="Ej: 14.5"></div>
+                        <div class="col-md-2"><label class="label-premium">Unidad</label><input type="text" class="form-control-premium" id="inpUnidad" readonly></div>
+                        <div class="col-md-2"><label class="label-premium">Rango Ref.</label><input type="text" class="form-control-premium" id="inpRango" readonly></div>
+                        <div class="col-md-1"><button class="btn btn-primary rounded-pill w-100 mt-2 fw-800" onclick="guardarResultado(${idOrden})"><i class="bi bi-plus-lg"></i></button></div>
+                    </div></div>`;
+                    body.innerHTML = html;
+                })
+                .catch(e => { console.error('Error cargando exámenes:', e); if (body) body.innerHTML = '<div class="alert alert-danger">Error al cargar exámenes: ' + e.message + '</div>'; });
+        }
+
+        function seleccionarExamen(codigo, nombre, unidad, rMin, rMax, rango) {
+            document.getElementById('inpValor').value = '';
+            document.getElementById('inpValor').focus();
+            document.getElementById('inpUnidad').value = unidad;
+            document.getElementById('inpRango').value = rango;
+            const sel = document.getElementById('selExamen');
+            sel.innerHTML = `<option value="${codigo}" data-rmin="${rMin}" data-rmax="${rMax}" data-unidad="${unidad}" data-rango="${rango}">${nombre} (${codigo})</option>`;
+        }
+
+        function guardarResultado(idOrden) {
+            const sel = document.getElementById('selExamen');
+            const val = document.getElementById('inpValor').value.trim();
+            if (!sel.options.length || !val) { alert('Seleccione un examen e ingrese un valor'); return; }
+            const opt = sel.options[0];
+            const body = {
+                idOrden: idOrden,
+                codigoExamen: opt.value,
+                valor: val,
+                unidad: opt.dataset.unidad,
+                rangoMinimo: opt.dataset.rmin,
+                rangoMaximo: opt.dataset.rmax
+            };
+            fetch('/api/laboratorio/resultado', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            })
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(res => {
+                const div = document.getElementById('resultadosPendientes');
+                const anormal = res.esAnormal ? '<span class="badge bg-danger ms-2">ANORMAL</span>' : '<span class="badge bg-success ms-2">NORMAL</span>';
+                div.innerHTML += `<div class="alert ${res.esAnormal ? 'alert-danger' : 'alert-success'} py-2 small fw-800 d-flex justify-content-between align-items-center">
+                    ${opt.value}: ${val} ${opt.dataset.unidad} ${anormal}
+                    <span class="text-muted small">${opt.dataset.rango}</span>
+                </div>`;
+                document.getElementById('btnValidarOrden').style.display = 'inline-block';
+                document.getElementById('inpValor').value = '';
+                document.getElementById('inpValor').focus();
+                cargarOrdenes('todas');
+            })
+            .catch(e => { console.error('Error guardando resultado:', e); alert('Error: ' + e.message); });
+        }
+
+        function validarOrden() {
+            if (!currentIdOrden) return;
+            const btn = document.getElementById('btnValidarOrden');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> VALIDANDO...';
+            fetch('/api/laboratorio/orden/' + currentIdOrden + '/validar', { method: 'POST' })
+                .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+                .then(res => {
+                    btn.innerHTML = '✔ VALIDADO';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-outline-success');
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('modalResultados'));
+                        if (modal) modal.hide();
+                        cargarOrdenes('todas');
+                    }, 1000);
+                })
+                .catch(e => { console.error('Error validando:', e); alert('Error: ' + e.message); btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle me-1"></i> VALIDAR ORDEN'; });
+        }
+
+        function imprimirInforme(idOrden) {
+            const orden = ordenesData.find(o => o.idOrden === idOrden);
+            if (orden) {
+                localStorage.setItem('lab_report', JSON.stringify(orden));
+                window.open('/apoyo/laboratorio/informe/' + idOrden, '_blank');
+            }
+        }
+
+        function recargarPanel() { cargarOrdenes(); cargarExamenes(); }
+        document.addEventListener('DOMContentLoaded', function() { cargarExamenes(); cargarOrdenes(); });
+    </script>
 </body>
 </html>

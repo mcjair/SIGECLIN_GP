@@ -67,6 +67,8 @@ class SecurityAuthorizationTest {
     @MockBean private IDashboardService dashboardService;
     @MockBean private CustomUserDetailsService customUserDetailsService;
 
+    @MockBean private OrdenMedicaRepository ordenMedicaRepository;
+
     @BeforeEach
     void setUp() {
         Map<String, Object> historiaData = new HashMap<>();
@@ -77,6 +79,11 @@ class SecurityAuthorizationTest {
         when(historiaClinicaService.obtenerHistoriaClinicaCompleta(1)).thenReturn(Optional.of(historiaData));
         when(personalService.listarTodos()).thenReturn(List.of());
         when(pacienteService.obtenerTodos()).thenReturn(List.of());
+        when(pacienteService.obtenerTodosPaginado(
+                org.mockito.ArgumentMatchers.any(), 
+                org.mockito.ArgumentMatchers.any(), 
+                org.mockito.ArgumentMatchers.any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
         when(maestrasService.obtenerServiciosActivos()).thenReturn(List.of());
     }
 

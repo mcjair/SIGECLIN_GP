@@ -2,6 +2,8 @@ package com.sigeclin.clinico.controller;
 
 import com.sigeclin.clinico.model.OrdenMedica;
 import com.sigeclin.clinico.repository.OrdenMedicaRepository;
+import com.sigeclin.clinico.repository.ConsultaRepository;
+import com.sigeclin.filiacion.repository.PersonalRepository;
 import com.sigeclin.clinico.service.IApoyoDiagnosticoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,8 @@ public class ApoyoDiagnosticoController {
 
     private final IApoyoDiagnosticoService apoyoDiagnosticoService;
     private final OrdenMedicaRepository ordenMedicaRepository;
+    private final ConsultaRepository consultaRepository;
+    private final PersonalRepository personalRepository;
 
     @GetMapping("/laboratorio")
     public String laboratorio(Model model) {
@@ -39,7 +43,17 @@ public class ApoyoDiagnosticoController {
 
     @GetMapping("/laboratorio/informe/{idOrden}")
     public String informeLaboratorio(@PathVariable Integer idOrden, Model model) {
-        ordenMedicaRepository.findById(idOrden).ifPresent(o -> model.addAttribute("orden", o));
+        ordenMedicaRepository.findById(idOrden).ifPresent(o -> {
+            model.addAttribute("orden", o);
+            consultaRepository.findById(o.getIdConsulta()).ifPresent(c -> {
+                model.addAttribute("consulta", c);
+                model.addAttribute("paciente", c.getPaciente());
+                model.addAttribute("medico", c.getMedico());
+            });
+            if (o.getIdPersonalEjecutor() != null) {
+                personalRepository.findById(o.getIdPersonalEjecutor()).ifPresent(e -> model.addAttribute("ejecutor", e));
+            }
+        });
         return "clinico/informe_laboratorio";
     }
 }

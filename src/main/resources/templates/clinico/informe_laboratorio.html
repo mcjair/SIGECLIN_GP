@@ -378,52 +378,8 @@
                 </div>
             </div>
 
-            <!-- Contenedor de tablas dinámicas agrupadas por Área -->
-            <div id="generalResultsContainer">
-                <div th:each="area : ${new String[]{'HEMATOLOGIA', 'BIOQUIMICA', 'MICROBIOLOGIA', 'INMUNOLOGIA', 'UROANALISIS', 'COPROLOGIA'}}" 
-                     th:if="${orden != null && #lists.any(orden.resultados, {r -> r.codigoExamen.startsWith(
-                        area == 'HEMATOLOGIA' ? 'HEM' : 
-                        area == 'BIOQUIMICA' ? 'BIO' : 
-                        area == 'MICROBIOLOGIA' ? 'MIC' : 
-                        area == 'INMUNOLOGIA' ? 'INM' : 
-                        area == 'UROANALISIS' ? 'URO' : 'COP'
-                     )})}" 
-                     class="area-section">
-                    
-                    <div class="area-title" th:text="${
-                        area == 'HEMATOLOGIA' ? 'HEMATOLOGÍA' : 
-                        area == 'BIOQUIMICA' ? 'BIOQUÍMICA' : 
-                        area == 'MICROBIOLOGIA' ? 'MICROBIOLOGÍA' : 
-                        area == 'INMUNOLOGIA' ? 'INMUNOLOGÍA' : 
-                        area == 'UROANALISIS' ? 'UROANÁLISIS' : 'COPROLOGÍA'
-                    }">BIOQUÍMICA</div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th style="width: 40%">ANÁLISIS</th>
-                                <th style="width: 20%">RESULTADO</th>
-                                <th style="width: 20%">UNIDAD</th>
-                                <th style="width: 20%">RANGO REFERENCIAL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="r : ${orden.resultados}" 
-                                th:if="${r.codigoExamen.startsWith(
-                                    area == 'HEMATOLOGIA' ? 'HEM' : 
-                                    area == 'BIOQUIMICA' ? 'BIO' : 
-                                    area == 'MICROBIOLOGIA' ? 'MIC' : 
-                                    area == 'INMUNOLOGIA' ? 'INM' : 
-                                    area == 'UROANALISIS' ? 'URO' : 'COP'
-                                )}">
-                                <td th:data-code="${r.codigoExamen}" class="exam-name-cell" th:text="${r.codigoExamen}">GLUCOSA</td>
-                                <td th:class="${r.esAnormal} ? 'anormal' : 'normal'" th:text="${r.valorResultado}">---</td>
-                                <td th:text="${r.unidad}">---</td>
-                                <td th:text="${r.rangoMinimo != null ? (r.rangoMinimo + ' - ' + r.rangoMaximo) : '---'}">---</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Contenedor de tablas dinámicas agrupadas por Área (Se renderiza por JS) -->
+            <div id="generalResultsContainer"></div>
 
             <!-- Firma General -->
             <div class="signature-section">
@@ -546,6 +502,28 @@
 
     </div>
 
+    <!-- Hidden elements for Thymeleaf data passing to JavaScript -->
+    <div id="rawResultsData" style="display:none;"
+         th:if="${orden != null}"
+         th:data-id="${orden.idOrden}"
+         th:data-paciente="${paciente != null ? (paciente.apellidoPaterno + ' ' + (paciente.apellidoMaterno != null ? paciente.apellidoMaterno : '') + ', ' + paciente.nombres) : ''}"
+         th:data-dni="${paciente != null ? paciente.numeroDocumento : ''}"
+         th:data-medico="${medico != null ? ('Dr(a). ' + medico.nombres + ' ' + medico.apellidoPaterno + ' ' + (medico.apellidoMaterno != null ? medico.apellidoMaterno : '')) : ''}"
+         th:data-fecha="${orden.fechaSolicitud}"
+         th:data-fecha-resultado="${orden.fechaResultado}"
+         th:data-indicaciones="${orden.indicaciones}"
+         th:data-resultado-texto="${orden.resultadoTexto}">
+         
+         <div th:each="r : ${orden.resultados}"
+              th:data-codigo="${r.codigoExamen}"
+              th:data-valor="${r.valorResultado}"
+              th:data-unidad="${r.unidad}"
+              th:data-rmin="${r.rangoMinimo}"
+              th:data-rmax="${r.rangoMaximo}"
+              th:data-anormal="${r.esAnormal}">
+         </div>
+    </div>
+
     <!-- Fallback client-side script in case server fails to fetch objects (LocalStorage compatibility) -->
     <script th:inline="javascript">
         const nameMap = {
@@ -557,63 +535,92 @@
             "COP-001": "Coproparasitológico directo", "COP-002": "Sangre oculta en heces"
         };
 
-        // Format names in cells
-        document.querySelectorAll('.exam-name-cell').forEach(td => {
-            const code = td.getAttribute('data-code');
-            if (nameMap[code]) {
-                td.textContent = nameMap[code].toUpperCase();
-            }
-        });
-
         window.onload = function() {
-            const lblPaciente = document.getElementById('lblPaciente');
-            // If Thymeleaf variables did not load, fall back to LocalStorage
-            if (!lblPaciente || lblPaciente.textContent.trim() === '---' || lblPaciente.textContent.trim() === '') {
+            // Read from Thymeleaf rendered hidden div first
+            const rawDivs = document.querySelectorAll('#rawResultsData div');
+            let data = null;
+            
+            if (rawDivs.length > 0) {
+                const resultados = [];
+                rawDivs.forEach(div => {
+                    resultados.push({
+                        codigoExamen: div.getAttribute('data-codigo'),
+                        valorResultado: div.getAttribute('data-valor'),
+                        unidad: div.getAttribute('data-unidad'),
+                        rangoMinimo: div.getAttribute('data-rmin') && div.getAttribute('data-rmin') !== 'null' ? div.getAttribute('data-rmin') : null,
+                        rangoMaximo: div.getAttribute('data-rmax') && div.getAttribute('data-rmax') !== 'null' ? div.getAttribute('data-rmax') : null,
+                        esAnormal: div.getAttribute('data-anormal') === 'true'
+                    });
+                });
+                
+                const parent = document.getElementById('rawResultsData');
+                data = {
+                    idOrden: parent.getAttribute('data-id'),
+                    pacienteNombre: parent.getAttribute('data-paciente'),
+                    pacienteDni: parent.getAttribute('data-dni'),
+                    medicoSolicitante: parent.getAttribute('data-medico'),
+                    fecha: parent.getAttribute('data-fecha'),
+                    fechaResultado: parent.getAttribute('data-fecha-resultado'),
+                    indicaciones: parent.getAttribute('data-indicaciones'),
+                    resultadoTexto: parent.getAttribute('data-resultado-texto'),
+                    resultados: resultados
+                };
+            } else {
+                // Fallback to localStorage
                 try {
-                    const data = JSON.parse(localStorage.getItem('lab_report') || '{}');
-                    if (data.idOrden) {
-                        const isCito = data.indicaciones && (
-                            data.indicaciones.toLowerCase().includes('citopato') ||
-                            data.indicaciones.toLowerCase().includes('pap') ||
-                            data.indicaciones.toLowerCase().includes('cervix')
-                        );
-                        
-                        const dateFormatted = data.fecha ? new Date(data.fecha).toLocaleString('es-PE') : '---';
-                        const dateShort = data.fecha ? new Date(data.fecha).toLocaleDateString('es-PE') : '---';
-
-                        if (isCito) {
-                            document.getElementById('generalLayout').style.display = 'none';
-                            document.getElementById('citopatologicoLayout').style.display = 'block';
-                            
-                            document.getElementById('lblCitoPaciente').textContent = data.pacienteNombre || '---';
-                            document.getElementById('lblCitoInforme').textContent = 'PAP-2026-' + String(data.idOrden).padStart(4,'0');
-                            document.getElementById('lblCitoEdad').textContent = '---';
-                            document.getElementById('lblCitoDni').textContent = data.pacienteDni || '---';
-                            document.getElementById('lblCitoMedico').textContent = data.medicoSolicitante || '---';
-                            document.getElementById('lblCitoFecha').textContent = dateShort;
-                            
-                            if (data.resultadoTexto) {
-                                document.getElementById('lblCitoInterpretacion').textContent = data.resultadoTexto;
-                            }
-                        } else {
-                            document.getElementById('generalLayout').style.display = 'block';
-                            document.getElementById('citopatologicoLayout').style.display = 'none';
-                            
-                            document.getElementById('lblPaciente').textContent = data.pacienteNombre || '---';
-                            document.getElementById('lblFecha').textContent = dateFormatted;
-                            document.getElementById('lblSexo').textContent = '---';
-                            document.getElementById('lblFechaImpresion').textContent = new Date().toLocaleString('es-PE');
-                            document.getElementById('lblEdad').textContent = '---';
-                            document.getElementById('lblHC').textContent = '0126' + String(data.idOrden).padStart(5,'0');
-                            document.getElementById('lblDni').textContent = data.pacienteDni || '---';
-                            document.getElementById('lblOrden').textContent = 'ORD-' + String(data.idOrden).padStart(5,'0');
-                            document.getElementById('lblMedico').textContent = data.medicoSolicitante || '---';
-                            
-                            renderGeneralTablesFromData(data);
-                        }
-                    }
+                    data = JSON.parse(localStorage.getItem('lab_report') || '{}');
                 } catch(e) {
-                    console.error('Error in fallback loading:', e);
+                    console.error('Error loading fallback report:', e);
+                }
+            }
+            
+            if (data && data.idOrden) {
+                const isCito = data.indicaciones && (
+                    data.indicaciones.toLowerCase().includes('citopato') ||
+                    data.indicaciones.toLowerCase().includes('pap') ||
+                    data.indicaciones.toLowerCase().includes('cervix') ||
+                    data.indicaciones.toLowerCase().includes('cuello uterino')
+                );
+                
+                const dateFormatted = data.fecha ? new Date(data.fecha).toLocaleString('es-PE') : '---';
+                const dateShort = data.fecha ? new Date(data.fecha).toLocaleDateString('es-PE') : '---';
+
+                if (isCito) {
+                    document.getElementById('generalLayout').style.display = 'none';
+                    document.getElementById('citopatologicoLayout').style.display = 'block';
+                    
+                    document.getElementById('lblCitoPaciente').textContent = data.pacienteNombre || '---';
+                    document.getElementById('lblCitoInforme').textContent = 'PAP-2026-' + String(data.idOrden).padStart(4,'0');
+                    
+                    const ageEl = document.getElementById('lblEdad');
+                    document.getElementById('lblCitoEdad').textContent = ageEl ? ageEl.textContent : '---';
+                    
+                    document.getElementById('lblCitoDni').textContent = data.pacienteDni || '---';
+                    document.getElementById('lblCitoMedico').textContent = data.medicoSolicitante || '---';
+                    document.getElementById('lblCitoFecha').textContent = dateShort;
+                    
+                    if (data.resultadoTexto) {
+                        document.getElementById('lblCitoInterpretacion').textContent = data.resultadoTexto;
+                    }
+                } else {
+                    document.getElementById('generalLayout').style.display = 'block';
+                    document.getElementById('citopatologicoLayout').style.display = 'none';
+                    
+                    // Fallback element updates if Thymeleaf was not filled
+                    const lblPaciente = document.getElementById('lblPaciente');
+                    if (lblPaciente && (lblPaciente.textContent.trim() === '---' || lblPaciente.textContent.trim() === '')) {
+                        lblPaciente.textContent = data.pacienteNombre || '---';
+                        document.getElementById('lblFecha').textContent = dateFormatted;
+                        document.getElementById('lblSexo').textContent = '---';
+                        document.getElementById('lblFechaImpresion').textContent = new Date().toLocaleString('es-PE');
+                        document.getElementById('lblEdad').textContent = '---';
+                        document.getElementById('lblHC').textContent = '0126' + String(data.idOrden).padStart(5,'0');
+                        document.getElementById('lblDni').textContent = data.pacienteDni || '---';
+                        document.getElementById('lblOrden').textContent = 'ORD-' + String(data.idOrden).padStart(5,'0');
+                        document.getElementById('lblMedico').textContent = data.medicoSolicitante || '---';
+                    }
+                    
+                    renderGeneralTablesFromData(data);
                 }
             }
         };

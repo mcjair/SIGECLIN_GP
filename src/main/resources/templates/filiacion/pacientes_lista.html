@@ -164,7 +164,7 @@
                             return;
                         }
 
-                        let html = '<div class="position-relative ms-3 ps-4 border-start border-2 border-primary border-opacity-25">';
+                        let html = '<div class="position-relative ms-3 ps-4 border-start border-2 border-primary border-opacity-25" id="timelineAccordion">';
                         historial.forEach(h => {
                             const [datePart, timePart] = h.fecha.split(' ');
                             const title = 'Atención Médica en ' + (h.servicio ? h.servicio.toUpperCase() : 'GENERAL');
@@ -176,6 +176,43 @@
                                 dxHtml = dtoList.map(dx => `<div class="mb-1">${dx.trim()}</div>`).join('');
                             } else {
                                 dxHtml = '<div>Evaluación inicial completa</div>';
+                            }
+
+                            let processHtml = '';
+                            if (h.medicamentos && h.medicamentos.length > 0) {
+                                processHtml += `
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <span class="badge bg-primary-soft text-primary rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-capsule me-1"></i>RECETA</span>
+                                    <span class="small text-muted fw-bold text-truncate" style="max-width: 350px;">${h.medicamentos.join(', ')}</span>
+                                </div>`;
+                            }
+                            if (h.proximoControl && h.proximoControl !== '---') {
+                                processHtml += `
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <span class="badge bg-info-soft text-info rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-calendar-check me-1"></i>CITA CONTROL</span>
+                                    <span class="small text-dark fw-bold">${h.proximoControl}</span>
+                                </div>`;
+                            }
+                            if (h.tieneCertificado) {
+                                processHtml += `
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <span class="badge bg-warning-soft text-warning rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-award me-1"></i>CERTIFICADO</span>
+                                    <span class="small text-muted fw-bold">Certificado Médico Emitido</span>
+                                </div>`;
+                            }
+                            if (h.estadoSalida === 'REFERENCIA') {
+                                processHtml += `
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <span class="badge bg-danger-soft text-danger rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-file-earmark-arrow-up me-1"></i>REFERENCIA</span>
+                                    <span class="small text-muted fw-bold">Paciente Referido</span>
+                                </div>`;
+                            }
+                            if (processHtml !== '') {
+                                processHtml = `
+                                <div class="mt-3 pt-3 border-top border-light">
+                                    <div class="small fw-bold text-dark mb-2">Procedimiento / Tratamiento Realizado:</div>
+                                    ${processHtml}
+                                </div>`;
                             }
                             
                             html += `
@@ -202,12 +239,13 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="col_${h.idAtencion}" class="collapse">
+                                    <div id="col_${h.idAtencion}" class="collapse" data-bs-parent="#timelineAccordion">
                                         <div class="card-body bg-white border-0 p-4">
                                             <div class="small fw-bold text-dark mb-2">Evolución / Descripción:</div>
                                             <div class="bg-light p-3 rounded-3 border-0 small text-muted fw-bold">
                                                 ${dxHtml}
                                             </div>
+                                            ${processHtml}
                                         </div>
                                     </div>
                                 </div>

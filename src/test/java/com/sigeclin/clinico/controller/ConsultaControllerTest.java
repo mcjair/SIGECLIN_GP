@@ -56,6 +56,9 @@ class ConsultaControllerTest {
     @MockBean
     private PersonalRepository personalRepository;
 
+    @MockBean
+    private com.sigeclin.filiacion.repository.UsuarioRepository usuarioRepository;
+
     @Test
     void guardarAtencion_conDatosValidos_retornaSuccess() throws Exception {
         Triaje triaje = new Triaje();
@@ -64,7 +67,7 @@ class ConsultaControllerTest {
         triaje.setPaciente(paciente);
 
         when(triajeRepository.findById(1)).thenReturn(Optional.of(triaje));
-        doNothing().when(consultaService).guardarConsultaCompleta(anyInt(), anyMap());
+        when(consultaService.guardarConsultaCompleta(anyInt(), anyMap())).thenReturn(new Consulta());
         doNothing().when(pacienteService).actualizarEstado(anyInt(), anyString());
 
         mockMvc.perform(post("/consulta/guardar").with(csrf())

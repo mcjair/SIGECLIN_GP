@@ -229,7 +229,7 @@
                         <i class="bi bi-chat-dots text-muted fs-5"></i>
                     </div>
                     <div class="vr mx-2 opacity-10"></div>
-                    <div class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-bold" th:text="${#authentication.authorities.isEmpty() ? 'SIN ROL' : #authentication.authorities[0].authority.replace('ROLE_', '').replace('_', ' ')}">Administrador</div>
+                    <div class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-bold" id="userRoleBadge" th:data-role="${#authentication.authorities.isEmpty() ? '' : #authentication.authorities[0].authority}" th:text="${#authentication.authorities.isEmpty() ? 'SIN ROL' : #authentication.authorities[0].authority.replace('ROLE_', '').replace('_', ' ')}">Administrador</div>
                 </div>
             </div>
         </header>
@@ -292,23 +292,60 @@
                             Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: '#4f46e5' });
                             return;
                         }
+                        const role = document.getElementById('userRoleBadge')?.getAttribute('data-role') || '';
                         let html = '<div style="text-align:left;">';
-                        if (data.triajeCount > 0) {
-                            html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-heart-pulse text-primary"></i><span><strong>${data.triajeCount}</strong> paciente(s) pendiente(s) de Triaje</span></div>`;
+                        let hasNotifications = false;
+
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_TRIAJE' || role === 'ROLE_ADMISION') {
+                            if (data.triajeCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-heart-pulse text-primary"></i><span><strong>${data.triajeCount}</strong> paciente(s) pendiente(s) de Triaje</span></div>`;
+                                hasNotifications = true;
+                            }
                         }
-                        if (data.medicinaCount > 0) {
-                            html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-hospital text-primary"></i><span><strong>${data.medicinaCount}</strong> paciente(s) en espera de Medicina General</span></div>`;
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_MEDICO_GENERAL') {
+                            if (data.medicinaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-hospital text-primary"></i><span><strong>${data.medicinaCount}</strong> paciente(s) en espera de Medicina General</span></div>`;
+                                hasNotifications = true;
+                            }
                         }
-                        if (data.odontologiaCount > 0) {
-                            html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-brightness-high text-primary"></i><span><strong>${data.odontologiaCount}</strong> paciente(s) en espera de Odontología</span></div>`;
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_ODONTOLOGIA') {
+                            if (data.odontologiaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-brightness-high text-primary"></i><span><strong>${data.odontologiaCount}</strong> paciente(s) en espera de Odontología</span></div>`;
+                                hasNotifications = true;
+                            }
                         }
-                        if (data.enfermeriaCount > 0) {
-                            html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-people text-primary"></i><span><strong>${data.enfermeriaCount}</strong> paciente(s) en espera de Enfermería</span></div>`;
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_ENFERMERIA') {
+                            if (data.enfermeriaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-people text-primary"></i><span><strong>${data.enfermeriaCount}</strong> paciente(s) en espera de Enfermería</span></div>`;
+                                hasNotifications = true;
+                            }
                         }
-                        if (data.recetasPendientes > 0) {
-                            html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-capsule text-primary"></i><span><strong>${data.recetasPendientes}</strong> receta(s) pendiente(s) de dispensar</span></div>`;
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_OBSTETRICIA') {
+                            if (data.obstetriciaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-gender-female text-primary"></i><span><strong>${data.obstetriciaCount}</strong> paciente(s) en espera de Obstetricia</span></div>`;
+                                hasNotifications = true;
+                            }
                         }
-                        if (!html.includes('border-bottom')) {
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_PSICOLOGIA') {
+                            if (data.psicologiaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-person-gear text-primary"></i><span><strong>${data.psicologiaCount}</strong> paciente(s) en espera de Psicología</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_NUTRICION') {
+                            if (data.nutricionCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-apple text-primary"></i><span><strong>${data.nutricionCount}</strong> paciente(s) en espera de Nutrición</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_FARMACIA') {
+                            if (data.recetasPendientes > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-capsule text-primary"></i><span><strong>${data.recetasPendientes}</strong> receta(s) pendiente(s) de dispensar</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+
+                        if (!hasNotifications) {
                             html += '<div class="text-muted text-center py-3"><i class="bi bi-check2-all fs-3 d-block mb-2"></i>No hay notificaciones pendientes</div>';
                         }
                         html += '</div>';
@@ -374,7 +411,36 @@
                     .then(r => r.json())
                     .then(data => {
                         if (data.error) return;
-                        const total = (data.triajeCount || 0) + (data.atencionesHoy || 0) + (data.medicinaCount || 0) + (data.odontologiaCount || 0) + (data.enfermeriaCount || 0) + (data.recetasPendientes || 0);
+                        const role = document.getElementById('userRoleBadge')?.getAttribute('data-role') || '';
+                        let total = 0;
+
+                        if (role === 'ROLE_ADMIN') {
+                            total = (data.triajeCount || 0) + 
+                                    (data.medicinaCount || 0) + 
+                                    (data.odontologiaCount || 0) + 
+                                    (data.enfermeriaCount || 0) + 
+                                    (data.obstetriciaCount || 0) + 
+                                    (data.psicologiaCount || 0) + 
+                                    (data.nutricionCount || 0) + 
+                                    (data.recetasPendientes || 0);
+                        } else if (role === 'ROLE_TRIAJE' || role === 'ROLE_ADMISION') {
+                            total = (data.triajeCount || 0);
+                        } else if (role === 'ROLE_MEDICO_GENERAL') {
+                            total = (data.medicinaCount || 0);
+                        } else if (role === 'ROLE_ENFERMERIA') {
+                            total = (data.enfermeriaCount || 0);
+                        } else if (role === 'ROLE_ODONTOLOGIA') {
+                            total = (data.odontologiaCount || 0);
+                        } else if (role === 'ROLE_OBSTETRICIA') {
+                            total = (data.obstetriciaCount || 0);
+                        } else if (role === 'ROLE_PSICOLOGIA') {
+                            total = (data.psicologiaCount || 0);
+                        } else if (role === 'ROLE_NUTRICION') {
+                            total = (data.nutricionCount || 0);
+                        } else if (role === 'ROLE_FARMACIA') {
+                            total = (data.recetasPendientes || 0);
+                        }
+
                         const badge = document.getElementById('notifBadge');
                         if (total > 0) {
                             badge.textContent = total > 99 ? '99+' : total;

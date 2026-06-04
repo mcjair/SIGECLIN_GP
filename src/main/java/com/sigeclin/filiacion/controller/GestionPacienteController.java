@@ -155,7 +155,27 @@ public class GestionPacienteController {
             map.put("anamnesis", c.getAnamnesis() != null ? c.getAnamnesis() : "---");
             map.put("examen", c.getExamenFisico() != null ? c.getExamenFisico() : "---");
             map.put("plan", c.getPlanTratamiento() != null ? c.getPlanTratamiento() : "---");
+            map.put("idAtencion", c.getIdConsulta());
             map.put("proximoControl", c.getProximoControl() != null ? c.getProximoControl().toString() : "---");
+            
+            // Medicamentos
+            List<String> medicamentos = new java.util.ArrayList<>();
+            if (c.getRecetas() != null) {
+                c.getRecetas().forEach(r -> {
+                    if (r.getDetalles() != null) {
+                        r.getDetalles().forEach(d -> {
+                            if (d.getMedicamento() != null) {
+                                medicamentos.add(d.getMedicamento().getNombreGenerico());
+                            }
+                        });
+                    }
+                });
+            }
+            map.put("medicamentos", medicamentos);
+            
+            // Certificado flag: si tiene plan de tratamiento o se genera uno
+            map.put("tieneCertificado", c.getPlanTratamiento() != null && !c.getPlanTratamiento().trim().isEmpty());
+            map.put("estadoSalida", c.getEstado());
             
             // Datos precisos: Diagnóstico
             String dx = "POR DEFINIR";

@@ -83,6 +83,21 @@ public class DashboardService implements IDashboardService {
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ENFERMERÍA'", Integer.class);
             model.addAttribute("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
 
+            Integer obstetriciaCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'OBSTETRICIA'", Integer.class);
+            model.addAttribute("obstetriciaCount", obstetriciaCount != null ? obstetriciaCount : 0);
+
+            Integer psicologiaCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'PSICOLOGÍA'", Integer.class);
+            model.addAttribute("psicologiaCount", psicologiaCount != null ? psicologiaCount : 0);
+
+            Integer nutricionCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'NUTRICIÓN'", Integer.class);
+            model.addAttribute("nutricionCount", nutricionCount != null ? nutricionCount : 0);
+
             Runtime runtime = Runtime.getRuntime();
             long usedMemory = runtime.totalMemory() - runtime.freeMemory();
             int memoryPercent = (int) ((usedMemory * 100) / runtime.maxMemory());
@@ -164,6 +179,21 @@ public class DashboardService implements IDashboardService {
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ENFERMERÍA'", Integer.class);
             stats.put("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
+
+            Integer obstetriciaCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'OBSTETRICIA'", Integer.class);
+            stats.put("obstetriciaCount", obstetriciaCount != null ? obstetriciaCount : 0);
+
+            Integer psicologiaCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'PSICOLOGÍA'", Integer.class);
+            stats.put("psicologiaCount", psicologiaCount != null ? psicologiaCount : 0);
+
+            Integer nutricionCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'NUTRICIÓN'", Integer.class);
+            stats.put("nutricionCount", nutricionCount != null ? nutricionCount : 0);
 
             Integer recetasPendientes = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM clinico.receta_medica WHERE estado = 'emitida'", Integer.class);

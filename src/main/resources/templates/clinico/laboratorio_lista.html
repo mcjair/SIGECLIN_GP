@@ -215,6 +215,13 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Custom placeholder styling for high transparency */
+        .form-pane input::placeholder {
+            opacity: 0.25 !important;
+            color: #94a3b8 !important;
+            font-weight: 500 !important;
+        }
     </style>
 
     <script th:inline="javascript">
@@ -503,32 +510,34 @@
                 }
                 
                 const card = document.createElement('div');
-                card.className = `card border-0 shadow-sm mb-3 rounded-4 p-3 result-input-card ${cardClass}`;
+                card.className = `card border-0 shadow-sm mb-2 rounded-3 result-input-card ${cardClass}`;
+                card.style = `padding: 10px 14px;`;
                 card.id = `input_card_${r.codigoExamen}`;
                 card.innerHTML = `
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <h6 class="fw-800 text-ink mb-0">${examName}</h6>
-                            <small class="text-muted fw-bold text-uppercase extra-small">${r.codigoExamen}</small>
+                    <div class="row align-items-center g-2">
+                        <div class="col-md-5">
+                            <h6 class="fw-800 text-ink mb-0" style="font-size: 0.85rem; letter-spacing: -0.2px;">${examName}</h6>
+                            <span class="text-muted fw-bold text-uppercase" style="font-size: 0.65rem;">${r.codigoExamen}</span>
                         </div>
-                    </div>
-                    <div class="row g-2 align-items-center">
-                        <div class="col-md-7">
-                            <div class="input-group">
-                                <input type="text" class="form-control rounded-start-pill ps-3 border-0 bg-light fw-700" 
+                        <div class="col-md-3">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control rounded-start-pill ps-2 pe-1 border-0 bg-light fw-700 text-dark text-center" 
                                        id="val_${r.codigoExamen}" 
                                        placeholder="Ej: ${config.placeholder}" 
                                        value="${valStr}" 
                                        oninput="updateSingleResult('${r.codigoExamen}', this.value)"
-                                       onblur="autoSaveResult(${idOrden}, '${r.codigoExamen}', this.value)">
-                                <span class="input-group-text rounded-end-pill border-0 bg-light text-muted fw-bold small">${r.unidad || config.unidad || '---'}</span>
+                                       onblur="autoSaveResult(${idOrden}, '${r.codigoExamen}', this.value)"
+                                       style="font-size: 0.82rem; height: 30px;">
+                                <span class="input-group-text rounded-end-pill border-0 bg-light text-muted fw-bold px-2" style="font-size: 0.72rem; height: 30px;">${r.unidad || config.unidad || '---'}</span>
                             </div>
                         </div>
-                        <div class="col-md-5 text-end">
-                            <span class="extra-small fw-bold text-muted d-block">Ref: ${config.rangoTexto}</span>
-                            <div class="mt-1 d-flex align-items-center justify-content-end gap-2">
-                                <div id="status_${r.codigoExamen}">${statusHtml}</div>
-                                <div class="autosave-badge" id="saved_${r.codigoExamen}"><i class="bi bi-cloud-check-fill text-success"></i></div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <span class="fw-bold text-muted" style="font-size: 0.68rem; line-height: 1.1;">Ref: <br>${config.rangoTexto}</span>
+                                <div class="d-flex align-items-center gap-1 ms-auto">
+                                    <div id="status_${r.codigoExamen}">${statusHtml}</div>
+                                    <div class="autosave-badge" id="saved_${r.codigoExamen}" style="padding: 2px 5px; font-size: 0.68rem;"><i class="bi bi-cloud-check-fill text-success"></i></div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -799,6 +808,9 @@
                 };
                 
                 orden.resultados.forEach(r => {
+                    if (!r.valorResultado || r.valorResultado.trim() === '' || r.valorResultado.trim() === '---') {
+                        return; // Omitir exámenes sin resultados
+                    }
                     let matched = false;
                     for (const [key, areaObj] of Object.entries(areas)) {
                         if (r.codigoExamen.startsWith(areaObj.code)) {
@@ -827,7 +839,7 @@
                                         <th style="width: 45%; padding: 4px 6px;">ANÁLISIS</th>
                                         <th style="width: 20%; padding: 4px 6px;">RESULTADO</th>
                                         <th style="width: 15%; padding: 4px 6px;">UNIDAD</th>
-                                        <th style="width: 20%; padding: 4px 6px;">RANGO REFERENCIAL</th>
+                                        <th style="width: 20%; padding: 4px 6px;">RESULTADOS NORMALES</th>
                                     </tr>
                                 </thead>
                                 <tbody>`;

@@ -785,11 +785,11 @@
                         list.innerHTML = '';
                         return;
                     }
-                    let html = '<div class="section-title-premium mb-1" style="font-size: 0.7rem;"><span>EXÁMENES SOLICITADOS</span></div>';
+                    let html = '<div class="section-title-premium mb-2 mt-2" style="font-size: 0.85rem; font-weight: 800; color: var(--primary);"><span>EXÁMENES SOLICITADOS</span></div>';
                     itemsExamenes.forEach(function(ex) {
-                        html += '<div class="bg-info bg-opacity-10 rounded-3 p-1.5 mb-1 d-flex align-items-center justify-content-between border-start border-info border-3" style="font-size:0.72rem;">' +
-                            '<span class="fw-800 text-dark small">' + ex.nombre + '</span>' +
-                            '<button class="btn btn-link text-danger p-0 border-0" onclick="removeExamen(\'' + ex.codigo + '\')" style="font-size:0.7rem;" title="Quitar">' +
+                        html += '<div class="bg-info bg-opacity-10 rounded-4 d-flex align-items-center justify-content-between border-start border-info border-3 shadow-sm transition-all" style="padding: 10px 14px; margin: 8px 0; font-size: 0.88rem;">' +
+                            '<span class="fw-800 text-dark d-flex align-items-center"><i class="bi bi-file-earmark-medical text-info me-2 fs-5"></i>' + ex.nombre + '</span>' +
+                            '<button class="btn btn-link text-danger p-0 border-0 fs-5 d-flex align-items-center" onclick="removeExamen(\'' + ex.codigo + '\')" title="Quitar" style="text-decoration: none;">' +
                                 '<i class="bi bi-x-circle-fill"></i>' +
                             '</button>' +
                         '</div>';

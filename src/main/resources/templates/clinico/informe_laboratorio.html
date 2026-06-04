@@ -660,6 +660,9 @@
             
             if (data.resultados && data.resultados.length) {
                 data.resultados.forEach(r => {
+                    if (!r.valorResultado || r.valorResultado.trim() === '' || r.valorResultado.trim() === '---') {
+                        return; // Omitir exámenes sin resultados (no pasaron por laboratorio)
+                    }
                     let matched = false;
                     for (const [key, areaObj] of Object.entries(areas)) {
                         if (r.codigoExamen.startsWith(areaObj.code)) {
@@ -687,7 +690,7 @@
                                         <th style="width: 40%">ANÁLISIS</th>
                                         <th style="width: 20%">RESULTADO</th>
                                         <th style="width: 20%">UNIDAD</th>
-                                        <th style="width: 20%">RANGO REFERENCIAL</th>
+                                        <th style="width: 20%">RESULTADOS NORMALES</th>
                                     </tr>
                                 </thead>
                                 <tbody>`;

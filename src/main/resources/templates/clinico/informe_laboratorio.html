@@ -542,16 +542,24 @@
             
             if (rawDivs.length > 0) {
                 const resultados = [];
+                const resultMap = {};
                 rawDivs.forEach(div => {
-                    resultados.push({
-                        codigoExamen: div.getAttribute('data-codigo'),
-                        valorResultado: div.getAttribute('data-valor'),
-                        unidad: div.getAttribute('data-unidad'),
-                        rangoMinimo: div.getAttribute('data-rmin') && div.getAttribute('data-rmin') !== 'null' ? div.getAttribute('data-rmin') : null,
-                        rangoMaximo: div.getAttribute('data-rmax') && div.getAttribute('data-rmax') !== 'null' ? div.getAttribute('data-rmax') : null,
-                        esAnormal: div.getAttribute('data-anormal') === 'true'
-                    });
+                    const code = div.getAttribute('data-codigo');
+                    const val = div.getAttribute('data-valor');
+                    if (!resultMap[code] || (val && val.trim() !== '')) {
+                        resultMap[code] = {
+                            codigoExamen: code,
+                            valorResultado: val,
+                            unidad: div.getAttribute('data-unidad'),
+                            rangoMinimo: div.getAttribute('data-rmin') && div.getAttribute('data-rmin') !== 'null' ? div.getAttribute('data-rmin') : null,
+                            rangoMaximo: div.getAttribute('data-rmax') && div.getAttribute('data-rmax') !== 'null' ? div.getAttribute('data-rmax') : null,
+                            esAnormal: div.getAttribute('data-anormal') === 'true'
+                        };
+                    }
                 });
+                for (const res of Object.values(resultMap)) {
+                    resultados.push(res);
+                }
                 
                 const parent = document.getElementById('rawResultsData');
                 data = {
@@ -568,7 +576,19 @@
             } else {
                 // Fallback to localStorage
                 try {
-                    data = JSON.parse(localStorage.getItem('lab_report') || '{}');
+                    const localData = JSON.parse(localStorage.getItem('lab_report') || '{}');
+                    if (localData && localData.resultados) {
+                        const resultMap = {};
+                        localData.resultados.forEach(r => {
+                            const code = r.codigoExamen;
+                            const val = r.valorResultado;
+                            if (!resultMap[code] || (val && String(val).trim() !== '')) {
+                                resultMap[code] = r;
+                            }
+                        });
+                        localData.resultados = Object.values(resultMap);
+                    }
+                    data = localData;
                 } catch(e) {
                     console.error('Error loading fallback report:', e);
                 }

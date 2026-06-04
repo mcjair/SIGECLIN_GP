@@ -43,7 +43,17 @@ public class LaboratorioService {
             item.put("estado", o.getEstado());
             item.put("urgente", o.getUrgente());
             item.put("indicaciones", o.getIndicaciones());
-            item.put("resultados", o.getResultados());
+            List<ResultadoLaboratorio> uniqueResultados = new ArrayList<>();
+            Map<String, ResultadoLaboratorio> uniqueMap = new LinkedHashMap<>();
+            for (ResultadoLaboratorio r : o.getResultados()) {
+                String code = r.getCodigoExamen();
+                String val = r.getValorResultado();
+                if (!uniqueMap.containsKey(code) || (val != null && !val.trim().isEmpty())) {
+                    uniqueMap.put(code, r);
+                }
+            }
+            uniqueResultados.addAll(uniqueMap.values());
+            item.put("resultados", uniqueResultados);
 
             String pacienteNombre = "---";
             String pacienteDni = "---";
@@ -100,14 +110,26 @@ public class LaboratorioService {
                                                    Double rangoMin, Double rangoMax, String unidad) {
         OrdenMedica orden = ordenMedicaRepository.findById(idOrden)
             .orElseThrow(() -> new RuntimeException("Orden no encontrada: " + idOrden));
-        ResultadoLaboratorio rl = new ResultadoLaboratorio();
-        rl.setOrden(orden);
-        rl.setCodigoExamen(codigoExamen);
+        List<ResultadoLaboratorio> rls = resultadoLaboratorioRepository.findByOrdenIdOrdenAndCodigoExamen(idOrden, codigoExamen);
+        ResultadoLaboratorio rl;
+        if (!rls.isEmpty()) {
+            rl = rls.get(0);
+            if (rls.size() > 1) {
+                for (int i = 1; i < rls.size(); i++) {
+                    resultadoLaboratorioRepository.delete(rls.get(i));
+                }
+            }
+        } else {
+            rl = new ResultadoLaboratorio();
+            rl.setOrden(orden);
+            rl.setCodigoExamen(codigoExamen);
+        }
         rl.setValorResultado(valor);
         rl.setUnidad(unidad);
         rl.setRangoMinimo(rangoMin);
         rl.setRangoMaximo(rangoMax);
-        if (rangoMin != null && rangoMax != null && valor != null) {
+        rl.setFechaProcesamiento(java.time.LocalDateTime.now());
+        if (rangoMin != null && rangoMax != null && valor != null && !valor.trim().isEmpty()) {
             try {
                 double numValor = Double.parseDouble(valor.replace(",", "."));
                 rl.setEsAnormal(numValor < rangoMin || numValor > rangoMax);

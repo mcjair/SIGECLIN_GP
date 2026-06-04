@@ -9,4 +9,5 @@ import java.util.List;
 public interface ResultadoLaboratorioRepository extends JpaRepository<ResultadoLaboratorio, Integer> {
     List<ResultadoLaboratorio> findByOrdenIdOrden(Integer idOrden);
     long countByOrdenIdOrdenAndEsAnormalTrue(Integer idOrden);
+    java.util.List<ResultadoLaboratorio> findByOrdenIdOrdenAndCodigoExamen(Integer idOrden, String codigoExamen);
 }

@@ -161,12 +161,62 @@
                                 <input type="hidden" name="servicioDestino" form="triajeForm" th:value="${paciente.servicioSolicitado ?: 'MEDICINA GENERAL'}">
                             </div>
                             <label class="label-premium">CLASIFICACIÓN DE RIESGO</label>
-                             <select name="clasificacionUrgencia" form="triajeForm" class="form-select-premium mb-4" required>
-                                 <option value="verde">VERDE (Prioridad IV)</option>
-                                 <option value="amarillo">AMARILLO (Prioridad III)</option>
-                                 <option value="naranja">NARANJA (Prioridad II)</option>
-                                 <option value="rojo">ROJO (Prioridad I - EMERGENCIA)</option>
-                             </select>
+                             <!-- Triage Risk Custom Group Selector -->
+                             <div class="d-flex flex-column gap-2 mb-4">
+                                 <div class="risk-card border rounded-4 p-3 cursor-pointer risk-verde" id="risk-verde" onclick="selectRisk('verde')">
+                                     <div class="d-flex align-items-center justify-content-between">
+                                         <div class="d-flex align-items-center gap-3">
+                                             <span class="risk-indicator bg-success"></span>
+                                             <div>
+                                                 <span class="fw-800 d-block text-dark small" style="font-size: 0.85rem;">VERDE (Prioridad IV)</span>
+                                                 <span class="extra-small text-muted" style="font-size: 0.7rem;">Urgencia Menor - Sin riesgo vital</span>
+                                             </div>
+                                         </div>
+                                         <i class="bi bi-circle check-icon text-muted fs-5"></i>
+                                     </div>
+                                 </div>
+                                 
+                                 <div class="risk-card border rounded-4 p-3 cursor-pointer risk-amarillo" id="risk-amarillo" onclick="selectRisk('amarillo')">
+                                     <div class="d-flex align-items-center justify-content-between">
+                                         <div class="d-flex align-items-center gap-3">
+                                             <span class="risk-indicator bg-warning"></span>
+                                             <div>
+                                                 <span class="fw-800 d-block text-dark small" style="font-size: 0.85rem;">AMARILLO (Prioridad III)</span>
+                                                 <span class="extra-small text-muted" style="font-size: 0.7rem;">Urgencia - Requiere atención rápida</span>
+                                             </div>
+                                         </div>
+                                         <i class="bi bi-circle check-icon text-muted fs-5"></i>
+                                     </div>
+                                 </div>
+
+                                 <div class="risk-card border rounded-4 p-3 cursor-pointer risk-naranja" id="risk-naranja" onclick="selectRisk('naranja')">
+                                     <div class="d-flex align-items-center justify-content-between">
+                                         <div class="d-flex align-items-center gap-3">
+                                             <span class="risk-indicator bg-orange"></span>
+                                             <div>
+                                                 <span class="fw-800 d-block text-dark small" style="font-size: 0.85rem;">NARANJA (Prioridad II)</span>
+                                                 <span class="extra-small text-muted" style="font-size: 0.7rem;">Muy Urgente - Alto riesgo potencial</span>
+                                             </div>
+                                         </div>
+                                         <i class="bi bi-circle check-icon text-muted fs-5"></i>
+                                     </div>
+                                 </div>
+
+                                 <div class="risk-card border rounded-4 p-3 cursor-pointer risk-rojo" id="risk-rojo" onclick="selectRisk('rojo')">
+                                     <div class="d-flex align-items-center justify-content-between">
+                                         <div class="d-flex align-items-center gap-3">
+                                             <span class="risk-indicator bg-danger animate-pulse"></span>
+                                             <div>
+                                                 <span class="fw-800 d-block text-dark small" style="font-size: 0.85rem;">ROJO (Prioridad I - EMERGENCIA)</span>
+                                                 <span class="extra-small text-muted" style="font-size: 0.7rem;">Riesgo Vital Inmediato - Paro o shock</span>
+                                             </div>
+                                         </div>
+                                         <i class="bi bi-circle check-icon text-muted fs-5"></i>
+                                     </div>
+                                 </div>
+                             </div>
+                             
+                             <input type="hidden" name="clasificacionUrgencia" id="formClasificacionUrgencia" form="triajeForm" value="" required>
 
                             <label class="label-premium">OBSERVACIONES CLÍNICAS</label>
                             <textarea form="triajeForm" th:field="${triaje.observaciones}" class="form-control-premium flex-grow-1 mb-4" placeholder="Escriba hallazgos relevantes..."></textarea>
@@ -200,6 +250,55 @@
                 .form-control-transparent-big { background: transparent; border: none; font-size: 2.2rem; font-weight: 800; color: var(--text-main); text-align: center; width: 100%; outline: none; transition: var(--transition); }
                 .animate-pulse { animation: pulse 2s infinite; }
                 @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.85; } 100% { transform: scale(1); opacity: 1; } }
+                
+                /* Risk Card Custom Triage Selectors */
+                .risk-card {
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    background: #ffffff;
+                    border-color: rgba(148, 163, 184, 0.18) !important;
+                }
+                .risk-card:hover {
+                    background: rgba(248, 250, 252, 0.8);
+                }
+                .risk-indicator {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: 50%;
+                    display: inline-block;
+                }
+                .risk-card.active {
+                    border-width: 1.5px !important;
+                }
+                .risk-card.risk-verde.active {
+                    background-color: rgba(16, 185, 129, 0.05) !important;
+                    border-color: var(--success) !important;
+                }
+                .risk-card.risk-amarillo.active {
+                    background-color: rgba(245, 158, 11, 0.05) !important;
+                    border-color: var(--warning) !important;
+                }
+                .risk-card.risk-naranja.active {
+                    background-color: rgba(249, 115, 22, 0.05) !important;
+                    border-color: #f97316 !important;
+                }
+                .risk-card.risk-rojo.active {
+                    background-color: rgba(239, 68, 68, 0.05) !important;
+                    border-color: var(--danger) !important;
+                }
+                .bg-orange {
+                    background-color: #f97316;
+                }
+                .text-orange {
+                    color: #f97316 !important;
+                }
+                [data-theme="dark"] .risk-card {
+                    background: var(--bg-card);
+                    border-color: var(--glass-border) !important;
+                }
+                [data-theme="dark"] .risk-card:hover {
+                    background: rgba(255, 255, 255, 0.02);
+                }
             </style>
 
             <script th:inline="javascript">
@@ -207,6 +306,41 @@
                 const tallaInput = document.getElementById('talla');
                 const imcValue = document.getElementById('imcValue');
                 const imcLabel = document.getElementById('imcLabel');
+
+                function selectRisk(level) {
+                    if (!level) return;
+                    document.getElementById('formClasificacionUrgencia').value = level;
+                    
+                    // Remove active class from all risk cards
+                    document.querySelectorAll('.risk-card').forEach(card => {
+                        card.classList.remove('active');
+                        const icon = card.querySelector('.check-icon');
+                        if (icon) {
+                            icon.className = 'bi bi-circle check-icon text-muted fs-5';
+                            icon.classList.remove('text-success', 'text-warning', 'text-orange', 'text-danger');
+                        }
+                    });
+                    
+                    // Add active class to selected card
+                    const selectedCard = document.getElementById('risk-' + level);
+                    if (selectedCard) {
+                        selectedCard.classList.add('active');
+                        const icon = selectedCard.querySelector('.check-icon');
+                        if (icon) {
+                            icon.className = 'bi bi-check-circle-fill check-icon fs-5';
+                            if (level === 'verde') icon.classList.add('text-success');
+                            else if (level === 'amarillo') icon.classList.add('text-warning');
+                            else if (level === 'naranja') icon.classList.add('text-orange');
+                            else if (level === 'rojo') icon.classList.add('text-danger');
+                        }
+                    }
+                }
+
+                // Initialize Triage Priority Selection on Load
+                document.addEventListener('DOMContentLoaded', () => {
+                    const initialRisk = /*[[${triaje.clasificacionUrgencia}]]*/ 'verde';
+                    selectRisk(initialRisk || 'verde');
+                });
 
                 function calcularIMC() {
                     const peso = parseFloat(pesoInput.value);
@@ -227,20 +361,34 @@
                 }
 
                 function verificarAlertas() {
-                    const sis = parseInt(document.getElementsByName('presionArterialSistolica')[0].value);
-                    const dia = parseInt(document.getElementsByName('presionArterialDiastolica')[0].value);
-                    const fc = parseInt(document.getElementsByName('frecuenciaCardiaca')[0].value);
-                    const sat = parseInt(document.getElementsByName('saturacionOxigeno')[0].value);
-                    const temp = parseFloat(document.getElementsByName('temperatura')[0].value);
+                    const sisInput = document.getElementsByName('presionArterialSistolica')[0];
+                    const diaInput = document.getElementsByName('presionArterialDiastolica')[0];
+                    const fcInput = document.getElementsByName('frecuenciaCardiaca')[0];
+                    const satInput = document.getElementsByName('saturacionOxigeno')[0];
+                    const tempInput = document.getElementsByName('temperatura')[0];
+
+                    const sis = sisInput ? parseInt(sisInput.value) : NaN;
+                    const dia = diaInput ? parseInt(diaInput.value) : NaN;
+                    const fc = fcInput ? parseInt(fcInput.value) : NaN;
+                    const sat = satInput ? parseInt(satInput.value) : NaN;
+                    const temp = tempInput ? parseFloat(tempInput.value) : NaN;
                     
                     let alertas = [];
-                    if (sis >= 140 || dia >= 90) alertas.push("HIPERTENSIÓN");
-                    if (sis < 90 || dia < 60) alertas.push("HIPOTENSIÓN");
-                    if (fc > 100) alertas.push("TAQUICARDIA");
-                    if (fc < 60) alertas.push("BRADICARDIA");
-                    if (sat < 95) alertas.push("HIPOXIA (BAJA SATURACIÓN)");
-                    if (temp >= 38.0) alertas.push("FIEBRE");
-                    if (temp < 35.5) alertas.push("HIPOTERMIA");
+                    if (!isNaN(sis) && !isNaN(dia)) {
+                        if (sis >= 140 || dia >= 90) alertas.push("HIPERTENSIÓN");
+                        if (sis < 90 || dia < 60) alertas.push("HIPOTENSIÓN");
+                    }
+                    if (!isNaN(fc)) {
+                        if (fc > 100) alertas.push("TAQUICARDIA");
+                        if (fc < 60) alertas.push("BRADICARDIA");
+                    }
+                    if (!isNaN(sat)) {
+                        if (sat < 95) alertas.push("HIPOXIA (BAJA SATURACIÓN)");
+                    }
+                    if (!isNaN(temp)) {
+                        if (temp >= 38.0) alertas.push("FIEBRE");
+                        if (temp < 35.5) alertas.push("HIPOTERMIA");
+                    }
 
                     const alertPanel = document.getElementById('clinicalAlertPanel');
                     if (alertas.length > 0) {
@@ -267,11 +415,18 @@
                 document.getElementById('triajeForm').addEventListener('submit', function(e) {
                     const peso = parseFloat(pesoInput.value);
                     const talla = parseFloat(tallaInput.value);
-                    const sis = parseInt(document.getElementsByName('presionArterialSistolica')[0].value);
-                    const dia = parseInt(document.getElementsByName('presionArterialDiastolica')[0].value);
-                    const fc = parseInt(document.getElementsByName('frecuenciaCardiaca')[0].value);
-                    const sat = parseInt(document.getElementsByName('saturacionOxigeno')[0].value);
-                    const temp = parseFloat(document.getElementsByName('temperatura')[0].value);
+                    const sisVal = document.getElementsByName('presionArterialSistolica')[0].value;
+                    const diaVal = document.getElementsByName('presionArterialDiastolica')[0].value;
+                    const fcVal = document.getElementsByName('frecuenciaCardiaca')[0].value;
+                    const satVal = document.getElementsByName('saturacionOxigeno')[0].value;
+                    const tempVal = document.getElementsByName('temperatura')[0].value;
+                    const urgencia = document.getElementById('formClasificacionUrgencia').value;
+
+                    const sis = parseInt(sisVal);
+                    const dia = parseInt(diaVal);
+                    const fc = parseInt(fcVal);
+                    const sat = parseInt(satVal);
+                    const temp = parseFloat(tempVal);
 
                     let errors = [];
                     if (isNaN(peso) || peso < 1.0 || peso > 300.0) errors.push("El peso corporal debe estar comprendido entre 1.0 y 300.0 Kg.");
@@ -281,6 +436,7 @@
                     if (isNaN(fc) || fc < 30 || fc > 220) errors.push("La frecuencia cardiaca debe estar entre 30 y 220 BPM.");
                     if (isNaN(sat) || sat < 40 || sat > 100) errors.push("La saturación de oxígeno debe estar entre 40% y 100%.");
                     if (isNaN(temp) || temp < 30.0 || temp > 45.0) errors.push("La temperatura corporal debe estar entre 30.0 y 45.0 °C.");
+                    if (!urgencia) errors.push("Debe seleccionar una clasificación de riesgo.");
 
                     if (errors.length > 0) {
                         e.preventDefault();

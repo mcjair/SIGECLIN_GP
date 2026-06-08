@@ -17,21 +17,35 @@
                     </div>
                 </div>
                 <div class="flex-grow-1 overflow-y-auto custom-scrollbar p-3" id="patientListContainer">
-                    <div th:each="p : ${pacientes}" class="patient-row p-3 mb-2 rounded-4 border bg-white shadow-sm cursor-pointer transition-all"
-                         style="border-color: #f1f5f9 !important;"
+                    <div th:each="p : ${pacientes}" class="patient-row px-4 py-3 mb-3 rounded-4 border bg-white shadow-sm cursor-pointer transition-all d-flex align-items-center gap-3"
+                         style="min-height: 92px; position: relative; overflow: hidden;"
                          onclick="abrirHistorialFromCard(this)"
                          th:data-id="${p.idPersona}"
                          th:data-dni="${p.numeroDocumento}"
                          th:data-nombre="|${p.apellidoPaterno ?: ''} ${p.apellidoMaterno ?: ''}, ${p.nombres ?: ''}|"
                          th:data-fecha-nacimiento="${p.fechaNacimiento}"
                          th:data-telefono="${p.telefonoPrincipal}">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-800 text-dark mb-1" style="font-size: 0.85rem; line-height: 1.3;" th:text="|${p.apellidoPaterno ?: ''} ${p.apellidoMaterno ?: ''}, ${p.nombres ?: ''}|">Nombre</h6>
-                                <div class="extra-small text-muted fw-bold">DNI: <span th:text="${p.numeroDocumento}"></span></div>
-                            </div>
-                            <i class="bi bi-chevron-right text-muted small"></i>
+                        
+                        <!-- Vertical color accent line on active -->
+                        <div class="active-indicator-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, var(--primary), var(--secondary)); opacity: 0; transition: opacity 0.25s ease;"></div>
+
+                        <!-- Rounded avatar with icon -->
+                        <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" 
+                             style="width: 40px; height: 40px; background-color: var(--primary-soft); color: var(--primary); transition: all 0.25s ease;">
+                            <i class="bi bi-person-fill" style="font-size: 1.15rem;"></i>
                         </div>
+                        
+                        <!-- Info container -->
+                        <div class="flex-grow-1 min-width-0 d-flex flex-column justify-content-center">
+                            <h6 class="fw-800 text-dark mb-1.5 patient-name" style="font-size: 0.82rem; line-height: 1.3; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" th:text="|${p.apellidoPaterno ?: ''} ${p.apellidoMaterno ?: ''}, ${p.nombres ?: ''}|">Nombre</h6>
+                            <div class="extra-small text-muted fw-bold d-flex align-items-center gap-1.5 patient-dni" style="font-size: 0.72rem;">
+                                <i class="bi bi-card-text text-primary" style="font-size: 0.78rem; opacity: 0.75;"></i>
+                                <span>DNI: <span th:text="${p.numeroDocumento}"></span></span>
+                            </div>
+                        </div>
+                        
+                        <!-- Chevron -->
+                        <i class="bi bi-chevron-right text-muted small flex-shrink-0 chevron-icon" style="font-size: 0.75rem;"></i>
                     </div>
                 </div>
             </div>
@@ -43,26 +57,41 @@
                     <!-- Placeholder vacio a pedido -->
                 </div>
                 
-                <div id="activePatientView" style="display: none;" class="h-100 d-flex flex-column">
+                <div id="activePatientView" class="h-100 d-none flex-column">
                     <!-- HEADER INFO -->
-                    <div class="card glass-panel-premium border-0 shadow-sm p-4 mb-4 flex-shrink-0">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div class="d-flex gap-3 align-items-center">
-                                <div class="bg-primary bg-opacity-10 text-primary fw-900 rounded-circle d-flex align-items-center justify-content-center fs-4 shadow-sm" style="width: 60px; height: 60px;" id="detInitials">P</div>
+                    <div class="card glass-panel-premium border-0 shadow-sm p-4 mb-4 flex-shrink-0" style="border: 1px solid var(--border) !important;">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div class="d-flex gap-3 align-items-center flex-wrap">
+                                <!-- Customized high-contrast initials avatar to fix the solid blue circle bug -->
+                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-900 shadow-sm text-primary flex-shrink-0" 
+                                     style="width: 58px; height: 58px; background-color: var(--primary-soft); color: var(--primary) !important; font-size: 1.35rem;" 
+                                     id="detInitials">P</div>
                                 <div>
-                                    <div class="d-flex align-items-center gap-3 mb-2">
-                                        <h4 class="fw-900 text-dark mb-0" id="detName">Nombre Paciente</h4>
-                                        <span class="badge bg-primary-soft text-primary rounded-pill fw-800 px-3 py-2">Particular</span>
+                                    <div class="d-flex align-items-center gap-3 mb-2.5 flex-wrap">
+                                        <h4 class="fw-900 text-dark mb-0" id="detName" style="letter-spacing: -0.025em;">Nombre Paciente</h4>
+                                        <span class="badge bg-primary-soft text-primary rounded-pill fw-800 px-3 py-1.5" style="font-size: 0.75rem;">Particular</span>
                                     </div>
-                                    <div class="d-flex flex-wrap gap-4 small text-muted fw-bold mt-1">
-                                        <div class="d-flex align-items-center gap-2"><i class="bi bi-card-text text-primary opacity-75"></i> DNI: <span id="detDni" class="text-dark">---</span></div>
-                                        <div class="d-flex align-items-center gap-2"><i class="bi bi-calendar-event text-primary opacity-75"></i> Edad: <span id="detEdad" class="text-dark">---</span></div>
-                                        <div class="d-flex align-items-center gap-2"><i class="bi bi-telephone text-primary opacity-75"></i> Celular: <span id="detCelular" class="text-dark">---</span></div>
+                                    <div class="d-flex flex-wrap gap-2.5">
+                                        <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-light border border-light-subtle shadow-xs" style="font-size: 0.8rem;">
+                                            <i class="bi bi-card-text text-primary" style="opacity: 0.85;"></i> 
+                                            <span class="text-muted fw-bold">DNI:</span>
+                                            <span id="detDni" class="fw-800 text-dark">---</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-light border border-light-subtle shadow-xs" style="font-size: 0.8rem;">
+                                            <i class="bi bi-calendar-event text-primary" style="opacity: 0.85;"></i> 
+                                            <span class="text-muted fw-bold">Edad:</span>
+                                            <span id="detEdad" class="fw-800 text-dark">---</span>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-light border border-light-subtle shadow-xs" style="font-size: 0.8rem;">
+                                            <i class="bi bi-telephone text-primary" style="opacity: 0.85;"></i> 
+                                            <span class="text-muted fw-bold">Celular:</span>
+                                            <span id="detCelular" class="fw-800 text-dark">---</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <!-- Alergias -->
-                            <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-4 d-none" style="max-width: 320px;" id="detAlergias">
+                            <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-4 d-none flex-shrink-0" style="max-width: 320px;" id="detAlergias">
                                 <div class="extra-small fw-900 text-uppercase mb-1 tracking-wider"><i class="bi bi-activity me-1"></i> Alergias / Alertas Clínicas</div>
                                 <div class="small fw-bold" id="detAlergiasText"></div>
                             </div>
@@ -127,17 +156,19 @@
                 async function abrirHistorial(element, idPersona, nombre, dni, edad, telefono) {
                     // Update active state in list
                     document.querySelectorAll('.patient-row').forEach(r => {
-                        r.classList.remove('border-primary', 'bg-primary', 'bg-opacity-10');
-                        r.style.borderColor = '#f1f5f9';
+                        r.classList.remove('active');
                     });
-                    element.classList.add('border-primary', 'bg-primary', 'bg-opacity-10');
-                    element.style.borderColor = '#4f46e5';
+                    element.classList.add('active');
 
                     // Switch view
-                    document.getElementById('placeholderDetail').style.display = 'none';
-                    document.getElementById('activePatientView').style.display = 'flex';
-                    document.getElementById('activePatientView').classList.remove('d-flex'); // For standardizing with toggle
-                    document.getElementById('activePatientView').classList.add('d-flex');
+                    const placeholder = document.getElementById('placeholderDetail');
+                    const activeView = document.getElementById('activePatientView');
+                    
+                    placeholder.classList.add('d-none');
+                    placeholder.classList.remove('d-flex');
+                    
+                    activeView.classList.remove('d-none');
+                    activeView.classList.add('d-flex');
 
                     // Set header info
                     document.getElementById('detName').innerText = nombre;
@@ -164,7 +195,7 @@
                             return;
                         }
 
-                        let html = '<div class="position-relative ms-3 ps-4 border-start border-2 border-primary border-opacity-25" id="timelineAccordion">';
+                        let html = '<div class="position-relative ms-3 ps-4" id="timelineAccordion">';
                         historial.forEach(h => {
                             const [datePart, timePart] = h.fecha.split(' ');
                             const title = 'Atención Médica en ' + (h.servicio ? h.servicio.toUpperCase() : 'GENERAL');
@@ -179,51 +210,115 @@
                             }
 
                             let processHtml = '';
+                            let buttonsHtml = '';
                             if (h.medicamentos && h.medicamentos.length > 0) {
                                 processHtml += `
-                                <div class="d-flex align-items-center gap-2 mt-2">
-                                    <span class="badge bg-primary-soft text-primary rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-capsule me-1"></i>RECETA</span>
-                                    <span class="small text-muted fw-bold text-truncate" style="max-width: 350px;">${h.medicamentos.join(', ')}</span>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-3 p-3 rounded-4 border shadow-xs doc-block-receta">
+                                        <div class="d-flex align-items-center justify-content-center rounded-3 text-primary" style="width: 38px; height: 38px; flex-shrink: 0; background: #eff6ff;">
+                                            <i class="bi bi-capsule" style="font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="extra-small fw-800 text-uppercase text-muted mb-0.5" style="font-size: 0.68rem !important; letter-spacing: 0.05em;">Receta Médica</div>
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem !important;" title="${h.medicamentos.join(', ')}">${h.medicamentos.join(', ')}</div>
+                                        </div>
+                                    </div>
                                 </div>`;
+                                
+                                buttonsHtml += `
+                                <button onclick="openCenteredPopup('/consulta/receta/preview?idConsulta=${h.idAtencion}', 'Receta', 950, 850)" 
+                                        class="btn btn-sm rounded-pill fw-800 px-4 py-2.5 d-flex align-items-center gap-2 shadow-sm border-0 text-white transition-all" 
+                                        style="background-color: var(--primary) !important; font-size: 0.82rem !important; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                    <i class="bi bi-printer-fill"></i> IMPRIMIR RECETA
+                                </button>`;
                             }
                             if (h.proximoControl && h.proximoControl !== '---') {
                                 processHtml += `
-                                <div class="d-flex align-items-center gap-2 mt-2">
-                                    <span class="badge bg-info-soft text-info rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-calendar-check me-1"></i>CITA CONTROL</span>
-                                    <span class="small text-dark fw-bold">${h.proximoControl}</span>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-3 p-3 rounded-4 border shadow-xs doc-block-cita">
+                                        <div class="d-flex align-items-center justify-content-center rounded-3 text-info" style="width: 38px; height: 38px; flex-shrink: 0; background: #ecfeff;">
+                                            <i class="bi bi-calendar-check" style="font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="extra-small fw-800 text-uppercase text-muted mb-0.5" style="font-size: 0.68rem !important; letter-spacing: 0.05em;">Cita de Control</div>
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem !important;">Próximo Control: ${h.proximoControl}</div>
+                                        </div>
+                                    </div>
                                 </div>`;
+                                
+                                buttonsHtml += `
+                                <button onclick="verProximaCita(this)" 
+                                        data-fecha="${h.proximoControl}" 
+                                        data-servicio="${h.servicio || ''}" 
+                                        data-medico="${h.medico || ''}"
+                                        class="btn btn-sm rounded-pill fw-800 px-4 py-2.5 d-flex align-items-center gap-2 shadow-sm border-0 text-white transition-all" 
+                                        style="background-color: #06b6d4 !important; font-size: 0.82rem !important; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                    <i class="bi bi-calendar-check-fill"></i> VER CITA CONTROL
+                                </button>`;
                             }
                             if (h.tieneCertificado) {
                                 processHtml += `
-                                <div class="d-flex align-items-center gap-2 mt-2">
-                                    <span class="badge bg-warning-soft text-warning rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-award me-1"></i>CERTIFICADO</span>
-                                    <span class="small text-muted fw-bold">Certificado Médico Emitido</span>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-3 p-3 rounded-4 border shadow-xs doc-block-certificado">
+                                        <div class="d-flex align-items-center justify-content-center rounded-3 text-warning" style="width: 38px; height: 38px; flex-shrink: 0; background: #fffbeb;">
+                                            <i class="bi bi-award" style="font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="extra-small fw-800 text-uppercase text-muted mb-0.5" style="font-size: 0.68rem !important; letter-spacing: 0.05em;">Certificado Médico</div>
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem !important;">Certificado Médico Emitido</div>
+                                        </div>
+                                    </div>
                                 </div>`;
+                                
+                                buttonsHtml += `
+                                <button onclick="openCenteredPopup('/consulta/certificado/preview?idConsulta=${h.idAtencion}', 'Certificado', 950, 850)" 
+                                        class="btn btn-sm rounded-pill fw-800 px-4 py-2.5 d-flex align-items-center gap-2 shadow-sm border-0 text-white transition-all" 
+                                        style="background-color: #f59e0b !important; font-size: 0.82rem !important; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                    <i class="bi bi-file-earmark-medical-fill"></i> VER CERTIFICADO
+                                </button>`;
                             }
                             if (h.estadoSalida === 'REFERENCIA') {
                                 processHtml += `
-                                <div class="d-flex align-items-center gap-2 mt-2">
-                                    <span class="badge bg-danger-soft text-danger rounded-pill px-2 py-1 extra-small fw-800"><i class="bi bi-file-earmark-arrow-up me-1"></i>REFERENCIA</span>
-                                    <span class="small text-muted fw-bold">Paciente Referido</span>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center gap-3 p-3 rounded-4 border shadow-xs doc-block-referencia">
+                                        <div class="d-flex align-items-center justify-content-center rounded-3 text-danger" style="width: 38px; height: 38px; flex-shrink: 0; background: #fef2f2;">
+                                            <i class="bi bi-file-earmark-arrow-up" style="font-size: 1.25rem;"></i>
+                                        </div>
+                                        <div class="overflow-hidden">
+                                            <div class="extra-small fw-800 text-uppercase text-muted mb-0.5" style="font-size: 0.68rem !important; letter-spacing: 0.05em;">Referencia de Paciente</div>
+                                            <div class="fw-bold text-dark text-truncate" style="font-size: 0.88rem !important;">Paciente Referido a Otro Centro</div>
+                                        </div>
+                                    </div>
                                 </div>`;
+                                
+                                buttonsHtml += `
+                                <button onclick="openCenteredPopup('/consulta/referencia/preview?idConsulta=${h.idAtencion}', 'Referencia', 950, 850)" 
+                                        class="btn btn-sm rounded-pill fw-800 px-4 py-2.5 d-flex align-items-center gap-2 shadow-sm border-0 text-white transition-all" 
+                                        style="background-color: #ef4444 !important; font-size: 0.82rem !important; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif;">
+                                    <i class="bi bi-file-earmark-arrow-up-fill"></i> VER REFERENCIA
+                                </button>`;
                             }
                             if (processHtml !== '') {
                                 processHtml = `
-                                <div class="mt-3 pt-3 border-top border-light">
-                                    <div class="small fw-bold text-dark mb-2">Procedimiento / Tratamiento Realizado:</div>
-                                    ${processHtml}
+                                <div class="mt-4 pt-4.5" style="border-top: 1px solid var(--border) !important;">
+                                    <div class="fw-800 mb-3 text-muted d-flex align-items-center gap-2" style="font-size: 0.78rem !important; letter-spacing: 0.05em; text-transform: uppercase;">
+                                        <i class="bi bi-folder2-open" style="font-size: 0.95rem;"></i> Documentación y Servicios Generados:
+                                    </div>
+                                    <div class="row g-3 mb-3.5">${processHtml}</div>
+                                    <div class="d-flex flex-wrap gap-2.5 mt-3">${buttonsHtml}</div>
                                 </div>`;
                             }
                             
                             html += `
                             <div class="mb-4 position-relative">
                                 <!-- Node -->
-                                <div class="position-absolute bg-primary rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" style="width: 24px; height: 24px; left: -37px; top: 15px;">
-                                    <i class="bi bi-activity" style="font-size: 0.7rem;"></i>
+                                <div class="position-absolute rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" 
+                                     style="width: 26px; height: 26px; left: -38px; top: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);">
+                                    <i class="bi bi-activity" style="font-size: 0.75rem;"></i>
                                 </div>
                                 
-                                <div class="card border border-light shadow-sm rounded-4 overflow-hidden">
-                                    <div class="card-header bg-white border-0 p-3 pb-0 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#col_${h.idAtencion}">
+                                <div class="card timeline-card-premium shadow-sm rounded-4 overflow-hidden">
+                                    <div class="card-header border-0 py-3 px-4 cursor-pointer collapsed" data-bs-toggle="collapse" data-bs-target="#col_${h.idAtencion}">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-1">
@@ -234,16 +329,89 @@
                                                 <h6 class="fw-800 text-dark mb-0">${title}</h6>
                                             </div>
                                             <div class="d-flex align-items-center gap-3">
-                                                <span class="fw-900 text-dark">S/ ${price}</span>
-                                                <i class="bi bi-chevron-down text-muted"></i>
+                                                <span class="badge bg-light border border-light-subtle text-dark fw-900 px-3 py-2 rounded-pill" style="font-size: 0.85rem;">S/ ${price}</span>
+                                                <i class="bi bi-chevron-down text-muted" style="font-size: 0.95rem;"></i>
                                             </div>
                                         </div>
                                     </div>
                                     <div id="col_${h.idAtencion}" class="collapse" data-bs-parent="#timelineAccordion">
-                                        <div class="card-body bg-white border-0 p-4">
-                                            <div class="small fw-bold text-dark mb-2">Evolución / Descripción:</div>
-                                            <div class="bg-light p-3 rounded-3 border-0 small text-muted fw-bold">
-                                                ${dxHtml}
+                                        <div class="card-body bg-white border-0 px-4 pb-4 pt-0">
+                                            <div class="d-flex align-items-center justify-content-between pt-3 pb-2 mb-3 mt-1" style="border-top: 1px dashed var(--border) !important;">
+                                                <span class="small fw-bold text-muted d-flex align-items-center gap-1.5">
+                                                    <i class="bi bi-person-badge text-primary" style="font-size: 1rem;"></i>
+                                                    Médico Tratante: <strong class="text-dark">${h.medico}</strong>
+                                                </span>
+                                            </div>
+                                            
+                                            <!-- Signos Vitales -->
+                                            <div class="d-flex flex-wrap gap-2 mb-3">
+                                                <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-4 border bg-light-subtle shadow-xs" style="font-size: 0.8rem; border-color: var(--border) !important;">
+                                                    <i class="bi bi-heart-pulse text-danger animate-pulse" style="font-size: 0.95rem;"></i>
+                                                    <span class="text-muted fw-bold">P.A:</span>
+                                                    <strong class="text-dark fw-800">${h.pa || '--/--'}</strong>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-4 border bg-light-subtle shadow-xs" style="font-size: 0.8rem; border-color: var(--border) !important;">
+                                                    <i class="bi bi-thermometer-half text-warning" style="font-size: 0.95rem;"></i>
+                                                    <span class="text-muted fw-bold">T°:</span>
+                                                    <strong class="text-dark fw-800">${h.temp || '--'} °C</strong>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-4 border bg-light-subtle shadow-xs" style="font-size: 0.8rem; border-color: var(--border) !important;">
+                                                    <i class="bi bi-activity text-info" style="font-size: 0.95rem;"></i>
+                                                    <span class="text-muted fw-bold">F.C:</span>
+                                                    <strong class="text-dark fw-800">${h.fc || '--'} lpm</strong>
+                                                </div>
+                                                <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-4 border bg-light-subtle shadow-xs" style="font-size: 0.8rem; border-color: var(--border) !important;">
+                                                    <i class="bi bi-wind text-primary" style="font-size: 0.95rem;"></i>
+                                                    <span class="text-muted fw-bold">SatO₂:</span>
+                                                    <strong class="text-dark fw-800">${h.sat || '--'}%</strong>
+                                                </div>
+                                            </div>
+ 
+                                            <div class="row g-3">
+                                                <div class="col-md-6">
+                                                    <div class="p-3 rounded-4 border shadow-xs h-100 timeline-block-motivo">
+                                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                                            <i class="bi bi-file-earmark-medical-fill text-primary" style="font-size: 1rem;"></i>
+                                                            <span class="extra-small fw-800 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem !important; color: #475569;">Motivo / Anamnesis</span>
+                                                        </div>
+                                                        <div class="fw-semibold text-dark" style="font-size: 0.88rem; line-height: 1.5; min-height: 40px; white-space: pre-line;">
+                                                            ${h.anamnesis && h.anamnesis !== '---' ? h.anamnesis : (h.motivo || '---')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="p-3 rounded-4 border shadow-xs h-100 timeline-block-examen">
+                                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                                            <i class="bi bi-clipboard2-pulse-fill text-warning" style="font-size: 1rem;"></i>
+                                                            <span class="extra-small fw-800 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem !important; color: #475569;">Examen Físico</span>
+                                                        </div>
+                                                        <div class="fw-semibold text-dark" style="font-size: 0.88rem; line-height: 1.5; min-height: 40px; white-space: pre-line;">
+                                                            ${h.examen || '---'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="p-3 rounded-4 border shadow-xs h-100 timeline-block-diagnostico">
+                                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                                            <i class="bi bi-patch-check-fill text-danger" style="font-size: 1rem;"></i>
+                                                            <span class="extra-small fw-800 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem !important; color: #475569;">Diagnóstico (CIE-10)</span>
+                                                        </div>
+                                                        <div class="fw-semibold text-dark" style="font-size: 0.88rem; line-height: 1.5; min-height: 40px;">
+                                                            ${dxHtml}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="p-3 rounded-4 border shadow-xs h-100 timeline-block-plan">
+                                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                                            <i class="bi bi-heart-pulse-fill text-success" style="font-size: 1rem;"></i>
+                                                            <span class="extra-small fw-800 text-uppercase" style="letter-spacing: 0.05em; font-size: 0.75rem !important; color: #475569;">Plan / Tratamiento</span>
+                                                        </div>
+                                                        <div class="fw-semibold text-dark" style="font-size: 0.88rem; line-height: 1.5; min-height: 40px; white-space: pre-line;">
+                                                            ${h.plan || '---'}
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                             ${processHtml}
                                         </div>
@@ -257,10 +425,260 @@
                         timelineList.innerHTML = '<div class="alert alert-danger rounded-4 fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Error al cargar el historial clínico.</div>';
                     }
                 }
+
+                function openCenteredPopup(url, title, w, h) {
+                    const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
+                    const dualScreenTop = window.screenTop !== undefined ? window.screenTop : window.screenY;
+
+                    const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width;
+                    const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height;
+
+                    const systemZoom = width / window.screen.availWidth;
+                    const left = (width - w) / 2 / systemZoom + dualScreenLeft;
+                    const top = (height - h) / 2 / systemZoom + dualScreenTop;
+                    
+                    const newWindow = window.open(url, title, `scrollbars=yes,width=${w / systemZoom},height=${h / systemZoom},top=${top},left=${left}`);
+
+                    if (window.focus && newWindow) newWindow.focus();
+                }
+
+                function verProximaCita(btn) {
+                    const fecha = btn.getAttribute('data-fecha');
+                    const servicio = btn.getAttribute('data-servicio');
+                    const medico = btn.getAttribute('data-medico');
+                    const patientName = document.getElementById('detName') ? document.getElementById('detName').innerText : 'Paciente';
+                    
+                    let formattedFecha = fecha;
+                    if (fecha && fecha.includes('-')) {
+                        const parts = fecha.split('-');
+                        if (parts.length === 3) {
+                            formattedFecha = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                        }
+                    }
+
+                    Swal.fire({
+                        title: '<div class="bg-info bg-opacity-10 p-3 rounded-circle d-inline-block mb-3" style="background-color: rgba(6, 182, 212, 0.1) !important;"><i class="bi bi-calendar-check text-info fs-1"></i></div>',
+                        html: `
+                            <h4 class="fw-800 text-dark mb-3" style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem;">CITA DE CONTROL</h4>
+                            <div class="text-start p-3 rounded-4 bg-light border border-light-subtle shadow-xs mb-1" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; line-height: 1.65;">
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block">Paciente:</span>
+                                    <strong class="text-dark d-block">${patientName}</strong>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block">Especialidad:</span>
+                                    <strong class="text-dark d-block">${servicio ? servicio.toUpperCase() : 'MEDICINA GENERAL'}</strong>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small d-block">Médico Tratante:</span>
+                                    <strong class="text-dark d-block">${medico || 'Por asignar'}</strong>
+                                </div>
+                                <div>
+                                    <span class="text-muted small d-block">Fecha Programada:</span>
+                                    <strong class="text-info d-block fw-900" style="font-size: 1.05rem;"><i class="bi bi-calendar-event me-1"></i>${formattedFecha}</strong>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: '#06b6d4',
+                        customClass: {
+                            popup: 'rounded-5 border-0 shadow-premium p-4',
+                            confirmButton: 'fw-800 rounded-pill px-5 py-2.5 shadow-glow'
+                        }
+                    });
+                }
             </script>
             <style>
-                .patient-row:hover { background: #f8fafc !important; }
+                body {
+                    background: radial-gradient(circle at 10% 20%, #f8fafc 0%, #f1f5f9 100%) !important;
+                }
+                
+                /* Custom Premium Scrollbar */
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(148, 163, 184, 0.3);
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(148, 163, 184, 0.5);
+                }
+
+                .glass-panel-premium {
+                    background: #fcfdfe !important;
+                    border: 1px solid rgba(148, 163, 184, 0.12) !important;
+                    border-radius: 24px !important;
+                    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03), 0 5px 15px -5px rgba(0, 0, 0, 0.01) !important;
+                }
+
+                /* Left Column Patient Rows */
+                .patient-row {
+                    background: #ffffff !important;
+                    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    border-radius: 16px !important;
+                }
+                .patient-row:hover {
+                    background: #ffffff !important;
+                    border-color: rgba(16, 102, 228, 0.2) !important;
+                    transform: translateY(-3px);
+                    box-shadow: 0 12px 28px -5px rgba(16, 102, 228, 0.06), 0 5px 10px -5px rgba(16, 102, 228, 0.02) !important;
+                }
+                .patient-row:hover .avatar-circle {
+                    background-color: var(--primary) !important;
+                    color: white !important;
+                    transform: scale(1.05);
+                }
+                .patient-row.active {
+                    background: linear-gradient(135deg, rgba(16, 102, 228, 0.06) 0%, rgba(16, 102, 228, 0.01) 100%) !important;
+                    border-color: rgba(16, 102, 228, 0.45) !important;
+                    box-shadow: 0 12px 30px -5px rgba(16, 102, 228, 0.1) !important;
+                }
+                .patient-row.active .active-indicator-bar {
+                    opacity: 1 !important;
+                    background: linear-gradient(to bottom, #1066e4, #05bef2) !important;
+                }
+                .patient-row.active .avatar-circle {
+                    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;
+                    color: white !important;
+                    box-shadow: 0 4px 10px rgba(15, 102, 228, 0.2) !important;
+                }
+                .patient-row.active .patient-name {
+                    color: var(--primary) !important;
+                }
+                .patient-row.active .chevron-icon {
+                    color: var(--primary) !important;
+                    transform: translateX(3px);
+                }
+                .transition-all {
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
                 .tracking-wider { letter-spacing: 0.05rem; }
+                
+                /* Timeline Card Premium Styles */
+                .timeline-card-premium {
+                    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+                    border-radius: 20px !important;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                    background: #ffffff !important;
+                    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.01) !important;
+                }
+                .timeline-card-premium:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 16px 35px -8px rgba(0, 0, 0, 0.04) !important;
+                    border-color: rgba(16, 102, 228, 0.12) !important;
+                }
+                .timeline-card-premium .card-header {
+                    background: #ffffff !important;
+                    transition: background 0.25s ease;
+                    border-bottom: 0 !important;
+                }
+                .timeline-card-premium .card-header:hover {
+                    background: rgba(248, 250, 252, 0.8) !important;
+                }
+                .timeline-card-premium [data-bs-toggle="collapse"] .bi-chevron-down {
+                    transition: transform 0.3s ease;
+                }
+                .timeline-card-premium [data-bs-toggle="collapse"]:not(.collapsed) .bi-chevron-down {
+                    transform: rotate(180deg);
+                }
+
+                /* Vertical Timeline Gradient Axis Line */
+                #timelineAccordion::before {
+                    content: '';
+                    position: absolute;
+                    left: -26px;
+                    top: 15px;
+                    bottom: 20px;
+                    width: 2px;
+                    background: linear-gradient(to bottom, rgba(16, 102, 228, 0.3) 0%, rgba(5, 190, 242, 0.1) 100%) !important;                 /* 4 Clinical Evolution Blocks */
+                .timeline-block-motivo {
+                    background: rgba(16, 102, 228, 0.02) !important;
+                    border: 1px solid rgba(16, 102, 228, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .timeline-block-motivo:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(16, 102, 228, 0.04) !important;
+                    border-color: rgba(16, 102, 228, 0.25) !important;
+                }
+                .timeline-block-examen {
+                    background: rgba(245, 158, 11, 0.02) !important;
+                    border: 1px solid rgba(245, 158, 11, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .timeline-block-examen:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.04) !important;
+                    border-color: rgba(245, 158, 11, 0.25) !important;
+                }
+                .timeline-block-diagnostico {
+                    background: rgba(239, 68, 68, 0.02) !important;
+                    border: 1px solid rgba(239, 68, 68, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .timeline-block-diagnostico:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.04) !important;
+                    border-color: rgba(239, 68, 68, 0.25) !important;
+                }
+                .timeline-block-plan {
+                    background: rgba(16, 185, 129, 0.02) !important;
+                    border: 1px solid rgba(16, 185, 129, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .timeline-block-plan:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(16, 185, 129, 0.04) !important;
+                    border-color: rgba(16, 185, 129, 0.25) !important;
+                }
+
+                /* Documentation Blocks hover animations */
+                .doc-block-receta {
+                    background: rgba(16, 102, 228, 0.02) !important;
+                    border: 1px solid rgba(16, 102, 228, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .doc-block-receta:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(16, 102, 228, 0.04) !important;
+                    border-color: rgba(16, 102, 228, 0.25) !important;
+                }
+                .doc-block-cita {
+                    background: rgba(6, 182, 212, 0.02) !important;
+                    border: 1px solid rgba(6, 182, 212, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .doc-block-cita:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(6, 182, 212, 0.04) !important;
+                    border-color: rgba(6, 182, 212, 0.25) !important;
+                }
+                .doc-block-certificado {
+                    background: rgba(245, 158, 11, 0.02) !important;
+                    border: 1px solid rgba(245, 158, 11, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .doc-block-certificado:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.04) !important;
+                    border-color: rgba(245, 158, 11, 0.25) !important;
+                }
+                .doc-block-referencia {
+                    background: rgba(239, 68, 68, 0.02) !important;
+                    border: 1px solid rgba(239, 68, 68, 0.12) !important;
+                    transition: all 0.25s ease !important;
+                }
+                .doc-block-referencia:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.04) !important;
+                    border-color: rgba(239, 68, 68, 0.25) !important;
+                }
             </style>
         </div>
     </main>

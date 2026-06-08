@@ -80,6 +80,7 @@ public class SystemInitializer implements CommandLineRunner {
 
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS servicio_solicitado VARCHAR(50)");
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS referencia_direccion VARCHAR(255)");
+            jdbcTemplate.execute("UPDATE filiacion.personal SET id_usuario = id_personal WHERE id_usuario IS NULL AND id_personal IN (SELECT id_usuario FROM filiacion.usuario)");
 
             // Columna servicios para filtrado por módulo en catálogo CIE-10 curado
             jdbcTemplate.execute("ALTER TABLE maestras.cie10 ADD COLUMN IF NOT EXISTS servicios VARCHAR(255)");
@@ -204,6 +205,7 @@ public class SystemInitializer implements CommandLineRunner {
         jdbcTemplate.execute("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) VALUES (" + personId + ", '" + user + "', '" + pass + "')");
         Integer rolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = '" + rolCode + "'", Integer.class);
         jdbcTemplate.execute("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (" + personId + ", " + rolId + ")");
+        jdbcTemplate.execute("UPDATE filiacion.personal SET id_usuario = " + personId + " WHERE id_personal = " + personId);
         
         // Sincronizar secuencias para evitar errores de duplicados (id_persona = 205, etc.)
         syncSequences();

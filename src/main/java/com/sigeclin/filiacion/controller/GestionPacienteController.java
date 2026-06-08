@@ -137,11 +137,37 @@ public class GestionPacienteController {
 
     @GetMapping("/api/historial/{id}")
     @ResponseBody
-    public ResponseEntity<?> obtenerHistorial(@PathVariable Integer id) {
+    public ResponseEntity<?> obtenerHistorial(@PathVariable Integer id, org.springframework.security.core.Authentication authentication) {
         List<Consulta> historial = consultaService.obtenerHistorialPaciente(id);
+        
+        String rolFiltro = null;
+        if (authentication != null && authentication.getAuthorities() != null) {
+            String roleStr = authentication.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .findFirst().orElse("ADMIN");
+            
+            if (!roleStr.equals("ADMIN")) {
+                rolFiltro = roleStr;
+                if (rolFiltro.equals("MEDICO_GENERAL")) rolFiltro = "MEDICINA GENERAL";
+                if (rolFiltro.equals("ENFERMERIA")) rolFiltro = "ENFERMERÍA";
+                if (rolFiltro.equals("ODONTOLOGIA")) rolFiltro = "ODONTOLOGÍA";
+                if (rolFiltro.equals("PSICOLOGIA")) rolFiltro = "PSICOLOGÍA";
+                if (rolFiltro.equals("NUTRICION")) rolFiltro = "NUTRICIÓN";
+            }
+        }
+
+        final String finalRolFiltro = rolFiltro;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
         
-        List<Map<String, Object>> response = historial.stream().limit(7).map(c -> {
+        List<Map<String, Object>> response = historial.stream()
+            .filter(c -> {
+                if (finalRolFiltro == null) return true;
+                String servicio = c.getTriaje() != null && c.getTriaje().getServicioDestino() != null 
+                        ? c.getTriaje().getServicioDestino() 
+                        : "MÉDICO GENERAL";
+                return servicio.equalsIgnoreCase(finalRolFiltro);
+            })
+            .limit(7).map(c -> {
             Map<String, Object> map = new HashMap<>();
             map.put("fecha", c.getFechaHoraInicio() != null ? c.getFechaHoraInicio().format(formatter) : "S/F");
             

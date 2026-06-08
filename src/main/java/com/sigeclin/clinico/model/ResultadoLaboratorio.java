@@ -1,5 +1,6 @@
 package com.sigeclin.clinico.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -16,7 +17,7 @@ public class ResultadoLaboratorio {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_orden", nullable = false)
-    @JsonIgnoreProperties("resultados")
+    @JsonIgnore
     private OrdenMedica orden;
 
     @Column(name = "codigo_examen")

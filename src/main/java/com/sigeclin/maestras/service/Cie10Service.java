@@ -39,8 +39,12 @@ public class Cie10Service implements ICie10Service {
     private void cargarCie10DesdeCsv() {
         File folder = new File(dirPath);
         if (!folder.exists() || !folder.isDirectory()) {
-            log.error("CRITICAL: Directorio CIE-10 no encontrado en: {}", dirPath);
-            return;
+            log.warn("Directorio CIE-10 no encontrado en la ruta configurada: {}. Intentando usar fallback relativo 'ciex'...", dirPath);
+            folder = new File("ciex");
+            if (!folder.exists() || !folder.isDirectory()) {
+                log.error("CRITICAL: Directorio CIE-10 no encontrado ni en la ruta configurada ni en el fallback 'ciex'");
+                return;
+            }
         }
 
         cie10Cache.clear();
@@ -125,6 +129,8 @@ public class Cie10Service implements ICie10Service {
                     .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(normalizedQuery)) ||
                                 (c.getDescripcion() != null && normalize(c.getDescripcion()).contains(normalizedQuery)))
                     .filter(c -> servicio == null || c.getServicios() == null || c.getServicios().isEmpty() ||
+                                c.getServicios().toUpperCase().contains("DIAGN") ||
+                                c.getServicios().toUpperCase().contains("CIEX") ||
                                 c.getServicios().toUpperCase().contains(servicio.toUpperCase()))
                     .limit(25)
                     .collect(Collectors.toList()));
@@ -134,6 +140,8 @@ public class Cie10Service implements ICie10Service {
                     .filter(c -> (c.getCodigo() != null && c.getCodigo().toLowerCase().contains(normalizedQuery)) ||
                                 (c.getDescripcion() != null && normalize(c.getDescripcion()).contains(normalizedQuery)))
                     .filter(c -> servicio == null || c.getServicios() == null || c.getServicios().isEmpty() ||
+                                c.getServicios().toUpperCase().contains("DIAGN") ||
+                                c.getServicios().toUpperCase().contains("CIEX") ||
                                 c.getServicios().toUpperCase().contains(servicio.toUpperCase()))
                     .limit(25)
                     .collect(Collectors.toList());

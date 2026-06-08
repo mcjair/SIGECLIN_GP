@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informe de Laboratorio - CLAS Grocio Prado</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         @page { margin: 12mm 15mm; size: A4; }
@@ -34,7 +35,7 @@
         /* Print Actions */
         .no-print { text-align: center; margin: 15px 0; }
         .no-print button { 
-            background: linear-gradient(135deg, #4f46e5, #3b82f6); 
+            background: linear-gradient(135deg, #1066e4, #05bef2); 
             color: white; 
             border: none; 
             padding: 10px 30px; 
@@ -42,7 +43,7 @@
             font-weight: 800; 
             cursor: pointer; 
             font-size: 10pt; 
-            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 15px rgba(16, 102, 228, 0.3);
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
@@ -50,7 +51,7 @@
         }
         .no-print button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 6px 20px rgba(16, 102, 228, 0.4);
         }
 
         /* Header Layout */
@@ -93,11 +94,11 @@
 
         /* Patient Info Box (General) */
         .patient-box-general {
-            border: 2px solid #ef4444; /* Red accent border matching Ayacucho style */
+            border: 2px solid #1066e4; /* Clinical Royal Blue accent border */
             border-radius: 8px;
             padding: 15px;
             margin-bottom: 25px;
-            background: #fffdfd;
+            background: #f8fafc;
         }
         .patient-grid {
             display: grid;
@@ -135,7 +136,7 @@
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-left: 4px solid #ef4444;
+            border-left: 4px solid #1066e4;
         }
         table {
             width: 100%;
@@ -206,7 +207,7 @@
             gap: 6px;
         }
         .footer-item i {
-            color: #ef4444;
+            color: #1066e4;
             font-size: 10pt;
         }
 
@@ -287,7 +288,7 @@
             left: 0;
             top: -2px;
             font-size: 14pt;
-            color: #ef4444;
+            color: #1066e4;
         }
         .citopato-bullets li strong {
             color: #1e293b;
@@ -320,9 +321,19 @@
     <img src="/img/logo_grocio_prado.png" class="watermark" alt="Watermark Logo">
 
     <div class="container">
-        <div class="no-print">
-            <button onclick="window.print()"><i class="bi bi-printer-fill"></i> IMPRIMIR INFORME</button>
-        </div>
+    <!-- Barra de Herramientas No Imprimible -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: #ffffff; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(0,0,0,0.12); width: 240px; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <h6 class="mb-3 fw-800 text-center" style="font-size: 0.8rem; color: #1e293b; letter-spacing: 0.5px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase;">Opciones de Impresión</h6>
+        <button onclick="window.print()" class="btn w-100 rounded-pill py-2.5 fw-800 mb-2 shadow-sm border-0" 
+                style="background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%); color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;">
+            <i class="bi bi-printer-fill"></i> IMPRIMIR INFORME
+        </button>
+        <button onclick="window.close()" class="btn w-100 rounded-pill py-2.5 fw-800 border-0" 
+                style="background: #f1f5f9; color: #475569; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;"
+                onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            <i class="bi bi-x-circle"></i> SALIR
+        </button>
+    </div>
 
         <!-- ================== HEADER ================== -->
         <div class="header-section">
@@ -535,6 +546,45 @@
             "COP-001": "Coproparasitológico directo", "COP-002": "Sangre oculta en heces"
         };
 
+        const defaultExamConfigs = {
+            "HEM-001": { placeholder: "14.5", rangoMinimo: 12.0, rangoMaximo: 16.0, rangoTexto: "12.0 - 16.0", unidad: "g/dL" },
+            "HEM-002": { placeholder: "42.0", rangoMinimo: 37.0, rangoMaximo: 47.0, rangoTexto: "37.0 - 47.0", unidad: "%" },
+            "HEM-003": { placeholder: "6500", rangoMinimo: 4500, rangoMaximo: 11000, rangoTexto: "4500 - 11000", unidad: "/mm³" },
+            "HEM-004": { placeholder: "250000", rangoMinimo: 150000, rangoMaximo: 450000, rangoTexto: "150000 - 450000", unidad: "/mm³" },
+            "HEM-005": { placeholder: "10", rangoMinimo: 0, rangoMaximo: 20, rangoTexto: "0 - 20", unidad: "mm/h" },
+            "HEM-006": { placeholder: "12.5", rangoMinimo: 11.0, rangoMaximo: 13.5, rangoTexto: "11.0 - 13.5", unidad: "seg" },
+            "HEM-007": { placeholder: "30.0", rangoMinimo: 25.0, rangoMaximo: 35.0, rangoTexto: "25.0 - 35.0", unidad: "seg" },
+            
+            "BIO-001": { placeholder: "90.0", rangoMinimo: 70.0, rangoMaximo: 110.0, rangoTexto: "70.0 - 110.0", unidad: "mg/dL" },
+            "BIO-002": { placeholder: "25.0", rangoMinimo: 15.0, rangoMaximo: 45.0, rangoTexto: "15.0 - 45.0", unidad: "mg/dL" },
+            "BIO-003": { placeholder: "0.90", rangoMinimo: 0.6, rangoMaximo: 1.2, rangoTexto: "0.6 - 1.2", unidad: "mg/dL" },
+            "BIO-004": { placeholder: "170.0", rangoMinimo: 100.0, rangoMaximo: 200.0, rangoTexto: "100.0 - 200.0", unidad: "mg/dL" },
+            "BIO-005": { placeholder: "120.0", rangoMinimo: 30.0, rangoMaximo: 150.0, rangoTexto: "30.0 - 150.0", unidad: "mg/dL" },
+            "BIO-006": { placeholder: "25.0", rangoMinimo: 5.0, rangoMaximo: 40.0, rangoTexto: "5.0 - 40.0", unidad: "U/L" },
+            "BIO-007": { placeholder: "20.0", rangoMinimo: 5.0, rangoMaximo: 35.0, rangoTexto: "5.0 - 35.0", unidad: "U/L" },
+            "BIO-008": { placeholder: "0.80", rangoMinimo: 0.2, rangoMaximo: 1.2, rangoTexto: "0.2 - 1.2", unidad: "mg/dL" },
+            "BIO-009": { placeholder: "5.00", rangoMinimo: 3.5, rangoMaximo: 7.2, rangoTexto: "3.5 - 7.2", unidad: "mg/dL" },
+            "BIO-010": { placeholder: "7.20", rangoMinimo: 6.0, rangoMaximo: 8.3, rangoTexto: "6.0 - 8.3", unidad: "g/dL" },
+            
+            "MIC-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-003": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-004": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            
+            "INM-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-003": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-004": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-005": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            
+            "URO-001": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            "URO-002": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            "URO-003": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            
+            "COP-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "COP-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" }
+        };
+
         window.onload = function() {
             // Read from Thymeleaf rendered hidden div first
             const rawDivs = document.querySelectorAll('#rawResultsData div');
@@ -698,13 +748,19 @@
                         areaObj.results.forEach(r => {
                             const examName = (nameMap[r.codigoExamen] || r.codigoExamen).toUpperCase();
                             const rClass = r.esAnormal ? 'anormal' : 'normal';
-                            const rango = r.rangoMinimo != null ? `${r.rangoMinimo} - ${r.rangoMaximo}` : '---';
+                            const config = defaultExamConfigs[r.codigoExamen] || {};
+                            let rango = '---';
+                            if (r.rangoMinimo != null) {
+                                rango = `${r.rangoMinimo} - ${r.rangoMaximo}`;
+                            } else if (config.rangoTexto) {
+                                rango = config.rangoTexto;
+                            }
                             tableHtml += `
                                     <tr>
                                         <td>${examName}</td>
                                         <td class="${rClass}">${r.valorResultado || '---'}</td>
-                                        <td>${r.unidad || '---'}</td>
-                                        <td>${rango}</td>
+                                        <td>${r.unidad || config.unidad || '---'}</td>
+                                        <td style="opacity: 0.65; font-weight: 500; color: #475569;">${rango}</td>
                                     </tr>`;
                         });
                         

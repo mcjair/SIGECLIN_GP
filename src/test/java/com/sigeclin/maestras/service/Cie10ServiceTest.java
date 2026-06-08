@@ -16,8 +16,8 @@ public class Cie10ServiceTest {
     @BeforeEach
     public void setUp() {
         cie10Service = new Cie10Service();
-        // Set the path to the real ciex directory in the workspace
-        ReflectionTestUtils.setField(cie10Service, "dirPath", "d:/UTP/SISTEMAS/AEAMAN/ciex");
+        // Set the path to the ciex-test directory in the test resources
+        ReflectionTestUtils.setField(cie10Service, "dirPath", "src/test/resources/ciex-test");
         // Initialize the service (which calls PostConstruct init)
         cie10Service.init();
     }

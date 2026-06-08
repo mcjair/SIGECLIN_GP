@@ -21,13 +21,13 @@
                 </div>
                 
                 <div class="d-flex gap-2 flex-wrap" id="filterPills">
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" style="background-color: #1e293b; color: white;" onclick="aplicarFiltro('todas', this)">Todas</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('HEMATOLOGIA', this)">Hematología</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('BIOQUIMICA', this)">Bioquímica</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('MICROBIOLOGIA', this)">Microbiología</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('INMUNOLOGIA', this)">Inmunología</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('UROANALISIS', this)">Uroanálisis</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('COPROLOGIA', this)">Coprología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" onclick="aplicarFiltro('todas', this)">Todas</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('HEMATOLOGIA', this)">Hematología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('BIOQUIMICA', this)">Bioquímica</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('MICROBIOLOGIA', this)">Microbiología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('INMUNOLOGIA', this)">Inmunología</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('UROANALISIS', this)">Uroanálisis</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('COPROLOGIA', this)">Coprología</span>
                 </div>
             </div>
 
@@ -83,7 +83,7 @@
             <div class="card border-0 shadow-sm rounded-4 flex-grow-1 overflow-hidden d-flex flex-column">
                 <div class="table-responsive flex-grow-1 custom-scrollbar">
                     <table class="table table-hover align-middle mb-0 border-0">
-                        <thead style="background-color: #f8fafc;">
+                        <thead>
                             <tr>
                                 <th class="ps-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">N° Orden</th>
                                 <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Paciente</th>
@@ -297,14 +297,8 @@
         function aplicarFiltro(area, element) {
             document.querySelectorAll('.filter-pill').forEach(el => {
                 el.classList.remove('active');
-                el.classList.add('text-muted');
-                el.style.backgroundColor = '#f8fafc';
-                el.style.color = '';
             });
             element.classList.add('active');
-            element.classList.remove('text-muted');
-            element.style.backgroundColor = '#1e293b';
-            element.style.color = 'white';
             
             currentFiltroArea = area;
             renderOrdenes(ordenesData);
@@ -382,8 +376,8 @@
                     <td><div class="${valClass} fs-5">${valor} <span class="fs-6">${unidad}</span></div></td>
                     <td class="text-center"><span class="badge ${o.estado === 'validado' ? 'bg-success-soft text-success' : o.estado === 'resultado_ingresado' ? 'bg-primary-soft text-primary' : 'bg-warning-soft text-warning'} px-3 rounded-pill fw-800 ${urgClass}">${o.estado.toUpperCase()}</span></td>
                     <td class="pe-4 text-end">
-                        ${isPendiente ? `<button class="btn btn-sm btn-indigo-grad rounded-pill px-3 fw-900 shadow-sm" onclick="abrirResultados(${o.idOrden})"><i class="bi bi-pencil-square me-1"></i> RESULTADOS</button>` :
-                        `<button class="btn btn-sm btn-light border text-muted rounded-pill px-3 fw-900 shadow-sm" onclick="imprimirInforme(${o.idOrden})"><i class="bi bi-printer me-1"></i> INFORME</button>`}
+                        ${isPendiente ? `<button class="btn btn-sm btn-indigo-grad btn-action-tbl rounded-pill shadow-sm" onclick="abrirResultados(${o.idOrden})"><i class="bi bi-pencil-square me-1"></i> RESULTADOS</button>` :
+                        `<button class="btn btn-sm btn-light border text-muted btn-action-tbl rounded-pill shadow-sm" onclick="imprimirInforme(${o.idOrden})"><i class="bi bi-printer me-1"></i> INFORME</button>`}
                     </td>
                 </tr>`;
             });
@@ -856,7 +850,7 @@
                                         <td style="padding: 4px 6px; color: #334155;">${examName}</td>
                                         <td style="padding: 4px 6px; ${rStyle}">${r.valorResultado || '---'}</td>
                                         <td style="padding: 4px 6px; color: #475569;">${r.unidad || config.unidad || '---'}</td>
-                                        <td style="padding: 4px 6px; color: #64748b;">${rango}</td>
+                                        <td style="padding: 4px 6px; color: #475569; opacity: 0.65; font-weight: 500;">${rango}</td>
                                     </tr>`;
                         });
                         

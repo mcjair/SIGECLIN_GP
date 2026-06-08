@@ -51,6 +51,11 @@
                         </div>
                         <h4 class="fw-800 mb-1 text-uppercase" style="color: var(--text-main);" id="preview-name">ESPERANDO ACCIÓN</h4>
                         <p class="text-muted extra-small fw-800 text-uppercase tracking-wider mb-0" id="preview-dni">DNI / HISTORIA CLÍNICA</p>
+                        <div id="preview-service-badge" class="mt-2 d-none">
+                            <span class="badge bg-primary-soft text-primary rounded-pill fw-800 px-3 py-1.5" style="font-size: 0.75rem;">
+                                <i id="preview-service-icon" class="bi bi-hospital me-1"></i> <span id="preview-service-text">MEDICINA GENERAL</span>
+                            </span>
+                        </div>
                     </div>
 
                     <!-- SERVICE SELECTION -->
@@ -548,9 +553,35 @@
                 document.getElementById('field-tipoDoc').addEventListener('change', validateDocumentFormat);
 
 
+                function updateServicePreview() {
+                    const selectedRadio = document.querySelector('input[name="servicio"]:checked');
+                    const previewBadge = document.getElementById('preview-service-badge');
+                    const previewBadgeText = document.getElementById('preview-service-text');
+                    const previewBadgeIcon = document.getElementById('preview-service-icon');
+                    
+                    if (selectedRadio && previewBadge) {
+                        const serv = selectedRadio.value;
+                        previewBadgeText.innerText = serv.toUpperCase();
+                        
+                        let icon = 'bi-hospital';
+                        if (serv === 'Enfermería') icon = 'bi-heart-pulse';
+                        else if (serv === 'Obstetricia') icon = 'bi-gender-female';
+                        else if (serv === 'Odontología') icon = 'bi-brightness-high';
+                        else if (serv === 'Psicología') icon = 'bi-person-gear';
+                        else if (serv === 'Nutrición') icon = 'bi-apple';
+                        
+                        previewBadgeIcon.className = `bi ${icon} me-1`;
+                        previewBadge.classList.remove('d-none');
+                    }
+                }
+
                 // Initialize on load
                 document.addEventListener('DOMContentLoaded', () => {
                     updateCustomSelectFromNative();
+                    updateServicePreview();
+                    document.querySelectorAll('input[name="servicio"]').forEach(radio => {
+                        radio.addEventListener('change', updateServicePreview);
+                    });
                 });
             </script>
 
@@ -575,13 +606,13 @@
                 }
                 .service-card-premium:hover {
                     transform: translateY(-5px);
-                    box-shadow: 0 10px 25px rgba(99, 102, 241, 0.15) !important;
-                    border-color: rgba(99, 102, 241, 0.3);
+                    box-shadow: 0 10px 25px var(--primary-shadow-20) !important;
+                    border-color: var(--primary-shadow-30);
                 }
                 .btn-check:checked + .service-card-premium {
-                    background: rgba(99, 102, 241, 0.05);
+                    background: var(--primary-soft);
                     border-color: var(--primary);
-                    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2) !important;
+                    box-shadow: 0 8px 32px var(--primary-shadow-20) !important;
                 }
                 .btn-check:checked + .service-card-premium .service-icon-premium {
                     background: var(--primary);
@@ -594,9 +625,9 @@
 
                 /* Pulse Glow for Guardar Button */
                 @keyframes pulse-primary {
-                    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
-                    70% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+                    0% { box-shadow: 0 0 0 0 var(--primary-shadow-30); }
+                    70% { box-shadow: 0 0 0 15px rgba(16, 102, 228, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(16, 102, 228, 0); }
                 }
                 .pulse-glow-btn {
                     animation: pulse-primary 2s infinite;

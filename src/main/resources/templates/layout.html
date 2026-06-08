@@ -55,6 +55,43 @@
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // System-wide SweetAlert2 standardization
+        if (typeof Swal !== 'undefined') {
+            const originalFire = Swal.fire;
+            Swal.fire = function(...args) {
+                if (args[0] && typeof args[0] === 'object') {
+                    // Redirect hardcoded legacy colors to dynamic CSS variables
+                    const cColor = args[0].confirmButtonColor;
+                    if (cColor === '#4f46e5' || cColor === '#7f56da' || !cColor) {
+                        args[0].confirmButtonColor = 'var(--primary)';
+                    } else if (cColor === '#ef4444' || cColor === '#d32f2f') {
+                        args[0].confirmButtonColor = 'var(--danger)';
+                    } else if (cColor === '#10b981') {
+                        args[0].confirmButtonColor = 'var(--success)';
+                    } else if (cColor === '#ffc107' || cColor === '#d97706') {
+                        args[0].confirmButtonColor = 'var(--warning)';
+                    } else if (cColor === '#0ea5e9') {
+                        args[0].confirmButtonColor = 'var(--info)';
+                    }
+
+                    const canColor = args[0].cancelButtonColor;
+                    if (canColor === '#ef4444' || canColor === '#94a3b8' || canColor === '#6c757d') {
+                        args[0].cancelButtonColor = 'var(--danger)';
+                    }
+
+                    // Inject premium CSS glass layout styles
+                    if (!args[0].customClass) {
+                        args[0].customClass = {};
+                    }
+                    if (!args[0].customClass.popup) {
+                        args[0].customClass.popup = 'glass-panel-premium shadow-premium border border-light rounded-4';
+                    }
+                }
+                return originalFire.apply(this, args);
+            };
+        }
+    </script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -131,8 +168,8 @@
 
         <nav class="flex-grow-1 overflow-y-auto custom-scrollbar">
             <!-- GENERAL -->
-            <div class="sidebar-category">Principal</div>
-            <a th:href="@{/dashboard}" class="sidebar-link">
+            <div class="sidebar-category" sec:authorize="hasRole('ADMIN')">Principal</div>
+            <a th:href="@{/dashboard}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-grid-1x2"></i> <span>DASHBOARD</span>
             </a>
 
@@ -170,17 +207,17 @@
             </a>
 
             <!-- APOYO DIAGNÓSTICO -->
-            <div class="sidebar-category">Apoyo Diagnóstico</div>
-            <a th:href="@{/apoyo/laboratorio}" class="sidebar-link">
+            <div class="sidebar-category" sec:authorize="hasRole('ADMIN')">Apoyo Diagnóstico</div>
+            <a th:href="@{/apoyo/laboratorio}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-search"></i> <span>Laboratorio</span>
             </a>
-            <a th:href="@{/apoyo/farmacia/catalogo}" class="sidebar-link">
+            <a th:href="@{/apoyo/farmacia/catalogo}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-capsule"></i> <span>Farmacia</span>
             </a>
 
             <!-- GESTIÓN -->
             <div class="sidebar-category">Gestión</div>
-            <a th:href="@{/personal/lista}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'MEDICO_GENERAL', 'ENFERMERIA')">
+            <a th:href="@{/personal/lista}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-people"></i> <span>Personal</span>
             </a>
             <a th:href="@{/pacientes/lista}" class="sidebar-link">
@@ -260,22 +297,37 @@
                                     : ("Operación completada con éxito. " + (hcParam ? "HC: " + hcParam : ""));
                                     
                     Swal.fire({
-                        title: '¡Operación Exitosa!',
-                        text: message,
-                        icon: 'success',
-                        confirmButtonColor: '#4f46e5',
+                        title: '<div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-block mb-3" style="background-color: rgba(16, 185, 129, 0.1) !important;"><i class="bi bi-check2-circle text-success fs-1"></i></div>',
+                        html: `
+                            <h4 class="fw-800 text-dark mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem;">¡OPERACIÓN EXITOSA!</h4>
+                            <p class="text-muted small px-3 mb-0" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;">${message}</p>
+                        `,
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: 'var(--primary)',
                         timer: 5000,
-                        timerProgressBar: true
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'rounded-5 border-0 shadow-premium p-4',
+                            confirmButton: 'fw-800 rounded-pill px-5 py-2.5 shadow-glow',
+                            timerProgressBar: 'bg-success'
+                        }
                     });
                 }
 
                 if ((errorEl && errorEl.dataset.message) || urlParams.get('error')) {
                     const message = (errorEl && errorEl.dataset.message) ? errorEl.dataset.message : "Ocurrió un error.";
                     Swal.fire({
-                        title: 'Atención',
-                        text: message,
-                        icon: 'warning',
-                        confirmButtonColor: '#ef4444'
+                        title: '<div class="bg-warning bg-opacity-10 p-3 rounded-circle d-inline-block mb-3" style="background-color: rgba(217, 119, 6, 0.1) !important;"><i class="bi bi-exclamation-triangle text-warning fs-1"></i></div>',
+                        html: `
+                            <h4 class="fw-800 text-dark mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem;">ATENCIÓN</h4>
+                            <p class="text-muted small px-3 mb-0" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;">${message}</p>
+                        `,
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: '#d97706',
+                        customClass: {
+                            popup: 'rounded-5 border-0 shadow-premium p-4',
+                            confirmButton: 'fw-800 rounded-pill px-5 py-2.5 shadow-glow'
+                        }
                     });
                 }
             }
@@ -289,7 +341,7 @@
                     .then(r => r.json())
                     .then(data => {
                         if (data.error) {
-                            Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: '#4f46e5' });
+                            Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: 'var(--primary)' });
                             return;
                         }
                         const role = document.getElementById('userRoleBadge')?.getAttribute('data-role') || '';
@@ -353,11 +405,11 @@
                             title: '<i class="bi bi-bell me-2 text-primary"></i> Notificaciones del Sistema',
                             html: html,
                             confirmButtonText: 'Cerrar',
-                            confirmButtonColor: '#4f46e5',
+                            confirmButtonColor: 'var(--primary)',
                             width: 420
                         });
                     })
-                    .catch(() => Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: '#4f46e5' }));
+                    .catch(() => Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: 'var(--primary)' }));
             }
 
             function openChat(event) {
@@ -379,7 +431,7 @@
                         </div>
                     </div>`,
                     confirmButtonText: '<i class="bi bi-send me-1"></i> Enviar Mensaje',
-                    confirmButtonColor: '#4f46e5',
+                    confirmButtonColor: 'var(--primary)',
                     showCancelButton: true,
                     cancelButtonText: 'Cancelar',
                     cancelButtonColor: '#94a3b8',
@@ -398,7 +450,7 @@
                             icon: 'success',
                             title: 'Mensaje Enviado',
                             text: 'Su mensaje ha sido registrado. Recibirá respuesta pronto.',
-                            confirmButtonColor: '#4f46e5',
+                            confirmButtonColor: 'var(--primary)',
                             timer: 3000,
                             timerProgressBar: true
                         });

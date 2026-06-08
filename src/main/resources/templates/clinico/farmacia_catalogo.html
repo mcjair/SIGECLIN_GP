@@ -23,11 +23,11 @@
                 </div>
                 
                 <div class="d-flex gap-2 flex-wrap" id="filterPills">
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" style="background-color: #1e293b; color: white;" onclick="aplicarFiltro('Todos', this)">Todos</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('Antibiótico', this)">Antibiótico</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('Analgésico', this)">Analgésico</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('Corticoesteroide', this)">Corticoesteroide</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer text-muted filter-pill" style="background-color: #f8fafc;" onclick="aplicarFiltro('Antiinflamatorio', this)">Antiinflamatorio</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" onclick="aplicarFiltro('Todos', this)">Todos</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Antibiótico', this)">Antibiótico</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Analgésico', this)">Analgésico</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Corticoesteroide', this)">Corticoesteroide</span>
+                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Antiinflamatorio', this)">Antiinflamatorio</span>
                 </div>
             </div>
 
@@ -83,7 +83,7 @@
             <div class="card border-0 shadow-sm rounded-4 flex-grow-1 overflow-hidden d-flex flex-column">
                 <div class="table-responsive flex-grow-1 custom-scrollbar">
                     <table class="table table-hover align-middle mb-0 border-0">
-                        <thead style="background-color: #f8fafc;">
+                        <thead>
                             <tr>
                                 <th class="ps-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Medicamento</th>
                                 <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Tipo / Categoría</th>
@@ -161,15 +161,9 @@
                 function aplicarFiltro(cat, btnElement) {
                     // Update UI pills
                     document.querySelectorAll('.filter-pill').forEach(b => {
-                        b.style.backgroundColor = '#f8fafc';
-                        b.style.color = '';
                         b.classList.remove('active');
-                        b.classList.add('text-muted');
                     });
-                    btnElement.style.backgroundColor = '#1e293b';
-                    btnElement.style.color = 'white';
                     btnElement.classList.add('active');
-                    btnElement.classList.remove('text-muted');
 
                     // Filter rows
                     const rows = document.querySelectorAll('.med-row');
@@ -350,12 +344,12 @@
                 .badge { font-weight: 800 !important; }
                 .tracking-wider { letter-spacing: 0.05em; }
                 .cursor-pointer { cursor: pointer; }
-                .bg-primary-soft { background-color: rgba(99, 102, 241, 0.1) !important; color: #4f46e5 !important; }
+                .bg-primary-soft { background-color: var(--primary-soft) !important; color: var(--primary) !important; }
                 .bg-success-soft { background-color: rgba(34, 197, 94, 0.1) !important; color: #15803d !important; }
                 
                 table tr { transition: all 0.2s ease; }
-                table tbody tr:hover { background-color: rgba(248, 250, 252, 0.8) !important; }
-                table td { border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+                table tbody tr:hover { background-color: var(--primary-soft) !important; }
+                table td { border-bottom: 1px solid var(--border); vertical-align: middle; }
             </style>
         </div>
     </main>

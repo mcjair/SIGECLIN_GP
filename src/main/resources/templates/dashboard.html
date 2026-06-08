@@ -78,8 +78,8 @@
                         <svg id="opChartSvg" th:data-loads="${#strings.listJoin(chartData, ',')}" viewBox="0 0 800 180" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="pG" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#4F46E5" stop-opacity="0.25"/>
-                                    <stop offset="100%" stop-color="#4F46E5" stop-opacity="0"/>
+                                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.25"/>
+                                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
                                 </linearGradient>
                             </defs>
                             <!-- Grid lines -->
@@ -88,7 +88,7 @@
                             <line class="chart-grid-line" x1="0" y1="130" x2="800" y2="130" />
                             <!-- Curve Fills -->
                             <path id="chartPathFill" d="" fill="url(#pG)" />
-                            <path id="chartPathMain" class="chart-path-main" d="" fill="none" stroke="#4F46E5" stroke-width="4" stroke-linecap="round" />
+                            <path id="chartPathMain" class="chart-path-main" d="" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" />
                         </svg>
                         <div class="p-chart-footer">
                             <span>08:00 AM</span>
@@ -147,7 +147,7 @@
                             <span id="trjBarPercent" th:text="${triajeCount}">0</span>
                         </div>
                         <div class="progress-bar-service">
-                            <div class="progress-bar-fill" id="trjBar" th:style="'width: ' + (${triajeCount > 0 ? (triajeCount * 10) : 0}) + '%'" style="background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);"></div>
+                            <div class="progress-bar-fill" id="trjBar" th:style="'width: ' + (${triajeCount > 0 ? (triajeCount * 10) : 0}) + '%'" style="background: linear-gradient(135deg, var(--info) 0%, var(--primary) 100%);"></div>
                         </div>
                     </div>
                 </div>
@@ -159,7 +159,7 @@
                         <div class="position-relative d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
                             <svg class="telemetry-progress-ring" width="70" height="70">
                                 <circle stroke-width="6" stroke="rgba(0,0,0,0.05)" fill="transparent" r="28" cx="35" cy="35"/>
-                                <circle stroke-width="6" stroke="#4f46e5" stroke-dasharray="175.92" th:stroke-dashoffset="${175.92 - (175.92 * (memoryPercent ?: 5) / 100)}" id="memoryRing" fill="transparent" r="28" cx="35" cy="35"/>
+                                <circle stroke-width="6" stroke="var(--primary)" stroke-dasharray="175.92" th:stroke-dashoffset="${175.92 - (175.92 * (memoryPercent ?: 5) / 100)}" id="memoryRing" fill="transparent" r="28" cx="35" cy="35"/>
                             </svg>
                             <div class="position-absolute d-flex flex-column align-items-center">
                                 <strong class="text-dark fs-6" id="memoryText" th:text="${(memoryPercent ?: 5) + '%'}">5%</strong>

@@ -30,9 +30,9 @@
             min-height: 297mm;
             background: white;
             padding: 20mm;
-            border: 2px solid #4f46e5;
+            border: 2px solid #1066e4;
             position: relative;
-            box-shadow: 0 20px 60px rgba(79, 70, 229, 0.12);
+            box-shadow: 0 20px 60px rgba(16, 102, 228, 0.12);
             background-image: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), url('/img/cmp_logo.svg');
             background-size: 50% auto;
             background-repeat: no-repeat;
@@ -42,7 +42,7 @@
         }
 
         .outer-border {
-            border: 4px double #4f46e5;
+            border: 4px double #1066e4;
             height: 100%;
             width: 100%;
             padding: 12mm;
@@ -52,14 +52,14 @@
 
         .header-cert {
             text-align: center;
-            border-bottom: 3px solid #4f46e5;
+            border-bottom: 3px solid #1066e4;
             padding-bottom: 20px;
             margin-bottom: 35px;
         }
 
         .header-cert h1 {
             font-size: 30pt;
-            color: #4f46e5;
+            color: #1066e4;
             margin: 0;
             font-weight: 800;
             letter-spacing: 3px;
@@ -76,7 +76,7 @@
         .certifica-label {
             font-size: 22pt;
             font-style: italic;
-            color: #4f46e5;
+            color: #1066e4;
             margin-bottom: 25px;
             font-weight: 700;
         }
@@ -90,7 +90,7 @@
 
         .field-label {
             font-weight: 700;
-            color: #4f46e5;
+            color: #1066e4;
         }
 
         .underline-field {
@@ -115,7 +115,7 @@
         }
 
         .signature-line {
-            border-top: 2px solid #4f46e5;
+            border-top: 2px solid #1066e4;
             margin-bottom: 10px;
             width: 100%;
         }
@@ -134,7 +134,7 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            color: #4f46e5;
+            color: #1066e4;
             font-weight: 800;
             font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 14pt;
@@ -148,8 +148,8 @@
             z-index: 100;
             padding: 15px 35px;
             border-radius: 50px;
-            box-shadow: 0 10px 30px rgba(79, 70, 229, 0.3);
-            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            box-shadow: 0 10px 30px rgba(16, 102, 228, 0.3);
+            background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%);
             border: none;
             font-weight: 800;
             letter-spacing: 0.5px;
@@ -157,15 +157,25 @@
 
         .btn-print:hover {
             transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 15px 40px rgba(16, 102, 228, 0.4);
         }
     </style>
 </head>
 <body>
 
-    <button class="btn btn-primary btn-print no-print" onclick="window.print()">
-        <i class="bi bi-printer-fill me-2"></i> IMPRIMIR CERTIFICADO
-    </button>
+    <!-- Barra de Herramientas No Imprimible -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: #ffffff; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(0,0,0,0.12); width: 240px; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <h6 class="mb-3 fw-800 text-center" style="font-size: 0.8rem; color: #1e293b; letter-spacing: 0.5px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase;">Opciones de Impresión</h6>
+        <button onclick="window.print()" class="btn w-100 rounded-pill py-2.5 fw-800 mb-2 shadow-sm border-0" 
+                style="background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%); color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;">
+            <i class="bi bi-printer-fill"></i> IMPRIMIR CERTIFICADO
+        </button>
+        <button onclick="window.close()" class="btn w-100 rounded-pill py-2.5 fw-800 border-0" 
+                style="background: #f1f5f9; color: #475569; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;"
+                onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            <i class="bi bi-x-circle"></i> SALIR
+        </button>
+    </div>
 
     <div class="certificate-container">
         <div class="outer-border">

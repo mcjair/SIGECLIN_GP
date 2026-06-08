@@ -35,7 +35,11 @@ public class LaboratorioService {
             ? ordenMedicaRepository.findByTipoAndEstadoWithResultados(tipo, "solicitada")
             : ordenMedicaRepository.findAllByTipoWithResultados("LABORATORIO");
         List<Map<String, Object>> resultado = new ArrayList<>();
+        java.util.Set<Integer> seenIds = new java.util.HashSet<>();
         for (OrdenMedica o : ordenes) {
+            if (!seenIds.add(o.getIdOrden())) {
+                continue;
+            }
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("idOrden", o.getIdOrden());
             item.put("idCiex", o.getIdCiex());

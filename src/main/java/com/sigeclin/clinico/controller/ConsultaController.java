@@ -221,12 +221,7 @@ public class ConsultaController {
                 // Obtener médico logueado (Personal)
                 String username = org.springframework.security.core.context.SecurityContextHolder.getContext()
                         .getAuthentication().getName();
-                com.sigeclin.filiacion.model.Personal medicoLogueado = null;
-                com.sigeclin.filiacion.model.Usuario userActivo = usuarioRepository.findByUsername(username)
-                        .orElse(null);
-                if (userActivo != null) {
-                    medicoLogueado = personalRepository.findById(userActivo.getIdPersona()).orElse(null);
-                }
+                com.sigeclin.filiacion.model.Personal medicoLogueado = personalRepository.findByUsuarioUsername(username).orElse(null);
                 model.addAttribute("medicoLogueado", medicoLogueado);
 
                 String medNombreCompleto = "Médico Tratante";

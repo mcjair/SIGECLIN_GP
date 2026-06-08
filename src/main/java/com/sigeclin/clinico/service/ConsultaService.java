@@ -78,15 +78,14 @@ public class ConsultaService implements IConsultaService {
 
         Personal medico = null;
         if (username != null) {
-            com.sigeclin.filiacion.model.Usuario userActivo = usuarioRepository.findByUsername(username).orElse(null);
-            if (userActivo != null) {
-                medico = personalRepository.findById(userActivo.getIdPersona()).orElse(null);
-            }
+            medico = personalRepository.findByUsuarioUsername(username).orElse(null);
+        }
+        if (medico == null && triaje.getUsuario() != null) {
+            medico = personalRepository.findByUsuarioUsername(triaje.getUsuario().getUsername()).orElse(null);
         }
         if (medico == null) {
-            medico = personalRepository.findById(triaje.getUsuario().getIdPersona())
-                    .orElseGet(() -> personalRepository.findAll().stream().findFirst()
-                            .orElseThrow(() -> new RuntimeException("No hay personal médico registrado")));
+            medico = personalRepository.findAll().stream().findFirst()
+                    .orElseThrow(() -> new RuntimeException("No hay personal médico registrado"));
         }
 
         Consulta consulta = new Consulta();

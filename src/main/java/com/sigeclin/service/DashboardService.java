@@ -10,6 +10,7 @@ import org.springframework.ui.Model;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.TextStyle;
 import java.util.*;
 
@@ -31,28 +32,43 @@ public class DashboardService implements IDashboardService {
             model.addAttribute("totalPacientes", pacienteRepository.count());
             model.addAttribute("totalPersonal", personalRepository.count());
 
-            Integer atencionesHoy = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM clinico.triaje WHERE fecha_hora >= CURRENT_DATE", Integer.class);
-            model.addAttribute("atencionesHoy", atencionesHoy != null ? atencionesHoy : 0);
+            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+
+            Integer totalTriajesHoy = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM clinico.triaje WHERE fecha_hora >= ?", Integer.class, startOfDay);
+            int triajesHoy = totalTriajesHoy != null ? totalTriajesHoy : 0;
+
+            Integer atendidosHoy = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM clinico.consulta WHERE fecha_hora_inicio >= ?", Integer.class, startOfDay);
+            int consultasHoy = atendidosHoy != null ? atendidosHoy : 0;
+
+            // 'Atenciones Hoy' must display real completed/attended consultations
+            model.addAttribute("atencionesHoy", consultasHoy);
 
             BigDecimal ingresosHoy = jdbcTemplate.queryForObject(
-                "SELECT COALESCE(sum(monto), 0) FROM clinico.pago_log WHERE fecha_pago >= CURRENT_DATE", BigDecimal.class);
+                "SELECT COALESCE(sum(monto), 0) FROM clinico.pago_log WHERE fecha_pago >= ?", BigDecimal.class, startOfDay);
             model.addAttribute("ingresosHoy", ingresosHoy != null ? ingresosHoy : BigDecimal.ZERO);
 
             Double esperaProm = jdbcTemplate.queryForObject(
                 "SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (c.fecha_hora_inicio - t.fecha_hora)) / 60), 0) " +
                 "FROM clinico.consulta c JOIN clinico.triaje t ON c.id_triaje = t.id_triaje " +
-                "WHERE c.fecha_hora_inicio >= CURRENT_DATE", Double.class);
+                "WHERE c.fecha_hora_inicio >= ?", Double.class, startOfDay);
             model.addAttribute("esperaPromedio", esperaProm != null ? Math.round(esperaProm) : 0);
 
-            Integer atendidosHoy = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM clinico.consulta WHERE fecha_hora_inicio >= CURRENT_DATE", Integer.class);
-            int totalTriajesHoy = atencionesHoy != null ? atencionesHoy : 0;
-            int eficiencia = calcularEficiencia(atendidosHoy, totalTriajesHoy);
+            int eficiencia = calcularEficiencia(consultasHoy, triajesHoy);
             model.addAttribute("eficiencia", eficiencia);
 
             List<Map<String, Object>> colaEspera = jdbcTemplate.queryForList(
-                "SELECT p.nombres || ' ' || p.apellido_paterno as nombre, t.servicio_destino as servicio, t.clasificacion_urgencia as estado " +
+                "SELECT p.nombres || ' ' || p.apellido_paterno as nombre, " +
+                "CASE " +
+                "  WHEN t.servicio_destino ILIKE 'MEDICINA GENERAL' THEN 'MEDICINA GENERAL' " +
+                "  WHEN t.servicio_destino ILIKE 'ODONTOLOG%A' THEN 'ODONTOLOGÍA' " +
+                "  WHEN t.servicio_destino ILIKE 'ENFERMER%A' THEN 'ENFERMERÍA' " +
+                "  WHEN t.servicio_destino ILIKE 'OBSTETRICIA' THEN 'OBSTETRICIA' " +
+                "  WHEN t.servicio_destino ILIKE 'PSICOLOG%A' THEN 'PSICOLOGÍA' " +
+                "  WHEN t.servicio_destino ILIKE 'NUTRIC%N' THEN 'NUTRICIÓN' " +
+                "  ELSE t.servicio_destino " +
+                "END as servicio, t.clasificacion_urgencia as estado " +
                 "FROM clinico.triaje t " +
                 "JOIN filiacion.paciente pa ON t.id_paciente = pa.id_paciente " +
                 "JOIN filiacion.persona p ON pa.id_paciente = p.id_persona " +
@@ -70,32 +86,32 @@ public class DashboardService implements IDashboardService {
 
             Integer medicinaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'MEDICINA GENERAL'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'MEDICINA GENERAL'", Integer.class);
             model.addAttribute("medicinaCount", medicinaCount != null ? medicinaCount : 0);
 
             Integer odontologiaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ODONTOLOGÍA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ODONTOLOG%A'", Integer.class);
             model.addAttribute("odontologiaCount", odontologiaCount != null ? odontologiaCount : 0);
 
             Integer enfermeriaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ENFERMERÍA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ENFERMER%A'", Integer.class);
             model.addAttribute("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
 
             Integer obstetriciaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'OBSTETRICIA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'OBSTETRICIA'", Integer.class);
             model.addAttribute("obstetriciaCount", obstetriciaCount != null ? obstetriciaCount : 0);
 
             Integer psicologiaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'PSICOLOGÍA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'PSICOLOG%A'", Integer.class);
             model.addAttribute("psicologiaCount", psicologiaCount != null ? psicologiaCount : 0);
 
             Integer nutricionCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'NUTRICIÓN'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'NUTRIC%N'", Integer.class);
             model.addAttribute("nutricionCount", nutricionCount != null ? nutricionCount : 0);
 
             Runtime runtime = Runtime.getRuntime();
@@ -131,29 +147,42 @@ public class DashboardService implements IDashboardService {
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
         try {
+            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
             stats.put("totalPacientes", pacienteRepository.count());
 
-            Integer atencionesHoy = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM clinico.triaje WHERE fecha_hora >= CURRENT_DATE", Integer.class);
-            stats.put("atencionesHoy", atencionesHoy != null ? atencionesHoy : 0);
+            Integer totalTriajesHoy = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM clinico.triaje WHERE fecha_hora >= ?", Integer.class, startOfDay);
+            int triajesHoy = totalTriajesHoy != null ? totalTriajesHoy : 0;
+
+            Integer atendidosHoy = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM clinico.consulta WHERE fecha_hora_inicio >= ?", Integer.class, startOfDay);
+            int consultasHoy = atendidosHoy != null ? atendidosHoy : 0;
+
+            stats.put("atencionesHoy", consultasHoy);
 
             BigDecimal ingresosHoy = jdbcTemplate.queryForObject(
-                "SELECT COALESCE(sum(monto), 0) FROM clinico.pago_log WHERE fecha_pago >= CURRENT_DATE", BigDecimal.class);
+                "SELECT COALESCE(sum(monto), 0) FROM clinico.pago_log WHERE fecha_pago >= ?", BigDecimal.class, startOfDay);
             stats.put("ingresosHoy", ingresosHoy != null ? ingresosHoy : BigDecimal.ZERO);
 
             Double esperaProm = jdbcTemplate.queryForObject(
                 "SELECT COALESCE(AVG(EXTRACT(EPOCH FROM (c.fecha_hora_inicio - t.fecha_hora)) / 60), 0) " +
                 "FROM clinico.consulta c JOIN clinico.triaje t ON c.id_triaje = t.id_triaje " +
-                "WHERE c.fecha_hora_inicio >= CURRENT_DATE", Double.class);
+                "WHERE c.fecha_hora_inicio >= ?", Double.class, startOfDay);
             stats.put("esperaPromedio", esperaProm != null ? Math.round(esperaProm) : 0);
 
-            Integer atendidosHoy = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM clinico.consulta WHERE fecha_hora_inicio >= CURRENT_DATE", Integer.class);
-            int totalTriajesHoy = atencionesHoy != null ? atencionesHoy : 0;
-            stats.put("eficiencia", calcularEficiencia(atendidosHoy, totalTriajesHoy));
+            stats.put("eficiencia", calcularEficiencia(consultasHoy, triajesHoy));
 
             List<Map<String, Object>> colaEspera = jdbcTemplate.queryForList(
-                "SELECT p.nombres || ' ' || p.apellido_paterno as nombre, t.servicio_destino as servicio, t.clasificacion_urgencia as estado " +
+                "SELECT p.nombres || ' ' || p.apellido_paterno as nombre, " +
+                "CASE " +
+                "  WHEN t.servicio_destino ILIKE 'MEDICINA GENERAL' THEN 'MEDICINA GENERAL' " +
+                "  WHEN t.servicio_destino ILIKE 'ODONTOLOG%A' THEN 'ODONTOLOGÍA' " +
+                "  WHEN t.servicio_destino ILIKE 'ENFERMER%A' THEN 'ENFERMERÍA' " +
+                "  WHEN t.servicio_destino ILIKE 'OBSTETRICIA' THEN 'OBSTETRICIA' " +
+                "  WHEN t.servicio_destino ILIKE 'PSICOLOG%A' THEN 'PSICOLOGÍA' " +
+                "  WHEN t.servicio_destino ILIKE 'NUTRIC%N' THEN 'NUTRICIÓN' " +
+                "  ELSE t.servicio_destino " +
+                "END as servicio, t.clasificacion_urgencia as estado " +
                 "FROM clinico.triaje t " +
                 "JOIN filiacion.paciente pa ON t.id_paciente = pa.id_paciente " +
                 "JOIN filiacion.persona p ON pa.id_paciente = p.id_persona " +
@@ -167,32 +196,32 @@ public class DashboardService implements IDashboardService {
 
             Integer medicinaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'MEDICINA GENERAL'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'MEDICINA GENERAL'", Integer.class);
             stats.put("medicinaCount", medicinaCount != null ? medicinaCount : 0);
 
             Integer odontologiaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ODONTOLOGÍA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ODONTOLOG%A'", Integer.class);
             stats.put("odontologiaCount", odontologiaCount != null ? odontologiaCount : 0);
 
             Integer enfermeriaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'ENFERMERÍA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ENFERMER%A'", Integer.class);
             stats.put("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
 
             Integer obstetriciaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'OBSTETRICIA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'OBSTETRICIA'", Integer.class);
             stats.put("obstetriciaCount", obstetriciaCount != null ? obstetriciaCount : 0);
 
             Integer psicologiaCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'PSICOLOGÍA'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'PSICOLOG%A'", Integer.class);
             stats.put("psicologiaCount", psicologiaCount != null ? psicologiaCount : 0);
 
             Integer nutricionCount = jdbcTemplate.queryForObject(
                 "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
-                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND UPPER(t.servicio_destino) = 'NUTRICIÓN'", Integer.class);
+                "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'NUTRIC%N'", Integer.class);
             stats.put("nutricionCount", nutricionCount != null ? nutricionCount : 0);
 
             Integer recetasPendientes = jdbcTemplate.queryForObject(
@@ -230,10 +259,11 @@ public class DashboardService implements IDashboardService {
     }
 
     private int[] cargarHistogramaCargaDiaria() {
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
         List<Map<String, Object>> hourlyLoads = jdbcTemplate.queryForList(
             "SELECT EXTRACT(HOUR FROM fecha_hora) as hora, count(*) as cantidad " +
-            "FROM clinico.triaje WHERE fecha_hora >= CURRENT_DATE " +
-            "GROUP BY EXTRACT(HOUR FROM fecha_hora)");
+            "FROM clinico.triaje WHERE fecha_hora >= ? " +
+            "GROUP BY EXTRACT(HOUR FROM fecha_hora)", startOfDay);
 
         int[] loads = new int[7];
         for (Map<String, Object> row : hourlyLoads) {

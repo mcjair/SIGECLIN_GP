@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "personal", schema = "filiacion")
 @PrimaryKeyJoinColumn(name = "id_personal")
-@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"firmaDigital", "usuario", "horario"})
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties({"firmaDigital", "idUsuario", "horario"})
 public class Personal extends Persona {
     
     @NotNull(message = "El tipo de personal es obligatorio")
@@ -23,9 +23,8 @@ public class Personal extends Persona {
 
     private Integer idEspecialidad;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_usuario")
-    private Usuario usuario;
+    @Column(name = "id_usuario")
+    private Integer idUsuario;
 
     @Pattern(regexp = "^(CMP|CEP|COP|CPP|CPsP|CPSP|CNP|CIP|REG)[- ]\\d+$", message = "Formato de colegiatura invalido (ej: CMP-12345)")
     private String numeroColegiatura;

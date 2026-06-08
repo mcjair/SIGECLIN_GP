@@ -62,10 +62,14 @@ public class CajaController {
     @GetMapping("/imprimir")
     public String imprimirVoucher(@RequestParam Integer idPaciente, 
                                  @RequestParam(required = false) String servicio, 
+                                 @RequestParam(defaultValue = "50.00") java.math.BigDecimal monto,
+                                 @RequestParam(defaultValue = "EFECTIVO") String tipoPago,
                                  Model model) {
         pacienteService.buscarPorId(idPaciente).ifPresent(p -> {
             model.addAttribute("paciente", p);
             model.addAttribute("servicio", servicio);
+            model.addAttribute("monto", monto);
+            model.addAttribute("tipoPago", tipoPago);
         });
         return "clinico/voucher_impresion";
     }

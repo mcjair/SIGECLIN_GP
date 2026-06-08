@@ -252,7 +252,7 @@
                 </div>
             </form>
 
-            <script>
+            <script th:inline="javascript">
                 // DIAFNÓSTICO CIE-10 Search
                 const dxSearch = document.getElementById('dxSearch');
                 const dxResults = document.getElementById('dxResults');
@@ -378,17 +378,19 @@
                 };
 
                 // Bloqueo por Alergias (RF38)
-                const alergiasPaciente = ['Ibuprofeno', 'Penicilina', 'Aspirina']; // MOCK: Esto vendría del backend
+                const alergiasPaciente = [];
+                /*[# th:each="alergia : ${alergias}"]*/
+                alergiasPaciente.push(/*[[${alergia.medicamento != null ? alergia.medicamento.nombre : alergia.descripcion}]]*/);
+                /*[/]*/
 
                 window.addMed = function(nombre, presentacion) {
                     if (selectedMeds.some(m => m.nombre === nombre)) return;
                     
                     // Verificar Alergias
-                    const principioActivo = nombre.split(' ')[0];
-                    if (alergiasPaciente.some(alergia => principioActivo.toLowerCase().includes(alergia.toLowerCase()))) {
+                    if (alergiasPaciente.some(alergia => alergia && nombre.toLowerCase().includes(alergia.toLowerCase()))) {
                         Swal.fire({
                             title: '¡ALERTA CRÍTICA!',
-                            text: `El paciente presenta alergia a ${principioActivo}. Prescripción bloqueada por seguridad.`,
+                            text: `El paciente presenta alergia a este medicamento. Prescripción bloqueada por seguridad.`,
                             icon: 'error',
                             background: '#ffe5e5',
                             color: '#d32f2f',

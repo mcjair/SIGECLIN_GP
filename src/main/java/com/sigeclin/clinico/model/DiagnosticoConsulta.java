@@ -10,6 +10,7 @@ import lombok.Data;
 public class DiagnosticoConsulta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_diagnostico")
     private Integer idDiagnosticoConsulta;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -20,7 +21,7 @@ public class DiagnosticoConsulta {
     @JoinColumn(name = "codigo_cie10", nullable = false)
     private Cie10 cie10;
 
-    @Column(length = 20)
+    @Column(name = "tipo", length = 20)
     private String tipoDiagnostico = "PRESUNTIVO"; // PRESUNTIVO, DEFINITIVO
 
     private String observaciones;

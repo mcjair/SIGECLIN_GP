@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 @Configuration
 @EnableWebSecurity
@@ -23,7 +22,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/", "/login", "/error", "/css/**", "/js/**", "/webjars/**", "/api/cie10/**").permitAll()
+                .requestMatchers("/", "/login", "/error", "/css/**", "/js/**", "/webjars/**", "/api/cie10/**", "/api/auth/**", "/actuator/health").permitAll()
                 .anyRequest().authenticated()
             )
             .userDetailsService(userDetailsService)
@@ -33,11 +32,21 @@ public class SecurityConfig {
                 .permitAll()
             )
             .logout((logout) -> logout.permitAll())
-            .csrf(csrf -> csrf.ignoringRequestMatchers("/consulta/**"))
+            .sessionManagement(session -> session
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
+                .expiredUrl("/login?expired")
+            )
+            .csrf(csrf -> csrf.ignoringRequestMatchers(
+                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/consulta/guardar", "POST"),
+                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**", "POST")
+            ))
             .headers(headers -> headers
-                .xssProtection(xss -> xss.enable())
+                .xssProtection(xss -> xss
+                    .headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)
+                )
                 .contentSecurityPolicy(csp -> csp
-                    .policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self'")
+                    .policyDirectives("default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com https://cdn.jsdelivr.net 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data:; connect-src 'self' https://cdn.jsdelivr.net")
                 )
             );
 

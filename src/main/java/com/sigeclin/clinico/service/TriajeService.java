@@ -3,13 +3,15 @@ package com.sigeclin.clinico.service;
 import com.sigeclin.clinico.model.Triaje;
 import com.sigeclin.clinico.repository.TriajeRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class TriajeService {
+public class TriajeService implements ITriajeService {
 
     private final TriajeRepository triajeRepository;
 

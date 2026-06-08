@@ -1,8 +1,9 @@
 package com.sigeclin.clinico.controller;
 
-import com.sigeclin.clinico.service.HistoriaClinicaService;
-import com.sigeclin.clinico.service.AuditoriaService;
+import com.sigeclin.clinico.service.IHistoriaClinicaService;
+import com.sigeclin.clinico.service.IAuditoriaService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,13 +12,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Controller
 @RequestMapping("/clinico/historia")
 @RequiredArgsConstructor
 public class HistoriaClinicaController {
 
-    private final HistoriaClinicaService historiaClinicaService;
-    private final AuditoriaService auditoriaService;
+    private final IHistoriaClinicaService historiaClinicaService;
+    private final IAuditoriaService auditoriaService;
 
     @GetMapping("/{idPaciente}")
     public String verHistoriaClinica(@PathVariable Integer idPaciente, Model model) {

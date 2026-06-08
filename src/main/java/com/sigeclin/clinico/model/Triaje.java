@@ -3,6 +3,8 @@ package com.sigeclin.clinico.model;
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.model.Usuario;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,6 +21,7 @@ public class Triaje {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_paciente", nullable = false)
+    @NotNull(message = "El paciente es obligatorio")
     private Paciente paciente;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -42,7 +45,10 @@ public class Triaje {
     @Column(insertable = false, updatable = false)
     private String clasificacionNutricional;
 
+    @NotBlank(message = "La clasificación de urgencia es obligatoria")
     private String clasificacionUrgencia;
+
+    @NotBlank(message = "El servicio destino es obligatorio")
     private String servicioDestino;
     private String observaciones;
 

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://sigeclin/bpmn">
+  <process id="flujo_atencion" name="Flujo de Atención SIGECLIN" isExecutable="false">
+
+    <!-- Start -->
+    <startEvent id="start" name="Paciente llega al centro"/>
+    <sequenceFlow id="sf1" sourceRef="start" targetRef="admission"/>
+
+    <!-- Admisión -->
+    <task id="admission" name="Admisión: Registrar paciente"/>
+    <sequenceFlow id="sf2" sourceRef="admission" targetRef="caja"/>
+
+    <!-- Caja -->
+    <task id="caja" name="Caja: Procesar pago"/>
+    <sequenceFlow id="sf3" sourceRef="caja" targetRef="gw_existe"/>
+
+    <!-- Gateway: ¿Paciente existe? -->
+    <exclusiveGateway id="gw_existe" name="¿Pago exitoso?"/>
+    <sequenceFlow id="sf4" sourceRef="gw_existe" targetRef="triaje">
+      <conditionExpression xsi:type="tFormalExpression">true</conditionExpression>
+    </sequenceFlow>
+
+    <!-- Triaje -->
+    <task id="triaje" name="Triaje: Evaluación de signos vitales"/>
+    <sequenceFlow id="sf5" sourceRef="triaje" targetRef="gw_alerta"/>
+
+    <!-- Gateway: ¿Alerta clínica? -->
+    <exclusiveGateway id="gw_alerta" name="¿Alerta clínica?"/>
+    <sequenceFlow id="sf6" sourceRef="gw_alerta" targetRef="consulta">
+      <conditionExpression xsi:type="tFormalExpression">not hasAlert</conditionExpression>
+    </sequenceFlow>
+
+    <!-- Consulta -->
+    <task id="consulta" name="Consulta: Atención médica"/>
+    <sequenceFlow id="sf7" sourceRef="consulta" targetRef="gw_diagnostico"/>
+
+    <!-- Gateway: ¿Diagnóstico o receta? -->
+    <exclusiveGateway id="gw_diagnostico" name="¿Requiere receta?"/>
+    <sequenceFlow id="sf8" sourceRef="gw_diagnostico" targetRef="receta">
+      <conditionExpression xsi:type="tFormalExpression">hasPrescription</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="sf9" sourceRef="gw_diagnostico" targetRef="fin">
+      <conditionExpression xsi:type="tFormalExpression">not hasPrescription</conditionExpression>
+    </sequenceFlow>
+
+    <!-- Receta -->
+    <task id="receta" name="Receta: Emitir prescripción"/>
+    <sequenceFlow id="sf10" sourceRef="receta" targetRef="fin"/>
+
+    <!-- End -->
+    <endEvent id="fin" name="Paciente atendido"/>
+
+  </process>
+</definitions>

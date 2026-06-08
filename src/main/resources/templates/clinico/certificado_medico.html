@@ -6,18 +6,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
         @media print {
             .no-print { display: none !important; }
             body { background: white !important; padding: 0 !important; }
             .certificate-container { border: none !important; box-shadow: none !important; margin: 0 !important; }
         }
-        
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background-color: #f4f7f6;
-            font-family: 'Times New Roman', Times, serif;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
             display: flex;
             justify-content: center;
             padding: 40px 20px;
+            min-height: 100vh;
         }
 
         .certificate-container {
@@ -25,75 +30,80 @@
             min-height: 297mm;
             background: white;
             padding: 20mm;
-            border: 2px solid #5d0c0c;
+            border: 2px solid #1066e4;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.9)), url('https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Logo_del_Colegio_M%C3%A9dico_del_Per%C3%BA.svg/1200px-Logo_del_Colegio_M%C3%A9dico_del_Per%C3%BA.svg.png');
-            background-size: 60% auto;
+            box-shadow: 0 20px 60px rgba(16, 102, 228, 0.12);
+            background-image: linear-gradient(rgba(255,255,255,0.95), rgba(255,255,255,0.95)), url('/img/cmp_logo.svg');
+            background-size: 50% auto;
             background-repeat: no-repeat;
             background-position: center;
             background-blend-mode: overlay;
+            border-radius: 4px;
         }
 
         .outer-border {
-            border: 5px double #5d0c0c;
+            border: 4px double #1066e4;
             height: 100%;
             width: 100%;
-            padding: 10mm;
+            padding: 12mm;
             position: relative;
+            border-radius: 2px;
         }
 
         .header-cert {
             text-align: center;
-            border-bottom: 3px solid #5d0c0c;
+            border-bottom: 3px solid #1066e4;
             padding-bottom: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .header-cert h1 {
-            font-size: 32pt;
-            color: #5d0c0c;
+            font-size: 30pt;
+            color: #1066e4;
             margin: 0;
-            font-weight: bold;
-            letter-spacing: 2px;
+            font-weight: 800;
+            letter-spacing: 3px;
+            text-transform: uppercase;
         }
 
         .header-cert h2 {
-            font-size: 16pt;
-            color: #333;
-            margin-top: 10px;
+            font-size: 14pt;
+            color: #475569;
+            margin-top: 8px;
+            font-weight: 600;
         }
 
         .certifica-label {
-            font-size: 24pt;
+            font-size: 22pt;
             font-style: italic;
-            color: #5d0c0c;
-            margin-bottom: 30px;
-            font-weight: bold;
+            color: #1066e4;
+            margin-bottom: 25px;
+            font-weight: 700;
         }
 
         .content-body {
-            font-size: 14pt;
+            font-size: 13pt;
             line-height: 2;
             text-align: justify;
-            color: #222;
+            color: #1e293b;
         }
 
         .field-label {
-            font-weight: bold;
-            color: #5d0c0c;
+            font-weight: 700;
+            color: #1066e4;
         }
 
         .underline-field {
-            border-bottom: 1px dotted #333;
+            border-bottom: 2px solid #e2e8f0;
             display: inline-block;
-            min-width: 100px;
+            min-width: 120px;
             padding: 0 10px;
-            font-weight: normal;
+            font-weight: 600;
+            color: #0f172a;
         }
 
         .footer-cert {
-            margin-top: 100px;
+            margin-top: 80px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -101,12 +111,13 @@
 
         .signature-box {
             text-align: center;
-            width: 250px;
+            width: 280px;
         }
 
         .signature-line {
-            border-top: 2px solid #333;
+            border-top: 2px solid #1066e4;
             margin-bottom: 10px;
+            width: 100%;
         }
 
         .watermark {
@@ -114,7 +125,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            opacity: 0.05;
+            opacity: 0.04;
             z-index: 0;
             width: 500px;
         }
@@ -123,10 +134,11 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            color: #d32f2f;
-            font-weight: bold;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 16pt;
+            color: #1066e4;
+            font-weight: 800;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14pt;
+            letter-spacing: 1px;
         }
 
         .btn-print {
@@ -134,24 +146,43 @@
             bottom: 30px;
             right: 30px;
             z-index: 100;
-            padding: 15px 30px;
+            padding: 15px 35px;
             border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(16, 102, 228, 0.3);
+            background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%);
+            border: none;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-print:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(16, 102, 228, 0.4);
         }
     </style>
 </head>
 <body>
 
-    <button class="btn btn-primary btn-print no-print" onclick="window.print()">
-        <i class="bi bi-printer-fill me-2"></i> IMPRIMIR CERTIFICADO
-    </button>
+    <!-- Barra de Herramientas No Imprimible -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: #ffffff; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(0,0,0,0.12); width: 240px; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <h6 class="mb-3 fw-800 text-center" style="font-size: 0.8rem; color: #1e293b; letter-spacing: 0.5px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase;">Opciones de Impresión</h6>
+        <button onclick="window.print()" class="btn w-100 rounded-pill py-2.5 fw-800 mb-2 shadow-sm border-0" 
+                style="background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%); color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;">
+            <i class="bi bi-printer-fill"></i> IMPRIMIR CERTIFICADO
+        </button>
+        <button onclick="window.close()" class="btn w-100 rounded-pill py-2.5 fw-800 border-0" 
+                style="background: #f1f5f9; color: #475569; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;"
+                onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            <i class="bi bi-x-circle"></i> SALIR
+        </button>
+    </div>
 
     <div class="certificate-container">
         <div class="outer-border">
             <div class="serial-number" id="serialNo">№ 0023301</div>
             
             <div class="header-cert">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/Logo_del_Colegio_M%C3%A9dico_del_Per%C3%BA.svg/1200px-Logo_del_Colegio_M%C3%A9dico_del_Per%C3%BA.svg.png" alt="CMP" style="height: 80px; margin-bottom: 10px;">
+                <img src="/img/cmp_logo.svg" alt="CMP" style="height: 80px; margin-bottom: 10px;">
                 <h1>CERTIFICADO MÉDICO</h1>
                 <h2>Centro de Salud CLAS - Grocio Prado</h2>
             </div>
@@ -163,7 +194,7 @@
                     Que el suscrito, médico cirujano con CMP N° <span id="certCMP" class="underline-field">---------</span>, 
                     después de haber examinado clínicamente a don (ña): 
                     <br>
-                    <span id="certPaciente" class="underline-field" style="width: 100%; font-size: 18pt; font-weight: bold;">----------------------------------------------------------</span>
+                    <span id="certPaciente" class="underline-field" style="width: 100%; font-size: 16pt; font-weight: 700;">----------------------------------------------------------</span>
                     <br>
                     Identificado con DNI N° <span id="certDNI" class="underline-field">---------</span> y con <span id="certEdad" class="underline-field">---</span> años de edad.
                 </p>
@@ -171,7 +202,7 @@
                 <p>
                     Se le ha diagnosticado: 
                     <br>
-                    <span id="certDiag" class="underline-field" style="width: 100%; font-weight: bold;">----------------------------------------------------------</span>
+                    <span id="certDiag" class="underline-field" style="width: 100%; font-weight: 700;">----------------------------------------------------------</span>
                 </p>
 
                 <p>
@@ -192,35 +223,71 @@
                 
                 <div class="signature-box">
                     <div class="signature-line"></div>
-                    <div class="fw-bold" id="certMedico">Dr. ------------------</div>
-                    <div class="small">Médico Tratante</div>
-                    <div class="small" id="certCMPFooter">CMP: ---------</div>
+                    <div class="fw-700" id="certMedico" style="color: #1e293b;">Dr. ------------------</div>
+                    <div class="small text-muted">Médico Tratante</div>
+                    <div class="small fw-700 text-primary" id="certCMPFooter">CMP: ---------</div>
                 </div>
             </div>
             
-            <div style="position: absolute; bottom: 20px; left: 20px; font-size: 10pt; color: #777;">
+            <div style="position: absolute; bottom: 20px; left: 20px; font-size: 10pt; color: #94a3b8;">
                 <i>Tu colegio a tu servicio</i>
             </div>
         </div>
     </div>
 
     <script>
+        function renderCertificate(data) {
+            document.getElementById('certPaciente').textContent = data.paciente;
+            document.getElementById('certDNI').textContent = data.dni;
+            document.getElementById('certEdad').textContent = data.edad;
+            document.getElementById('certDiag').textContent = data.diagnostico;
+            document.getElementById('certObs').textContent = data.observaciones;
+            document.getElementById('certFecha').textContent = data.fecha;
+            document.getElementById('certMedico').textContent = data.medico;
+            document.getElementById('certCMP').textContent = data.cmp;
+            document.getElementById('certCMPFooter').textContent = 'CMP: ' + data.cmp;
+            
+            const randomSerial = '№ ' + Math.floor(Math.random() * 900000 + 100000);
+            document.getElementById('serialNo').textContent = randomSerial;
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
-            const data = JSON.parse(localStorage.getItem('current_certificate'));
-            if (data) {
-                document.getElementById('certPaciente').textContent = data.paciente;
-                document.getElementById('certDNI').textContent = data.dni;
-                document.getElementById('certEdad').textContent = data.edad;
-                document.getElementById('certDiag').textContent = data.diagnostico;
-                document.getElementById('certObs').textContent = data.observaciones;
-                document.getElementById('certFecha').textContent = data.fecha;
-                document.getElementById('certMedico').textContent = data.medico;
-                document.getElementById('certCMP').textContent = data.cmp;
-                document.getElementById('certCMPFooter').textContent = 'CMP: ' + data.cmp;
-                
-                // Generar un número de serie aleatorio similar al de la imagen
-                const randomSerial = '№ ' + Math.floor(Math.random() * 900000 + 100000);
-                document.getElementById('serialNo').textContent = randomSerial;
+            const urlParams = new URLSearchParams(window.location.search);
+            const idConsulta = urlParams.get('idConsulta');
+            
+            if (idConsulta) {
+                fetch('/consulta/api/detalle/' + idConsulta)
+                    .then(r => { if(!r.ok) throw new Error('Error al obtener detalle'); return r.json(); })
+                    .then(c => {
+                        let parsedDate = new Date(c.fechaHoraInicio);
+                        if (Array.isArray(c.fechaHoraInicio)) {
+                            parsedDate = new Date(c.fechaHoraInicio[0], c.fechaHoraInicio[1]-1, c.fechaHoraInicio[2], c.fechaHoraInicio[3]||0, c.fechaHoraInicio[4]||0);
+                        }
+                        const formattedDate = parsedDate.toLocaleDateString('es-PE', { day: '2-digit', month: 'long', year: 'numeric' });
+                        
+                        const pac = c.paciente;
+                        const medicoName = 'Dr(a). ' + (c.medico?.nombres || '') + ' ' + (c.medico?.apellidoPaterno || '');
+                        const data = {
+                            paciente: `${pac.apellidoPaterno} ${pac.apellidoMaterno || ''}, ${pac.nombres}`.toUpperCase(),
+                            dni: pac.numeroDocumento,
+                            edad: pac.edad || '---',
+                            diagnostico: (c.diagnosticos && c.diagnosticos.length > 0) ? (c.diagnosticos[0].cie10.codigo + ' - ' + c.diagnosticos[0].cie10.descripcion) : 'Sin diagnóstico',
+                            observaciones: c.planTratamiento || 'Paciente se encuentra en reposo.',
+                            fecha: formattedDate,
+                            medico: medicoName,
+                            cmp: c.medico?.numeroColegiatura || '------'
+                        };
+                        renderCertificate(data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('No se pudo cargar el certificado del historial: ' + err.message);
+                    });
+            } else {
+                const data = JSON.parse(localStorage.getItem('current_certificate'));
+                if (data) {
+                    renderCertificate(data);
+                }
             }
         });
     </script>

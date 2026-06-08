@@ -25,4 +25,7 @@ public class Cie10 {
 
     @Column(name = "activo")
     private Boolean activo = true;
+
+    @Column(name = "servicios", length = 255)
+    private String servicios;
 }

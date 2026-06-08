@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Paciente extends Persona {
     
-    @Column(unique = true, nullable = false)
     private String numeroHistoriaClinica;
 
     private String grupoSanguineo;

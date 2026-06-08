@@ -13,9 +13,85 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" th:href="@{/css/main.css(v='3.2')}">
+    <style>
+        .btn-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; }
+        .btn-success:hover { background: linear-gradient(135deg, #059669 0%, #047857 100%); transform: translateY(-1px); }
+        .btn-outline-success { color: #059669; border-color: #059669; }
+        .btn-outline-success:hover { background-color: #059669; color: white; }
+
+        /* Custom Sidebar Sizing */
+        #sidebar .sidebar-link {
+            padding: 0.4rem 1.25rem !important;
+            font-size: 0.8rem !important;
+            margin-bottom: 0.1rem !important;
+        }
+        #sidebar .sidebar-link i {
+            font-size: 1.05rem !important;
+        }
+        #sidebar .sidebar-category {
+            font-size: 0.65rem !important;
+            padding: 0.6rem 1.25rem 0.2rem !important;
+            margin-bottom: 0.1rem !important;
+            letter-spacing: 0.5px;
+        }
+        #sidebar .sidebar-brand-name {
+            font-size: 1rem !important;
+            margin-bottom: 0 !important;
+        }
+        #sidebar .sidebar-brand-sub {
+            font-size: 0.65rem !important;
+        }
+        #sidebar .sidebar-logo-circle {
+            width: 32px !important;
+            height: 32px !important;
+        }
+        #sidebar .sidebar-logo-circle i {
+            font-size: 1rem !important;
+        }
+        #sidebar .mb-4.px-3 {
+            margin-bottom: 0.75rem !important;
+        }
+    </style>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // System-wide SweetAlert2 standardization
+        if (typeof Swal !== 'undefined') {
+            const originalFire = Swal.fire;
+            Swal.fire = function(...args) {
+                if (args[0] && typeof args[0] === 'object') {
+                    // Redirect hardcoded legacy colors to dynamic CSS variables
+                    const cColor = args[0].confirmButtonColor;
+                    if (cColor === '#4f46e5' || cColor === '#7f56da' || !cColor) {
+                        args[0].confirmButtonColor = 'var(--primary)';
+                    } else if (cColor === '#ef4444' || cColor === '#d32f2f') {
+                        args[0].confirmButtonColor = 'var(--danger)';
+                    } else if (cColor === '#10b981') {
+                        args[0].confirmButtonColor = 'var(--success)';
+                    } else if (cColor === '#ffc107' || cColor === '#d97706') {
+                        args[0].confirmButtonColor = 'var(--warning)';
+                    } else if (cColor === '#0ea5e9') {
+                        args[0].confirmButtonColor = 'var(--info)';
+                    }
+
+                    const canColor = args[0].cancelButtonColor;
+                    if (canColor === '#ef4444' || canColor === '#94a3b8' || canColor === '#6c757d') {
+                        args[0].cancelButtonColor = 'var(--danger)';
+                    }
+
+                    // Inject premium CSS glass layout styles
+                    if (!args[0].customClass) {
+                        args[0].customClass = {};
+                    }
+                    if (!args[0].customClass.popup) {
+                        args[0].customClass.popup = 'glass-panel-premium shadow-premium border border-light rounded-4';
+                    }
+                }
+                return originalFire.apply(this, args);
+            };
+        }
+    </script>
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -79,21 +155,21 @@
         </button>
 
         <div class="mb-4 px-3">
-            <div class="d-flex align-items-center gap-2">
-                <div class="bg-primary p-2 rounded-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="sidebar-logo-circle">
                     <i class="bi bi-shield-plus text-white fs-4"></i>
                 </div>
                 <div class="sidebar-logo-text">
-                    <h2 class="fs-5 fw-800 mb-0 text-dark">SIGECLIN</h2>
-                    <p class="text-muted" style="font-size: 0.65rem; margin: 0;">Grocio Prado</p>
+                    <h2 class="sidebar-brand-name">SIGECLIN</h2>
+                    <p class="sidebar-brand-sub">Grocio Prado</p>
                 </div>
             </div>
         </div>
 
         <nav class="flex-grow-1 overflow-y-auto custom-scrollbar">
             <!-- GENERAL -->
-            <div class="sidebar-category">Principal</div>
-            <a th:href="@{/dashboard}" class="sidebar-link">
+            <div class="sidebar-category" sec:authorize="hasRole('ADMIN')">Principal</div>
+            <a th:href="@{/dashboard}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-grid-1x2"></i> <span>DASHBOARD</span>
             </a>
 
@@ -131,17 +207,17 @@
             </a>
 
             <!-- APOYO DIAGNÓSTICO -->
-            <div class="sidebar-category">Apoyo Diagnóstico</div>
-            <a th:href="@{/apoyo/laboratorio}" class="sidebar-link">
+            <div class="sidebar-category" sec:authorize="hasRole('ADMIN')">Apoyo Diagnóstico</div>
+            <a th:href="@{/apoyo/laboratorio}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-search"></i> <span>Laboratorio</span>
             </a>
-            <a th:href="@{/apoyo/farmacia}" class="sidebar-link">
+            <a th:href="@{/apoyo/farmacia/catalogo}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-capsule"></i> <span>Farmacia</span>
             </a>
 
             <!-- GESTIÓN -->
             <div class="sidebar-category">Gestión</div>
-            <a th:href="@{/personal/lista}" class="sidebar-link" sec:authorize="hasAnyRole('ADMIN', 'MEDICO_GENERAL', 'ENFERMERIA')">
+            <a th:href="@{/personal/lista}" class="sidebar-link" sec:authorize="hasRole('ADMIN')">
                 <i class="bi bi-people"></i> <span>Personal</span>
             </a>
             <a th:href="@{/pacientes/lista}" class="sidebar-link">
@@ -150,8 +226,7 @@
         </nav>
         
         <div class="profile-footer d-flex align-items-center gap-3">
-            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold text-uppercase" 
-                 style="width: 38px; height: 38px;"
+            <div class="user-avatar-initial" 
                  th:text="${#authentication.name.substring(0,1)}">
                 U
             </div>
@@ -170,7 +245,7 @@
         </div>
     </aside>
 
-    <main class="main-wrapper" id="mainWrapper" th:fragment="main(pageTitle, content, modals)">
+    <main class="main-wrapper" id="mainWrapper" th:fragment="main(pageTitle, content)">
         <header class="top-nav animate-fade-in">
             <div>
                 <h1 class="fs-3 fw-800 mb-1" th:text="${pageTitle}">Title</h1>
@@ -183,10 +258,15 @@
                 </button>
                 
                 <div class="d-flex gap-3 align-items-center">
-                    <div class="position-relative cursor-pointer"><i class="bi bi-bell text-muted fs-5"></i></div>
-                    <div class="cursor-pointer"><i class="bi bi-chat-dots text-muted fs-5"></i></div>
+                    <div class="position-relative cursor-pointer" id="bellIcon" onclick="toggleNotifications(event)">
+                        <i class="bi bi-bell text-muted fs-5"></i>
+                        <span class="notification-badge" id="notifBadge" style="display:none;">0</span>
+                    </div>
+                    <div class="cursor-pointer position-relative" id="chatIcon" onclick="openChat(event)">
+                        <i class="bi bi-chat-dots text-muted fs-5"></i>
+                    </div>
                     <div class="vr mx-2 opacity-10"></div>
-                    <div class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-bold">Administrador</div>
+                    <div class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-bold" id="userRoleBadge" th:data-role="${#authentication.authorities.isEmpty() ? '' : #authentication.authorities[0].authority}" th:text="${#authentication.authorities.isEmpty() ? 'SIN ROL' : #authentication.authorities[0].authority.replace('ROLE_', '').replace('_', ' ')}">Administrador</div>
                 </div>
             </div>
         </header>
@@ -194,15 +274,11 @@
         <div th:replace="${content}"></div>
     </main>
 
-    <div id="modal-container">
-        <div th:if="${modals}" th:replace="${modals}"></div>
-    </div>
-
     <footer th:fragment="footer">
         <div th:if="${success}" id="swal-success" th:data-message="${success}" style="display:none;"></div>
         <div th:if="${error}" id="swal-error" th:data-message="${error}" style="display:none;"></div>
         
-        <script th:inline="javascript">
+        <script>
             function showNotifications() {
                 if (typeof Swal === 'undefined') {
                     setTimeout(showNotifications, 200);
@@ -221,27 +297,228 @@
                                     : ("Operación completada con éxito. " + (hcParam ? "HC: " + hcParam : ""));
                                     
                     Swal.fire({
-                        title: '¡Operación Exitosa!',
-                        text: message,
-                        icon: 'success',
-                        confirmButtonColor: '#4f46e5',
+                        title: '<div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-block mb-3" style="background-color: rgba(16, 185, 129, 0.1) !important;"><i class="bi bi-check2-circle text-success fs-1"></i></div>',
+                        html: `
+                            <h4 class="fw-800 text-dark mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem;">¡OPERACIÓN EXITOSA!</h4>
+                            <p class="text-muted small px-3 mb-0" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;">${message}</p>
+                        `,
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: 'var(--primary)',
                         timer: 5000,
-                        timerProgressBar: true
+                        timerProgressBar: true,
+                        customClass: {
+                            popup: 'rounded-5 border-0 shadow-premium p-4',
+                            confirmButton: 'fw-800 rounded-pill px-5 py-2.5 shadow-glow',
+                            timerProgressBar: 'bg-success'
+                        }
                     });
                 }
 
                 if ((errorEl && errorEl.dataset.message) || urlParams.get('error')) {
                     const message = (errorEl && errorEl.dataset.message) ? errorEl.dataset.message : "Ocurrió un error.";
                     Swal.fire({
-                        title: 'Atención',
-                        text: message,
-                        icon: 'warning',
-                        confirmButtonColor: '#ef4444'
+                        title: '<div class="bg-warning bg-opacity-10 p-3 rounded-circle d-inline-block mb-3" style="background-color: rgba(217, 119, 6, 0.1) !important;"><i class="bi bi-exclamation-triangle text-warning fs-1"></i></div>',
+                        html: `
+                            <h4 class="fw-800 text-dark mb-2" style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem;">ATENCIÓN</h4>
+                            <p class="text-muted small px-3 mb-0" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;">${message}</p>
+                        `,
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: '#d97706',
+                        customClass: {
+                            popup: 'rounded-5 border-0 shadow-premium p-4',
+                            confirmButton: 'fw-800 rounded-pill px-5 py-2.5 shadow-glow'
+                        }
                     });
                 }
             }
 
             document.addEventListener('DOMContentLoaded', showNotifications);
+
+            // ===== NOTIFICACIONES Y CHAT =====
+            function toggleNotifications(event) {
+                event.stopPropagation();
+                fetch('/api/dashboard/stats')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.error) {
+                            Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: 'var(--primary)' });
+                            return;
+                        }
+                        const role = document.getElementById('userRoleBadge')?.getAttribute('data-role') || '';
+                        let html = '<div style="text-align:left;">';
+                        let hasNotifications = false;
+
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_TRIAJE' || role === 'ROLE_ADMISION') {
+                            if (data.triajeCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-heart-pulse text-primary"></i><span><strong>${data.triajeCount}</strong> paciente(s) pendiente(s) de Triaje</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_MEDICO_GENERAL') {
+                            if (data.medicinaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-hospital text-primary"></i><span><strong>${data.medicinaCount}</strong> paciente(s) en espera de Medicina General</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_ODONTOLOGIA') {
+                            if (data.odontologiaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-brightness-high text-primary"></i><span><strong>${data.odontologiaCount}</strong> paciente(s) en espera de Odontología</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_ENFERMERIA') {
+                            if (data.enfermeriaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-people text-primary"></i><span><strong>${data.enfermeriaCount}</strong> paciente(s) en espera de Enfermería</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_OBSTETRICIA') {
+                            if (data.obstetriciaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-gender-female text-primary"></i><span><strong>${data.obstetriciaCount}</strong> paciente(s) en espera de Obstetricia</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_PSICOLOGIA') {
+                            if (data.psicologiaCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-person-gear text-primary"></i><span><strong>${data.psicologiaCount}</strong> paciente(s) en espera de Psicología</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_NUTRICION') {
+                            if (data.nutricionCount > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-apple text-primary"></i><span><strong>${data.nutricionCount}</strong> paciente(s) en espera de Nutrición</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+                        if (role === 'ROLE_ADMIN' || role === 'ROLE_FARMACIA') {
+                            if (data.recetasPendientes > 0) {
+                                html += `<div class="d-flex align-items-center gap-3 p-2 border-bottom"><i class="bi bi-capsule text-primary"></i><span><strong>${data.recetasPendientes}</strong> receta(s) pendiente(s) de dispensar</span></div>`;
+                                hasNotifications = true;
+                            }
+                        }
+
+                        if (!hasNotifications) {
+                            html += '<div class="text-muted text-center py-3"><i class="bi bi-check2-all fs-3 d-block mb-2"></i>No hay notificaciones pendientes</div>';
+                        }
+                        html += '</div>';
+                        Swal.fire({
+                            title: '<i class="bi bi-bell me-2 text-primary"></i> Notificaciones del Sistema',
+                            html: html,
+                            confirmButtonText: 'Cerrar',
+                            confirmButtonColor: 'var(--primary)',
+                            width: 420
+                        });
+                    })
+                    .catch(() => Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: 'var(--primary)' }));
+            }
+
+            function openChat(event) {
+                event.stopPropagation();
+                Swal.fire({
+                    title: '<i class="bi bi-chat-dots me-2 text-primary"></i> Mensajería Interna',
+                    html: `<div style="text-align:left;">
+                        <p class="text-muted mb-3">Sistema de mensajería entre usuarios administrativos. Envíe su consulta y será respondida a la brevedad.</p>
+                        <div class="mb-3">
+                            <label class="fw-700 small text-muted mb-1">Mensaje</label>
+                            <textarea id="chatMessageInput" class="form-control" rows="3" placeholder="Escriba su mensaje..." style="border-radius:12px;border:1.5px solid #e2e8f0;padding:12px;font-size:0.9rem;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="fw-700 small text-muted mb-1">Destinatario</label>
+                            <select id="chatRecipientInput" class="form-select" style="border-radius:12px;border:1.5px solid #e2e8f0;padding:12px;">
+                                <option value="admin">Administrador del Sistema</option>
+                                <option value="soporte">Soporte Técnico</option>
+                            </select>
+                        </div>
+                    </div>`,
+                    confirmButtonText: '<i class="bi bi-send me-1"></i> Enviar Mensaje',
+                    confirmButtonColor: 'var(--primary)',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar',
+                    cancelButtonColor: '#94a3b8',
+                    width: 450,
+                    preConfirm: () => {
+                        const msg = document.getElementById('chatMessageInput').value.trim();
+                        if (!msg) {
+                            Swal.showValidationMessage('Escriba un mensaje');
+                            return false;
+                        }
+                        return msg;
+                    }
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Mensaje Enviado',
+                            text: 'Su mensaje ha sido registrado. Recibirá respuesta pronto.',
+                            confirmButtonColor: 'var(--primary)',
+                            timer: 3000,
+                            timerProgressBar: true
+                        });
+                    }
+                });
+            }
+
+            function checkNotifications() {
+                fetch('/api/dashboard/stats')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.error) return;
+                        const role = document.getElementById('userRoleBadge')?.getAttribute('data-role') || '';
+                        let total = 0;
+
+                        if (role === 'ROLE_ADMIN') {
+                            total = (data.triajeCount || 0) + 
+                                    (data.medicinaCount || 0) + 
+                                    (data.odontologiaCount || 0) + 
+                                    (data.enfermeriaCount || 0) + 
+                                    (data.obstetriciaCount || 0) + 
+                                    (data.psicologiaCount || 0) + 
+                                    (data.nutricionCount || 0) + 
+                                    (data.recetasPendientes || 0);
+                        } else if (role === 'ROLE_TRIAJE' || role === 'ROLE_ADMISION') {
+                            total = (data.triajeCount || 0);
+                        } else if (role === 'ROLE_MEDICO_GENERAL') {
+                            total = (data.medicinaCount || 0);
+                        } else if (role === 'ROLE_ENFERMERIA') {
+                            total = (data.enfermeriaCount || 0);
+                        } else if (role === 'ROLE_ODONTOLOGIA') {
+                            total = (data.odontologiaCount || 0);
+                        } else if (role === 'ROLE_OBSTETRICIA') {
+                            total = (data.obstetriciaCount || 0);
+                        } else if (role === 'ROLE_PSICOLOGIA') {
+                            total = (data.psicologiaCount || 0);
+                        } else if (role === 'ROLE_NUTRICION') {
+                            total = (data.nutricionCount || 0);
+                        } else if (role === 'ROLE_FARMACIA') {
+                            total = (data.recetasPendientes || 0);
+                        }
+
+                        const badge = document.getElementById('notifBadge');
+                        if (total > 0) {
+                            badge.textContent = total > 99 ? '99+' : total;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    })
+                    .catch(() => {});
+            }
+
+            setInterval(checkNotifications, 30000);
+            setTimeout(checkNotifications, 1000);
+
+            // ===== RELOJ EN VIVO (HH:MM:SS) =====
+            function updateLiveClock() {
+                const el = document.getElementById('realClock');
+                if (!el) return;
+                const now = new Date();
+                el.textContent = 
+                    String(now.getHours()).padStart(2, '0') + ':' +
+                    String(now.getMinutes()).padStart(2, '0') + ':' +
+                    String(now.getSeconds()).padStart(2, '0');
+            }
+            updateLiveClock();
+            setInterval(updateLiveClock, 1000);
         </script>
     </footer>
 </body>

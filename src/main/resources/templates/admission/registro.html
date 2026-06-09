@@ -10,7 +10,7 @@
             <!-- TOP BAR: INTEGRATED SEARCH -->
             <div class="glass-header p-3 px-4 d-flex align-items-center justify-content-between shadow-sm">
                 <div class="d-flex align-items-center gap-3">
-                    <div class="bg-primary p-2 rounded-3 text-white shadow-glow">
+                    <div class="module-header-icon module-header-icon-sm rounded-3">
                         <i class="bi bi-person-vcard fs-4"></i>
                     </div>
                     <div>
@@ -51,6 +51,11 @@
                         </div>
                         <h4 class="fw-800 mb-1 text-uppercase" style="color: var(--text-main);" id="preview-name">ESPERANDO ACCIÓN</h4>
                         <p class="text-muted extra-small fw-800 text-uppercase tracking-wider mb-0" id="preview-dni">DNI / HISTORIA CLÍNICA</p>
+                        <div id="preview-service-badge" class="mt-2 d-none">
+                            <span class="badge bg-primary-soft text-primary rounded-pill fw-800 px-3 py-1.5" style="font-size: 0.75rem;">
+                                <i id="preview-service-icon" class="bi bi-hospital me-1"></i> <span id="preview-service-text">MEDICINA GENERAL</span>
+                            </span>
+                        </div>
                     </div>
 
                     <!-- SERVICE SELECTION -->
@@ -88,14 +93,31 @@
                 <div class="col-xl-8 col-lg-7 h-100 bg-deep overflow-y-auto custom-scrollbar p-3 p-lg-4">
                     <div id="formContainer" class="form-locked w-100 position-relative">
                         
-                        <!-- Lock Overlay -->
-                        <div class="form-lock-overlay">
-                            <div class="text-center p-5 glass-card-premium shadow-premium border border-light" style="max-width: 450px; border-radius: var(--radius-lg);">
+                        <!-- Lock Overlay & Skeleton Loader -->
+                        <div class="form-lock-overlay" id="formOverlay">
+                            <!-- Initial Lock State -->
+                            <div class="text-center p-5 glass-card-premium shadow-premium border border-light" id="lockState" style="max-width: 450px; border-radius: var(--radius-lg); transition: all 0.3s ease;">
                                 <div class="bg-primary-soft text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-4" style="width: 70px; height: 70px;">
                                     <i class="bi bi-search fs-2"></i>
                                 </div>
                                 <h5 class="fw-800 mb-2" style="color: var(--text-main);">Búsqueda de Paciente</h5>
                                 <p class="text-muted small mb-0">Use el buscador superior ingresando el <strong>DNI o Nro. de Historia Clínica</strong> del paciente para cargar su información o registrar un nuevo ingreso.</p>
+                            </div>
+                            
+                            <!-- Skeleton Loader State (Hidden by default) -->
+                            <div class="w-100 p-4 d-none" id="skeletonState">
+                                <div class="d-flex align-items-center gap-3 mb-4">
+                                    <div class="skeleton-glow rounded-circle" style="width: 50px; height: 50px;"></div>
+                                    <div class="skeleton-glow rounded-3" style="width: 200px; height: 24px;"></div>
+                                </div>
+                                <div class="row g-4">
+                                    <div class="col-md-4"><div class="skeleton-glow rounded-3" style="height: 50px;"></div></div>
+                                    <div class="col-md-4"><div class="skeleton-glow rounded-3" style="height: 50px;"></div></div>
+                                    <div class="col-md-4"><div class="skeleton-glow rounded-3" style="height: 50px;"></div></div>
+                                    <div class="col-md-6"><div class="skeleton-glow rounded-3" style="height: 50px;"></div></div>
+                                    <div class="col-md-6"><div class="skeleton-glow rounded-3" style="height: 50px;"></div></div>
+                                    <div class="col-12"><div class="skeleton-glow rounded-3 mt-3" style="height: 60px;"></div></div>
+                                </div>
                             </div>
                         </div>
 
@@ -218,6 +240,9 @@
             </div>
 
             <script th:inline="javascript">
+                // Variables for Debounce (Auto-Search)
+                let searchTimeout = null;
+
                 async function buscarPaciente() {
                     const query = document.getElementById('dniSearch').value;
                     if (!query) return;
@@ -225,9 +250,24 @@
                     const btnSearch = document.getElementById('btnSearch');
                     btnSearch.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
                     btnSearch.disabled = true;
+                    
+                    // Show Skeleton
+                    const formContainer = document.getElementById('formContainer');
+                    const formOverlay = document.getElementById('formOverlay');
+                    const lockState = document.getElementById('lockState');
+                    const skeletonState = document.getElementById('skeletonState');
+                    
+                    formContainer.classList.add('form-locked');
+                    formOverlay.style.display = 'flex';
+                    lockState.classList.add('d-none');
+                    skeletonState.classList.remove('d-none');
 
                     try {
+                        // Simulate network delay for smooth skeleton UX
+                        await new Promise(r => setTimeout(r, 600)); 
+                        
                         const response = await fetch(`/admission/api/buscar/${query}`);
+                        
                         if (response.ok) {
                             const data = await response.json();
                             Swal.fire({
@@ -237,17 +277,27 @@
                                 background: '#ffffff',
                                 borderRadius: '24px',
                                 confirmButtonColor: '#4f46e5',
-                                customClass: {
-                                    title: 'fw-800 text-dark',
-                                    popup: 'shadow-lg border-0'
-                                }
+                                timer: 2000,
+                                showConfirmButton: false,
+                                customClass: { title: 'fw-800 text-dark', popup: 'shadow-lg border-0' }
                             });
                             populateForm(data);
-                        } else {
+                        } else if (response.status === 404) {
                             showNotFoundPopup(query);
+                        } else {
+                            throw new Error(`Error del servidor (${response.status})`);
                         }
                     } catch (error) {
                         console.error('Error:', error);
+                        Swal.fire({
+                            title: 'Error de Conexión',
+                            text: 'No se pudo comunicar con el servidor. Intente nuevamente.',
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444'
+                        });
+                        // Revert to lock state
+                        skeletonState.classList.add('d-none');
+                        lockState.classList.remove('d-none');
                     } finally {
                         btnSearch.innerHTML = 'BUSCAR';
                         btnSearch.disabled = false;
@@ -256,7 +306,11 @@
 
                 function populateForm(p) {
                     document.getElementById('formContainer').classList.remove('form-locked');
-                    document.getElementById('btnGuardar').classList.remove('disabled');
+                    document.getElementById('formOverlay').style.display = 'none';
+                    
+                    const btnGuardar = document.getElementById('btnGuardar');
+                    btnGuardar.classList.remove('disabled');
+                    btnGuardar.classList.add('pulse-glow-btn');
                     
                     document.getElementById('field-idPersona').value = p.idPersona || '';
                     document.getElementById('field-hc').value = p.numeroHistoriaClinica || '';
@@ -301,6 +355,10 @@
                     }).then((result) => {
                         if (result.isConfirmed) {
                             enableNewPatientForm(dni);
+                        } else {
+                            // Revert to lock state
+                            document.getElementById('skeletonState').classList.add('d-none');
+                            document.getElementById('lockState').classList.remove('d-none');
                         }
                     });
                 }
@@ -315,7 +373,11 @@
                     updateCustomSelectFromNative();
                     
                     document.getElementById('formContainer').classList.remove('form-locked');
-                    document.getElementById('btnGuardar').classList.remove('disabled');
+                    document.getElementById('formOverlay').style.display = 'none';
+                    
+                    const btnGuardar = document.getElementById('btnGuardar');
+                    btnGuardar.classList.remove('disabled');
+                    btnGuardar.classList.add('pulse-glow-btn');
                     updatePreview('NUEVO', 'PACIENTE', dni, true);
                     document.getElementById('field-nombres').focus();
                 }
@@ -342,7 +404,23 @@
                     }
                 }
 
-                document.getElementById('dniSearch').addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarPaciente(); });
+                // Debounce / Auto-Search logic
+                document.getElementById('dniSearch').addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    clearTimeout(searchTimeout);
+                    if (val.length >= 8 && /^\d+$/.test(val)) {
+                        searchTimeout = setTimeout(() => {
+                            buscarPaciente();
+                        }, 800); // 800ms debounce
+                    }
+                });
+
+                document.getElementById('dniSearch').addEventListener('keypress', (e) => { 
+                    if (e.key === 'Enter') {
+                        clearTimeout(searchTimeout);
+                        buscarPaciente(); 
+                    }
+                });
 
                 // Mostrar mensaje de éxito si viene de una redirección
                 const urlParams = new URLSearchParams(window.location.search);
@@ -434,13 +512,127 @@
                     }
                 });
 
+                // Validación estricta de documentos (RF08, RF59, RF60)
+                const documentValidations = {
+                    'DNI': { regex: /^\d{8}$/, msg: 'El DNI debe tener exactamente 8 dígitos numéricos.' },
+                    'CNV': { regex: /^\d{8}$/, msg: 'El CNV debe tener exactamente 8 dígitos numéricos.' },
+                    'CE': { regex: /^[A-Za-z0-9]{1,15}$/, msg: 'El CE debe ser alfanumérico (máx 15 caracteres).' },
+                    'PASS': { regex: /^[A-Za-z0-9]{1,15}$/, msg: 'El Pasaporte debe ser alfanumérico (máx 15 caracteres).' },
+                    'DIE': { regex: /^[A-Za-z0-9]{1,10}$/, msg: 'El DIE debe ser alfanumérico (máx 10 caracteres).' },
+                    'S/DOCUMENTO': { regex: /^[A-Za-z0-9]{1,10}$/, msg: 'S/DOCUMENTO debe ser alfanumérico (máx 10 caracteres).' }
+                };
+
+                function validateDocumentFormat() {
+                    const docInput = document.getElementById('field-dni');
+                    const tipoSelect = document.getElementById('field-tipoDoc');
+                    const selectedOpt = tipoSelect.options[tipoSelect.selectedIndex];
+                    
+                    if (!selectedOpt || !selectedOpt.value) return;
+                    
+                    const code = selectedOpt.text.split(' - ')[0]; // Extract DNI, CE, etc.
+                    const valConfig = documentValidations[code];
+                    
+                    if (valConfig) {
+                        if (!valConfig.regex.test(docInput.value)) {
+                            docInput.setCustomValidity(valConfig.msg);
+                            docInput.classList.add('is-invalid');
+                            docInput.classList.remove('is-valid');
+                        } else {
+                            docInput.setCustomValidity('');
+                            docInput.classList.remove('is-invalid');
+                            docInput.classList.add('is-valid');
+                        }
+                    } else {
+                        docInput.setCustomValidity('');
+                        docInput.classList.remove('is-invalid');
+                        docInput.classList.add('is-valid');
+                    }
+                }
+
+                document.getElementById('field-dni').addEventListener('input', validateDocumentFormat);
+                document.getElementById('field-tipoDoc').addEventListener('change', validateDocumentFormat);
+
+
+                function updateServicePreview() {
+                    const selectedRadio = document.querySelector('input[name="servicio"]:checked');
+                    const previewBadge = document.getElementById('preview-service-badge');
+                    const previewBadgeText = document.getElementById('preview-service-text');
+                    const previewBadgeIcon = document.getElementById('preview-service-icon');
+                    
+                    if (selectedRadio && previewBadge) {
+                        const serv = selectedRadio.value;
+                        previewBadgeText.innerText = serv.toUpperCase();
+                        
+                        let icon = 'bi-hospital';
+                        if (serv === 'Enfermería') icon = 'bi-heart-pulse';
+                        else if (serv === 'Obstetricia') icon = 'bi-gender-female';
+                        else if (serv === 'Odontología') icon = 'bi-brightness-high';
+                        else if (serv === 'Psicología') icon = 'bi-person-gear';
+                        else if (serv === 'Nutrición') icon = 'bi-apple';
+                        
+                        previewBadgeIcon.className = `bi ${icon} me-1`;
+                        previewBadge.classList.remove('d-none');
+                    }
+                }
+
                 // Initialize on load
                 document.addEventListener('DOMContentLoaded', () => {
                     updateCustomSelectFromNative();
+                    updateServicePreview();
+                    document.querySelectorAll('input[name="servicio"]').forEach(radio => {
+                        radio.addEventListener('change', updateServicePreview);
+                    });
                 });
             </script>
 
-            <!-- Estilos del módulo migrados a main.css -->
+            <style>
+                /* Skeleton Loader Styles */
+                .skeleton-glow {
+                    background: linear-gradient(90deg, var(--bg-card) 25%, var(--border) 50%, var(--bg-card) 75%);
+                    background-size: 200% 100%;
+                    animation: skeleton-loading 1.5s infinite;
+                    border: 1px solid rgba(0,0,0,0.05);
+                }
+                @keyframes skeleton-loading {
+                    0% { background-position: 200% 0; }
+                    100% { background-position: -200% 0; }
+                }
+
+                /* Service Card Micro-Animations */
+                .service-card-premium {
+                    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+                    cursor: pointer;
+                    border: 2px solid transparent;
+                }
+                .service-card-premium:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 10px 25px var(--primary-shadow-20) !important;
+                    border-color: var(--primary-shadow-30);
+                }
+                .btn-check:checked + .service-card-premium {
+                    background: var(--primary-soft);
+                    border-color: var(--primary);
+                    box-shadow: 0 8px 32px var(--primary-shadow-20) !important;
+                }
+                .btn-check:checked + .service-card-premium .service-icon-premium {
+                    background: var(--primary);
+                    color: white;
+                    transform: scale(1.1);
+                }
+                .service-icon-premium {
+                    transition: all 0.3s ease;
+                }
+
+                /* Pulse Glow for Guardar Button */
+                @keyframes pulse-primary {
+                    0% { box-shadow: 0 0 0 0 var(--primary-shadow-30); }
+                    70% { box-shadow: 0 0 0 15px rgba(16, 102, 228, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(16, 102, 228, 0); }
+                }
+                .pulse-glow-btn {
+                    animation: pulse-primary 2s infinite;
+                }
+            </style>
         </div>
     </main>
 

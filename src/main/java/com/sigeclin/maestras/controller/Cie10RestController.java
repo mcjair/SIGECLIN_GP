@@ -1,9 +1,9 @@
 package com.sigeclin.maestras.controller;
 
 import com.sigeclin.maestras.model.Cie10;
-import com.sigeclin.maestras.repository.Cie10Repository;
+import com.sigeclin.maestras.service.ICie10Service;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -11,15 +11,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/cie10")
 @RequiredArgsConstructor
 public class Cie10RestController {
 
-    private final Cie10Repository cie10Repository;
+    private final ICie10Service cie10Service;
 
     @GetMapping("/search")
-    public List<Cie10> search(@RequestParam String q) {
-        return cie10Repository.search(q, PageRequest.of(0, 10));
+    public List<Cie10> search(@RequestParam String q, @RequestParam(required = false) String servicio) {
+        return cie10Service.search(q, servicio);
     }
 }

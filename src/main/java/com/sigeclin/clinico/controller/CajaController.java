@@ -3,8 +3,9 @@ package com.sigeclin.clinico.controller;
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.model.Usuario;
 import com.sigeclin.filiacion.repository.UsuarioRepository;
-import com.sigeclin.filiacion.service.PacienteService;
+import com.sigeclin.filiacion.service.IPacienteService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -17,12 +18,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.time.LocalDate;
 import java.util.Optional;
 
+@Slf4j
 @Controller
 @RequestMapping("/caja")
 @RequiredArgsConstructor
 public class CajaController {
 
-    private final PacienteService pacienteService;
+    private final IPacienteService pacienteService;
     private final UsuarioRepository usuarioRepository;
     private final JdbcTemplate jdbcTemplate;
 
@@ -31,20 +33,19 @@ public class CajaController {
                              @RequestParam(required = false) String servicio, 
                              Model model) {
         
-        System.out.println("Caja - Buscando paciente con HC/DNI: " + hc + " y Servicio: " + servicio);
+        log.debug("Buscando paciente con HC/DNI: {} y Servicio: {}", hc, servicio);
         
         if (hc != null && !hc.isEmpty()) {
             Optional<Paciente> paciente = pacienteService.buscarPorDniOHC(hc);
             if (paciente.isPresent()) {
                 Paciente p = paciente.get();
                 model.addAttribute("paciente", p);
-                // Si el servicio no viene en el param, usar el guardado en el paciente
                 if (servicio == null || servicio.isEmpty()) {
                     servicio = p.getServicioSolicitado();
                 }
-                System.out.println("Caja - Paciente encontrado: " + p.getNombres() + " - Servicio: " + servicio);
+                log.debug("Paciente encontrado: {} - Servicio: {}", p.getNombres(), servicio);
             } else {
-                System.out.println("Caja - Paciente NO encontrado");
+                log.debug("Paciente NO encontrado");
             }
         }
         
@@ -61,10 +62,14 @@ public class CajaController {
     @GetMapping("/imprimir")
     public String imprimirVoucher(@RequestParam Integer idPaciente, 
                                  @RequestParam(required = false) String servicio, 
+                                 @RequestParam(defaultValue = "50.00") java.math.BigDecimal monto,
+                                 @RequestParam(defaultValue = "EFECTIVO") String tipoPago,
                                  Model model) {
         pacienteService.buscarPorId(idPaciente).ifPresent(p -> {
             model.addAttribute("paciente", p);
             model.addAttribute("servicio", servicio);
+            model.addAttribute("monto", monto);
+            model.addAttribute("tipoPago", tipoPago);
         });
         return "clinico/voucher_impresion";
     }
@@ -78,7 +83,7 @@ public class CajaController {
                                @RequestParam(required = false) String concepto,
                                Authentication authentication,
                                org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
-        System.out.println("Caja - Procesando pago para Paciente ID: " + idPaciente + " - HC: " + hc);
+        log.info("Procesando pago para Paciente ID: {} - HC: {}", idPaciente, hc);
         
         try {
             // Obtener el usuario autenticado
@@ -100,7 +105,7 @@ public class CajaController {
             
             redirectAttributes.addFlashAttribute("success", "Pago procesado correctamente. El paciente ha sido derivado a Triaje.");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error al procesar el pago para paciente ID {}: {}", idPaciente, e.getMessage(), e);
             redirectAttributes.addFlashAttribute("error", "Error al procesar el pago: " + e.getMessage());
         }
         

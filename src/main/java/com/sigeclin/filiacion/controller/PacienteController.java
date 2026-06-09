@@ -3,10 +3,13 @@ package com.sigeclin.filiacion.controller;
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.model.TipoDocumento;
 import com.sigeclin.filiacion.repository.TipoDocumentoRepository;
-import com.sigeclin.filiacion.service.PacienteService;
+import com.sigeclin.filiacion.service.IPacienteService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,12 +24,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping("/admission")
 @RequiredArgsConstructor
 public class PacienteController {
 
-    private final PacienteService pacienteService;
+    private final IPacienteService pacienteService;
     private final TipoDocumentoRepository tipoDocumentoRepository;
 
     @GetMapping("/registro")
@@ -74,27 +78,36 @@ public class PacienteController {
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error al buscar paciente por documento {}: {}", documento, e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @PostMapping("/guardar")
-    public String registrarPaciente(@ModelAttribute Paciente paciente, @RequestParam(required = false) String servicio, RedirectAttributes redirectAttributes) {
+    public String registrarPaciente(@Valid @ModelAttribute Paciente paciente, BindingResult bindingResult,
+                                    @RequestParam(required = false) String servicio,
+                                    RedirectAttributes redirectAttributes) {
+        if (bindingResult.hasErrors()) {
+            String msg = bindingResult.getAllErrors().stream()
+                    .map(e -> e.getDefaultMessage())
+                    .reduce((a, b) -> a + "; " + b)
+                    .orElse("Error de validación");
+            redirectAttributes.addFlashAttribute("error", msg);
+            return "redirect:/admission/registro";
+        }
         try {
             if (servicio != null && !servicio.isEmpty()) {
                 paciente.setServicioSolicitado(servicio);
             }
             Paciente guardado = pacienteService.registrarPaciente(paciente);
             String hc = guardado.getNumeroHistoriaClinica();
-            System.out.println("PacienteController - Guardado con éxito. HC: " + hc);
+            log.debug("Paciente registrado con éxito. HC: {}", hc);
             
             redirectAttributes.addFlashAttribute("success", "Paciente " + guardado.getNombres() + " registrado con éxito. HC: " + hc);
             
-            // Regresamos al formulario de admisión asegurando que los flash attributes se procesen
             return "redirect:/admission/registro?saved=true";
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error al registrar paciente", e);
             return "redirect:/admission/registro?error=true&msg=" + java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
         }
     }

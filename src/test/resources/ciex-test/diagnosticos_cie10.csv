@@ -1,0 +1,394 @@
+codigo,descripcion,servicios
+Z00.00,Examen médico general de adulto sin hallazgos anormales,MEDICINA GENERAL
+Z00.01,Examen médico general de adulto con hallazgos anormales,MEDICINA GENERAL
+Z00.129,Examen rutinario de salud del niño sin hallazgos anormales,MEDICINA GENERAL
+Z23,Encuentro para inmunización,MEDICINA GENERAL;ENFERMERIA
+I10,Hipertensión esencial (primaria),MEDICINA GENERAL
+I11.9,Enfermedad cardíaca hipertensiva sin insuficiencia cardíaca,MEDICINA GENERAL
+E11.9,Diabetes mellitus tipo 2 sin complicaciones,MEDICINA GENERAL;NUTRICION
+E11.65,Diabetes mellitus tipo 2 con hiperglucemia,MEDICINA GENERAL
+E78.0,Hipercolesterolemia pura,MEDICINA GENERAL;NUTRICION
+E78.5,Hiperlipidemia no especificada,MEDICINA GENERAL;NUTRICION
+E03.9,Hipotiroidismo no especificado,MEDICINA GENERAL
+E66.9,Obesidad no especificada,MEDICINA GENERAL;NUTRICION
+E63.9,Deficiencia nutricional no especificada,NUTRICION
+E44.0,Desnutrición proteicocalórica moderada,NUTRICION
+E44.1,Desnutrición proteicocalórica leve,NUTRICION
+E46,Desnutrición proteicocalórica no especificada,NUTRICION
+E64.Secuelas de desnutrición y otras deficiencias nutricionales,NUTRICION
+E55.9,Deficiencia de vitamina D no especificada,NUTRICION;MEDICINA GENERAL
+D50.9,Anemia por deficiencia de hierro no especificada,MEDICINA GENERAL;NUTRICION;OBSTETRICIA
+J00,Rinofaringitis aguda (resfriado común),MEDICINA GENERAL;ENFERMERIA
+J02,Faringitis aguda,MEDICINA GENERAL;ENFERMERIA
+J03.Amigdalitis aguda,MEDICINA GENERAL;ENFERMERIA
+J06.9,Infección aguda de las vías respiratorias superiores no especificada,MEDICINA GENERAL;ENFERMERIA
+J20.9,Bronquitis aguda no especificada,MEDICINA GENERAL;ENFERMERIA
+J15.9,Neumonía bacteriana no especificada,MEDICINA GENERAL
+J45.0,Asma predominantemente alérgica,MEDICINA GENERAL
+J45.9,Asma no especificada,MEDICINA GENERAL
+J44.9,Enfermedad pulmonar obstructiva crónica no especificada,MEDICINA GENERAL
+A09,Diarrea y gastroenteritis de presunto origen infeccioso,MEDICINA GENERAL;ENFERMERIA
+K21.9,Enfermedad por reflujo gastroesofágico sin esofagitis,MEDICINA GENERAL
+K29.70,Gastritis no especificada sin sangrado,MEDICINA GENERAL
+K58.9,Síndrome de intestino irritable sin diarrea,MEDICINA GENERAL
+K59.0,Estreñimiento,MEDICINA GENERAL;NUTRICION
+N39.0,Infección de vías urinarias sitio no especificado,MEDICINA GENERAL;ENFERMERIA;OBSTETRICIA
+N76.0,Vaginitis aguda,OBSTETRICIA
+N76.1,Vulvitis subaguda y crónica,OBSTETRICIA
+N72,Enfermedad inflamatoria del cuello uterino,OBSTETRICIA
+N89.9,Trastorno no especificado de la vagina,OBSTETRICIA
+N94.3,Síndrome de tensión premenstrual,OBSTETRICIA
+N94.6,Dismenorrea no especificada,OBSTETRICIA;MEDICINA GENERAL
+N95.1,Menopausia y climaterio en la mujer,OBSTETRICIA;MEDICINA GENERAL
+N95.9,Trastorno menopáusico no especificado,OBSTETRICIA
+Z30.0,Consejo y asesoramiento en anticoncepción,OBSTETRICIA
+Z30.2,Esterilización,OBSTETRICIA
+Z30.9,Encuentro para manejo anticonceptivo no especificado,OBSTETRICIA
+Z32.1,Embarazo confirmed,OBSTETRICIA;MEDICINA GENERAL
+Z33.Embarazo estado,OBSTETRICIA
+Z34.0,Supervisión de embarazo normal primer trimestre,OBSTETRICIA
+Z34.8,Supervisión de otro embarazo normal,OBSTETRICIA
+Z34.9,Supervisión de embarazo normal no especificada,OBSTETRICIA
+Z35.3,Supervisión de embarazo con historia de insuficiente atención prenatal,OBSTETRICIA
+Z35.8,Supervisión de otro embarazo de alto riesgo,OBSTETRICIA
+Z36,Detección prenatal de anomalías cromosómicas,OBSTETRICIA
+Z39.1,Cuidados y exámenes postnatales,OBSTETRICIA;ENFERMERIA
+O20.9,Hemorragia temprana del embarazo no especificada,OBSTETRICIA
+O21.0,Hiperémesis gravídica leve,OBSTETRICIA
+O23.9,Infección del tracto genitourinario en el embarazo no especificada,OBSTETRICIA
+O26.89,Otras condiciones especificadas relacionadas con el embarazo,OBSTETRICIA
+O80,Parto único espontáneo,OBSTETRICIA;ENFERMERIA
+O82,Parto por cesárea,OBSTETRICIA
+O99.0,Anemia que complica el embarazo parto y puerperio,OBSTETRICIA
+M54.5,Dolor lumbar bajo,MEDICINA GENERAL
+M54.9,Dorsalgia no especificada,MEDICINA GENERAL
+M25.50,Dolor en articulación no especificada,MEDICINA GENERAL
+M19.90,Osteoartritis sitio no especificado,MEDICINA GENERAL
+M79.1,Mialgia,MEDICINA GENERAL
+M79.7,Fibromialgia,MEDICINA GENERAL
+R07.9,Dolor torácico no especificado,MEDICINA GENERAL;ENFERMERIA
+R10.9,Dolor abdominal no especificado,MEDICINA GENERAL;ENFERMERIA;OBSTETRICIA
+R11,Náusea y vómito,MEDICINA GENERAL;ENFERMERIA;OBSTETRICIA
+R50.9,Fiebre no especificada,MEDICINA GENERAL;ENFERMERIA
+R51,Cefalea,MEDICINA GENERAL
+R53.83,Otro cansancio y fatiga,MEDICINA GENERAL
+R63.4,Pérdida anormal de peso,NUTRICION;MEDICINA GENERAL
+R63.5,Aumento anormal de peso,NUTRICION;MEDICINA GENERAL
+R63.0,Anorexia,NUTRICION;PSICOLOGIA
+R63.2,Polifagia,NUTRICION
+F32.0,Episodio depresivo leve,PSICOLOGIA;MEDICINA GENERAL
+F32.1,Episodio depresivo moderado,PSICOLOGIA;MEDICINA GENERAL
+F32.9,Episodio depresivo mayor no especificado,PSICOLOGIA;MEDICINA GENERAL
+F33.1,Trastorno depresivo recurrente moderado,PSICOLOGIA
+F33.2,Trastorno depresivo recurrente grave sin síntomas psicóticos,PSICOLOGIA
+F41.1,Trastorno de ansiedad generalizada,PSICOLOGIA;MEDICINA GENERAL
+F41.2,Trastorno mixto ansioso-depresivo,PSICOLOGIA;MEDICINA GENERAL
+F41.9,Trastorno de ansiedad no especificado,PSICOLOGIA
+F43.0,Reacción al estrés agudo,PSICOLOGIA
+F43.1,Trastorno de estrés postraumático,PSICOLOGIA
+F43.2,Trastorno de adaptación,PSICOLOGIA;MEDICINA GENERAL
+F50.0,Anorexia nerviosa,PSICOLOGIA;NUTRICION
+F50.2,Bulimia nerviosa,PSICOLOGIA;NUTRICION
+F50.9,Trastorno de la conducta alimentaria no especificado,PSICOLOGIA;NUTRICION
+F51.0,Insomnio no orgánico,PSICOLOGIA;MEDICINA GENERAL
+F51.2,Trastorno del sueño no especificado,PSICOLOGIA
+F90.0,Trastorno por déficit de atención con hiperactividad tipo combinado,PSICOLOGIA
+F90.9,Trastorno por déficit de atención con hiperactividad no especificado,PSICOLOGIA
+F91.9,Trastorno de conducta no especificado,PSICOLOGIA
+F92.9,Trastorno mixto de conducta y emociones no especificado,PSICOLOGIA
+F20.0,Esquizofrenia paranoide,PSICOLOGIA
+F40.1,Fobia social,PSICOLOGIA
+F40.9,Trastorno fóbico ansioso no especificado,PSICOLOGIA
+F42.Trastorno obsesivo-compulsivo,PSICOLOGIA
+F45.0,Trastorno de somatización,PSICOLOGIA;MEDICINA GENERAL
+F45.1,Trastorno somatomorfo indiferenciado,PSICOLOGIA
+R45.1,Inquietud y agitación,PSICOLOGIA
+R45.4,Irritabilidad y enojo,PSICOLOGIA
+Z73.0,Problemas relacionados con el agotamiento,PSICOLOGIA
+Z73.1,Problemas relacionados con la personalidad tipo A,PSICOLOGIA
+Z63.0,Problemas en la relación de pareja,PSICOLOGIA
+Z63.4,Desaparición o muerte de familiar,PSICOLOGIA
+Z60.0,Problemas relacionados con el ciclo vital,PSICOLOGIA
+K02.9,Caries dental no especificada,ODONTOLOGIA
+K02.1,Caries de la dentina,ODONTOLOGIA
+K02.3,Caries dental detenida,ODONTOLOGIA
+K04.0,Pulpitis,ODONTOLOGIA
+K04.4,Periodontitis apical aguda de origen pulpar,ODONTOLOGIA
+K04.5,Periodontitis apical crónica,ODONTOLOGIA
+K04.7,Absceso periapical con fístula,ODONTOLOGIA
+K05.0,Gingivitis aguda,ODONTOLOGIA
+K05.1,Gingivitis crónica,ODONTOLOGIA
+K05.2,Periodontitis aguda,ODONTOLOGIA
+K05.3,Periodontitis crónica,ODONTOLOGIA
+K05.6,Enfermedad periodontal no especificada,ODONTOLOGIA
+K06.8,Otras condiciones especificadas de la encía y reborde alveolar,ODONTOLOGIA
+K07.6,Trastornos de la articulación temporomandibular,ODONTOLOGIA
+K08.0,Exfoliación de dientes por causas sistémicas,ODONTOLOGIA
+K08.1,Pérdida de dientes por accidente extracción o enfermedad,ODONTOLOGIA
+K08.3,Retención de raíz dental,ODONTOLOGIA
+K08.8,Otras condiciones especificadas de los dientes,ODONTOLOGIA
+K08.9,Trastorno no especificado de dientes y estructuras de soporte,ODONTOLOGIA
+K09.8,Otros quistes de la región oral,ODONTOLOGIA
+K10.9,Enfermedad no especificada de los maxilares,ODONTOLOGIA
+K12.0,Estomatitis aftosa recurrente,ODONTOLOGIA
+K12.1,Otras formas de estomatitis,ODONTOLOGIA;MEDICINA GENERAL
+K13.0,Enfermedades de los labios,ODONTOLOGIA
+K13.7,Otras lesiones y no especificadas de la mucosa oral,ODONTOLOGIA
+S02.5,Fractura de diente,ODONTOLOGIA
+S03.0,Luxación de diente,ODONTOLOGIA
+S02.6,Fractura del maxilar inferior,ODONTOLOGIA
+S00.5,Traumatismo superficial de labio y cavidad oral,ODONTOLOGIA
+Z01.2,Examen dental,ODONTOLOGIA;MEDICINA GENERAL
+Z01.20,Examen dental sin hallazgos anormales,ODONTOLOGIA
+Z01.21,Examen dental con hallazesis anormales,ODONTOLOGIA
+Z46.3,Adaptación de prótesis dental,ODONTOLOGIA
+Z43.4,Cuidado de aparato de ortodoncia,ODONTOLOGIA
+Z46.89,Adaptación de otro dispositivo especificado,ODONTOLOGIA
+Z97.2,Presencia de implante dental,ODONTOLOGIA
+Z98.8,Otras condiciones postquirúrgicas especificadas,ODONTOLOGIA
+B00.2,Estomatitis herpética,ODONTOLOGIA;MEDICINA GENERAL
+B37.0,Candidiasis oral,ODONTOLOGIA;MEDICINA GENERAL
+K00.7,Síndrome de erupción dental,ODONTOLOGIA;MEDICINA GENERAL
+K01.0,Dientes impactados,ODONTOLOGIA
+K01.1,Dientes incluidos,ODONTOLOGIA
+Z00.8,Examen general de otra persona sin queja o diagnóstico reportado,ENFERMERIA;MEDICINA GENERAL
+Z01.30,Examen de presión sanguínea sin hallazgos anormales,ENFERMERIA;MEDICINA GENERAL
+Z01.31,Examen de presión sanguínea con hallazgos anormales,ENFERMERIA;MEDICINA GENERAL
+Z01.419,Examen de laboratorio no especificado sin hallazgos anormales,ENFERMERIA;MEDICINA GENERAL
+Z01.81,Examen de piel sensitiva,ENFERMERIA
+Z01.89,Otro examen especial especificado sin hallazgos anormales,ENFERMERIA
+Z02.1,Examen de admisión a institución de salud,ENFERMERIA
+Z02.8,Otros exámenes con fines administrativos,ENFERMERIA
+Z11.3,Examen de detección de infecciones de transmisión sexual,ENFERMERIA;OBSTETRICIA
+Z11.8,Examen de detección de otras enfermedades infecciosas,ENFERMERIA
+Z13.6,Encuentro para detección de trastornos cardiovasculares,ENFERMERIA;MEDICINA GENERAL
+Z13.89,Encuentro para detección de otros trastornos,ENFERMERIA
+Z13.9,Encuentro para detección de enfermedades no especificadas,ENFERMERIA
+Z20.8,Contacto con y exposición a otras enfermedades transmisibles,ENFERMERIA
+Z20.9,Contacto con y exposición a enfermedad transmisible no especificada,ENFERMERIA
+Z22.3,Portador de otras enfermedades bacterianas especificadas,ENFERMERIA
+Z23.0,Necesidad de vacunación contra el cólera,ENFERMERIA
+Z23.1,Necesidad de vacunación contra la tifoidea y paratifoidea,ENFERMERIA
+Z23.2,Necesidad de vacunación contra la tuberculosis BCG,ENFERMERIA
+Z23.3,Necesidad de vacunación contra la peste,ENFERMERIA
+Z23.4,Necesidad de vacunación contra el tétanos,ENFERMERIA
+Z23.5,Necesidad de vacunación contra la difteria,ENFERMERIA
+Z23.6,Necesidad de vacunación contra la tos ferina,ENFERMERIA
+Z23.7,Necesidad de vacunación contra enfermedades virales,ENFERMERIA
+Z23.8,Necesidad de vacunación contra otras enfermedades bacterianas,ENFERMERIA
+Z24.0,Necesidad de vacunación contra la poliomielitis,ENFERMERIA
+Z24.1,Necesidad de vacunación contra enfermedades virales transmitidas por artrópodos,ENFERMERIA
+Z24.2,Necesidad de vacunación contra la rabia,ENFERMERIA
+Z24.3,Necesidad de vacunación contra la hepatitis viral,ENFERMERIA
+Z24.4,Necesidad de vacunación contra el sarampión,ENFERMERIA
+Z24.5,Necesidad de vacunación contra la rubéola,ENFERMERIA
+Z24.6,Necesidad de vacunación contra la parotiditis,ENFERMERIA
+Z25.0,Necesidad de vacunación contra paperas sarampión y rubéola,ENFERMERIA
+Z25.1,Necesidad de vacunación contra la influenza,ENFERMERIA
+Z25.8,Necesidad de vacunación contra otras enfermedades virales combinadas,ENFERMERIA
+Z27.0,Necesidad de vacunación contra el COVID-19,ENFERMERIA;MEDICINA GENERAL
+Z28.9,Esquema de vacunación incompleto no especificado,ENFERMERIA
+Z29.1,Inmunoterapia para enfermedades alérgicas,ENFERMERIA
+Z29.8,Otras medidas profilácticas especificadas,ENFERMERIA
+Z30.5,Supervisión de dispositivo anticonceptivo intrauterino,ENFERMERIA;OBSTETRICIA
+Z41.8,Encuentro para otros procedimientos con fines no terapéuticos,ENFERMERIA
+Z48.0,Cuidado de apósitos y suturas quirúrgicas,ENFERMERIA
+Z48.00,Cuidado de apósitos quirúrgicos,ENFERMERIA
+Z48.01,Cuidado de suturas quirúrgicas,ENFERMERIA
+Z51.0,Encuentro para radioterapia,ENFERMERIA
+Z51.81,Encuentro para cuidados paliativos,ENFERMERIA
+Z54.0,Convalecencia después de cirugía,ENFERMERIA
+Z70.0,Consejería en salud sexual,ENFERMERIA;OBSTETRICIA;PSICOLOGIA
+Z71.0,Consejería en educación para la salud,ENFERMERIA;MEDICINA GENERAL
+Z71.1,Consejería en nutrición,NUTRICION;ENFERMERIA;MEDICINA GENERAL
+Z71.3,Consejería en alimentación del lactante,NUTRICION;ENFERMERIA
+Z71.4,Consejería en actividad física,NUTRICION;MEDICINA GENERAL
+Z71.82,Consejería en hábitos alimentarios,NUTRICION
+Z71.89,Otra consejería especificada,NUTRICION;PSICOLOGIA
+Z72.4,Dieta inadecuada,NUTRICION
+Z72.5,Conducta alimentaria de alto riesgo,NUTRICION;PSICOLOGIA
+Z76.8,Personas que contactan servicios de salud en otras circunstancias especificadas,ENFERMERIA
+Z83.3,Historia familiar de diabetes,NUTRICION;MEDICINA GENERAL
+Z83.4,Historia familiar de enfermedades cardiovasculares,MEDICINA GENERAL
+Z86.4,Historia personal de abuso de drogas y alcohol,PSICOLOGIA
+Z86.5,Historia personal de trastorno mental y del comportamiento,PSICOLOGIA
+Z87.0,Historia personal de enfermedades del sistema respiratorio,MEDICINA GENERAL
+Z87.1,Historia personal de enfermedades del aparato digestivo,MEDICINA GENERAL
+Z87.2,Historia personal de enfermedades del sistema circulatorio,MEDICINA GENERAL
+Z87.3,Historia personal de enfermedades endocrinas y metabólicas,MEDICINA GENERAL;NUTRICION
+Z87.4,Historia personal de enfermedades del sistema nervioso,MEDICINA GENERAL
+Z87.5,Historia personal de enfermedades del aparato genitourinario,MEDICINA GENERAL;OBSTETRICIA
+Z88.0,Alergia a la penicilina,MEDICINA GENERAL;ENFERMERIA
+Z88.1,Alergia a otros antibióticos,MEDICINA GENERAL;ENFERMERIA
+Z88.2,Alergia a sulfonamidas,MEDICINA GENERAL;ENFERMERIA
+Z88.8,Alergia a otros medicamentos y agentes farmacológicos,MEDICINA GENERAL;ENFERMERIA
+Z92.0,Historia personal de anticoncepción,OBSTETRICIA
+L20.9,Dermatitis atópica no especificada,MEDICINA GENERAL
+L30.9,Dermatitis no especificada,MEDICINA GENERAL
+L03.90,Celulitis no especificada,MEDICINA GENERAL;ENFERMERIA
+L70.0,Acne vulgar,MEDICINA GENERAL
+L70.1,Acne conglobata,MEDICINA GENERAL
+L29.9,Prurito no especificado,MEDICINA GENERAL
+H10.9,Conjuntivitis no especificada,MEDICINA GENERAL;ENFERMERIA
+H66.9,Otitis media no especificada,MEDICINA GENERAL;ENFERMERIA
+H61.9,Trastorno no especificado del oído externo,MEDICINA GENERAL
+S93.4,Esguince de tobillo,MEDICINA GENERAL;ENFERMERIA
+S60.9,Traumatismo superficial de muñeca y mano no especificado,MEDICINA GENERAL;ENFERMERIA
+S80.9,Traumatismo superficial de la pierna no especificado,MEDICINA GENERAL;ENFERMERIA
+T14.90,Traumatismo no especificado de región corporal no especificada,MEDICINA GENERAL;ENFERMERIA
+W22.8,Golpe contra o golpeado por otros objetos,MEDICINA GENERAL;ENFERMERIA
+L98.9,Trastorno de la piel y del tejido subcutáneo no especificado,MEDICINA GENERAL
+L89.9,Úlcera por presión sitio no especificado,ENFERMERIA;MEDICINA GENERAL
+Z74.0,Movilidad reducida,ENFERMERIA
+Z74.1,Necesidad de asistencia con autocuidado,ENFERMERIA
+Z74.8,Otras condiciones de cuidado dependiente,ENFERMERIA
+Z75.5,Servicio de cuidado de salud de relevo,ENFERMERIA
+Z75.8,Otras condiciones relacionadas con la provisión de cuidado médico,ENFERMERIA
+Z76.0,Emisión de receta médica,MEDICINA GENERAL;ENFERMERIA
+Z91.1,Historia de incumplimiento del tratamiento médico,MEDICINA GENERAL;PSICOLOGIA
+Z91.4,Historia personal de traumatismo psicológico,PSICOLOGIA
+Z91.49,Otra historia personal de traumatismo psicológico,PSICOLOGIA
+Z91.5,Historia personal de autolesión,PSICOLOGIA
+Z91.6,Historia personal de otras condiciones de riesgo para la salud,PSICOLOGIA
+Z55.0,Problemas relacionados con el analfabetismo,PSICOLOGIA
+Z55.3,Problemas relacionados con bajo rendimiento escolar,PSICOLOGIA
+Z55.4,Problemas relacionados con mala adaptación educativa,PSICOLOGIA
+Z55.8,Otros problemas relacionados con la educación,PSICOLOGIA
+Z56.0,Problemas relacionados con desempleo,PSICOLOGIA
+Z56.1,Problemas relacionados con cambio de trabajo,PSICOLOGIA
+Z56.2,Problemas relacionados con amenaza de pérdida de trabajo,PSICOLOGIA
+Z56.3,Problemas relacionados con ritmo de trabajo estresante,PSICOLOGIA
+Z56.4,Problemas relacionados con conflicto con el jefe y compañeros de trabajo,PSICOLOGIA
+Z56.5,Problemas relacionados con condiciones laborales desagradables,PSICOLOGIA
+Z56.7,Problemas relacionados con otros factores laborales,PSICOLOGIA
+Z60.3,Problemas relacionados con la aculturación,PSICOLOGIA
+Z60.4,Problemas relacionados con la discriminación y persecución,PSICOLOGIA
+Z60.8,Otros problemas relacionados con el entorno social,PSICOLOGIA
+Z61.0,Problemas relacionados con pérdida de familiar en la niñez,PSICOLOGIA
+Z61.1,Problemas relacionados con separación de la niñez,PSICOLOGIA
+Z61.2,Problemas relacionados con conflicto familiar en la niñez,PSICOLOGIA
+Z61.3,Problemas relacionados con baja autoestima en la niñez,PSICOLOGIA
+Z61.4,Problemas relacionados con abuso sexual en la niñez,PSICOLOGIA
+Z61.5,Problemas relacionados con abuso físico en la niñez,PSICOLOGIA
+Z61.6,Problemas relacionados con abuso emocional en la niñez,PSICOLOGIA
+Z62.0,Problemas relacionados con supervisión parental inadecuada,PSICOLOGIA
+Z62.1,Problemas relacionados con sobreprotección parental,PSICOLOGIA
+Z62.2,Problemas relacionados con crianza institucional,PSICOLOGIA
+Z62.3,Problemas relacionados con hostilidad hacia el niño,PSICOLOGIA
+Z62.6,Problemas relacionados con presión inapropiada parental,PSICOLOGIA
+Z62.8,Otros problemas relacionados con la crianza,PSICOLOGIA
+Z63.1,Problemas relacionados con la ausencia de familiar,PSICOLOGIA
+Z63.5,Problemas relacionados con ruptura familiar por separación o divorcio,PSICOLOGIA
+Z63.7,Problemas relacionados con familiar enfermo,PSICOLOGIA
+Z63.8,Otros problemas relacionados con el grupo primario de apoyo,PSICOLOGIA
+Z64.0,Problemas relacionados con embarazo no deseado,PSICOLOGIA;OBSTETRICIA
+Z64.1,Problemas relacionados con multiparidad,OBSTETRICIA
+Z64.2,Problemas relacionados con búsqueda y aceptación de intervenciones riesgosas,PSICOLOGIA
+Z64.3,Problemas relacionados con búsqueda de consejo médico,PSICOLOGIA
+Z65.0,Problemas relacionados con condena civil por crimen,PSICOLOGIA
+Z65.1,Problemas relacionados con prisión y encarcelamiento,PSICOLOGIA
+Z65.2,Problemas relacionados con liberación de prisión,PSICOLOGIA
+Z65.3,Problemas relacionados con condiciones legales,PSICOLOGIA
+Z65.4,Problemas relacionados con desastre natural o de guerra,PSICOLOGIA
+Z65.5,Problemas relacionados con exposición a desastre o guerra,PSICOLOGIA
+Z65.8,Problemas relacionados con circunstancias psicosociales,PSICOLOGIA
+Z65.9,Problema no especificado relacionado con circunstancias psicosociales,PSICOLOGIA
+Z72.0,Consumo de tabaco,PSICOLOGIA;MEDICINA GENERAL
+Z72.1,Consumo de alcohol,PSICOLOGIA;MEDICINA GENERAL
+Z72.2,Consumo de drogas,PSICOLOGIA
+Z72.3,Falta de ejercicio físico,NUTRICION;MEDICINA GENERAL
+Z72.8,Otros problemas relacionados con el estilo de vida,NUTRICION;MEDICINA GENERAL
+Z73.2,Problemas relacionados con falta de descanso,PSICOLOGIA
+Z73.3,Problemas relacionados con estrés no clasificados,PSICOLOGIA;MEDICINA GENERAL
+Z73.4,Problemas relacionados con habilidades sociales inadecuadas,PSICOLOGIA
+Z73.5,Problemas relacionados con conflicto de rol social,PSICOLOGIA
+Z73.6,Problemas relacionados con limitación de actividades por discapacidad,PSICOLOGIA
+Z73.8,Otros problemas relacionados con la organización de su vida,PSICOLOGIA
+Z74.2,Necesidad de asistencia con movilidad en el hogar,ENFERMERIA
+Z74.3,Necesidad de asistencia con autocuidado continuo,ENFERMERIA
+Z75.0,Cuidado médico no disponible en el hogar,ENFERMERIA
+Z75.1,Persona en lista de espera para cuidado de salud,ENFERMERIA
+Z75.2,Otro período de espera para cuidado de salud,ENFERMERIA
+Z75.3,Instalación de cuidado de salud no disponible,ENFERMERIA
+Z75.4,Otras instalaciones de cuidado de salud no disponibles,ENFERMERIA
+Z76.1,Seguimiento de cuidado de salud después de tratamiento,ENFERMERIA;MEDICINA GENERAL
+Z76.2,Supervisión de salud de niño sano,ENFERMERIA;MEDICINA GENERAL
+Z76.3,Persona sana que acompaña a persona enferma,ENFERMERIA
+Z76.4,Otras personas en circunstancias de cuidado de salud,ENFERMERIA
+Z76.5,Persona que finge estar enferma,PSICOLOGIA
+Z76.6,Persona que contacta servicios de salud por razones religiosas,PSICOLOGIA
+Z86.1,Historia personal de enfermedades infecciosas,MEDICINA GENERAL
+Z86.2,Historia personal de neoplasias,MEDICINA GENERAL
+Z86.6,Historia personal de enfermedades del sistema nervioso,MEDICINA GENERAL
+Z86.7,Historia personal de enfermedades del sistema circulatorio,MEDICINA GENERAL
+Z87.6,Historia personal de enfermedades del sistema musculoesquelético,MEDICINA GENERAL
+Z87.7,Historia personal de anomalías congénitas,MEDICINA GENERAL
+Z87.8,Historia personal de condiciones originadas en el período perinatal,MEDICINA GENERAL
+Z88.3,Alergia a agentes antiinfecciosos,MEDICINA GENERAL;ENFERMERIA
+Z88.4,Alergia a anestésicos,MEDICINA GENERAL;ENFERMERIA
+Z88.6,Alergia a alimentos,NUTRICION;MEDICINA GENERAL
+Z88.7,Alergia a látex,MEDICINA GENERAL;ENFERMERIA
+Z88.9,Alergia no especificada a medicamentos y sustancias,MEDICINA GENERAL;ENFERMERIA
+Z90.0,Ausencia adquirida de órgano del tracto respiratorio,MEDICINA GENERAL
+Z90.1,Ausencia adquirida de mama,OBSTETRICIA
+Z90.2,Ausencia adquirida de riñón,MEDICINA GENERAL
+Z90.3,Ausencia adquirida de estómago,MEDICINA GENERAL
+Z90.4,Ausencia adquirida de otro órgano del tracto digestivo,MEDICINA GENERAL
+Z90.5,Ausencia adquirida de órgano reproductor,OBSTETRICIA
+Z90.6,Ausencia adquirida de bazo,MEDICINA GENERAL
+Z90.7,Ausencia adquirida de otro órgano,OBSTETRICIA;MEDICINA GENERAL
+Z93.0,Traqueostomía,MEDICINA GENERAL;ENFERMERIA
+Z93.1,Gastrostomía,MEDICINA GENERAL;ENFERMERIA
+Z93.2,Ileostomía,MEDICINA GENERAL
+Z93.3,Colostomía,MEDICINA GENERAL
+Z93.4,Otra ostomía del tracto gastrointestinal,MEDICINA GENERAL
+Z93.5,Cistostomía,MEDICINA GENERAL
+Z93.6,Otras ostomías del tracto urinario,MEDICINA GENERAL
+Z94.1,Trasplante de corazón,MEDICINA GENERAL
+Z94.2,Trasplante de pulmón,MEDICINA GENERAL
+Z94.3,Trasplante de corazón y pulmón,MEDICINA GENERAL
+Z94.4,Trasplante de hígado,MEDICINA GENERAL
+Z94.5,Trasplante de piel,MEDICINA GENERAL
+Z94.6,Trasplante de hueso,MEDICINA GENERAL
+Z94.7,Trasplante de córnea,MEDICINA GENERAL
+Z94.8,Otro órgano trasplantado,MEDICINA GENERAL
+Z94.9,Órgano trasplantado no especificado,MEDICINA GENERAL
+Z95.0,Presencia de marcapasos cardíaco,MEDICINA GENERAL
+Z95.1,Presencia de derivación aortocoronaria,MEDICINA GENERAL
+Z95.2,Presencia de válvula cardíaca protésica,MEDICINA GENERAL
+Z95.3,Presencia de xenoinjerto valvular cardíaco,MEDICINA GENERAL
+Z95.4,Presencia de otro reemplazo valvular cardíaco,MEDICINA GENERAL
+Z95.5,Presencia de implante y bypass coronario,MEDICINA GENERAL
+Z95.8,Presencia de otro implante cardiovascular,MEDICINA GENERAL
+Z95.9,Presencia de implante cardiovascular no especificado,MEDICINA GENERAL
+Z96.0,Presencia de implante coclear,MEDICINA GENERAL
+Z96.1,Presencia de lente intraocular,MEDICINA GENERAL
+Z96.2,Presencia de implante otológico y auditivo,MEDICINA GENERAL
+Z96.3,Presencia de implante de laringe artificial,MEDICINA GENERAL
+Z96.4,Presencia de implante endocrino,MEDICINA GENERAL
+Z96.5,Presencia de implante de raíz dental y mandibular,ODONTOLOGIA
+Z96.6,Presencia de implante ortopédico articular,MEDICINA GENERAL
+Z96.7,Presencia de implante de hueso y tendón,MEDICINA GENERAL
+Z96.8,Presencia de otro implante especificado,MEDICINA GENERAL
+Z96.9,Presencia de implante no especificado,MEDICINA GENERAL
+Z97.0,Presencia de lente de contacto,MEDICINA GENERAL
+Z97.1,Presencia de prótesis ocular,MEDICINA GENERAL
+Z97.3,Presencia de gafas y lentes correctivos,MEDICINA GENERAL
+Z97.4,Presencia de audífono,MEDICINA GENERAL
+Z97.5,Presencia de dispositivo intrauterino,OBSTETRICIA;ENFERMERIA
+Z98.0,Estado postquirúrgico de bypass intestinal,MEDICINA GENERAL
+Z98.1,Estado postquirúrgico de artrodesis,MEDICINA GENERAL
+Z98.2,Estado postquirúrgico de catarata,MEDICINA GENERAL
+Z98.81,Estado postquirúrgico de trasplante,MEDICINA GENERAL
+Z98.82,Estado postquirúrgico de reemplazo articular,MEDICINA GENERAL
+Z98.83,Estado postquirúrgico de dispositivo cardiovascular,MEDICINA GENERAL
+Z98.84,Estado postquirúrgico de procedimiento dental,ODONTOLOGIA
+Z98.85,Estado postquirúrgico de procedimiento ginecológico,OBSTETRICIA
+Z98.86,Estado postquirúrgico de procedimiento neurológico,PSICOLOGIA;MEDICINA GENERAL
+Z98.89,Otro estado postquirúrgico especificado,MEDICINA GENERAL
+Z99.0,Dependencia de aspirador y ventilador,MEDICINA GENERAL;ENFERMERIA
+Z99.1,Dependencia de oxígeno suplementario,MEDICINA GENERAL;ENFERMERIA
+Z99.2,Dependencia de diálisis renal,MEDICINA GENERAL
+Z99.3,Dependencia de silla de ruedas,ENFERMERIA
+Z99.8,Dependencia de otras máquinas y dispositivos,ENFERMERIA
+Z99.9,Dependencia de máquina y dispositivo no especificado,ENFERMERIA

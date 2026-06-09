@@ -11,5 +11,6 @@ public interface PersonalRepository extends JpaRepository<Personal, Integer> {
 
     Optional<Personal> findByNumeroDocumento(String numeroDocumento);
     
-    Optional<Personal> findByUsuarioUsername(String username);
+    @org.springframework.data.jpa.repository.Query("SELECT p FROM Personal p, Usuario u WHERE p.idUsuario = u.idPersona AND u.username = :username")
+    Optional<Personal> findByUsuarioUsername(@org.springframework.data.repository.query.Param("username") String username);
 }

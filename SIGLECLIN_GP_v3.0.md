@@ -43,7 +43,7 @@ Este reporte detalla el estado actual de las conexiones del sistema, la base de 
   * **Estilos & UI**: Bootstrap v5.3.2, Bootstrap Icons y un diseño premium customizado estilo Glassmorphic mediante `main.css`.
   * **Interacción Dinámica**: JavaScript mediante llamadas `fetch()` asíncronas hacia las APIs REST del Backend.
 * **Estado de Conexión**: **INACTIVO**
-  * Debido a que el backend no está corriendo actualmente, el frontend no puede ser renderizado o accedido a través del navegador web local (puerto `3001` cerrado). Once iniciado el backend, la conexión es automática.
+
 
 ---
 

@@ -58,5 +58,3 @@ Este reporte detalla el estado actual de las conexiones del sistema, la base de 
   * La comunicación TCP contra `github.com` a través del puerto `443` (HTTPS) se verificó exitosamente, confirmando que la máquina local tiene acceso a internet y puede sincronizar cambios (pull/push) con el repositorio remoto de GitHub.
 
 
-Hola compañeros 
-Saludos

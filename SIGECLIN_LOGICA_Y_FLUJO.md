@@ -172,6 +172,3 @@ El sistema expone endpoints MVC y API REST altamente optimizados para la interac
 1. **Firma Digital del Médico:** Acoplamiento de la firma digital e historial transaccional encriptado de recetas.
 2. **Sincronización Automática con Farmacia:** Notificación en tiempo real (mediante WebSockets o SSE) para el despacho asíncrono de medicamentos al momento de dar click en **FINALIZAR CONSULTA**.
 3. **Módulo de Exámenes de Laboratorio en 3D:** Integración del visor interactivo 3D para bitácoras clínicas y reportes anatómicos detallados.
-
-
-Clase de 11-06-2026

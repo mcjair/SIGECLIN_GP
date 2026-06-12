@@ -3,12 +3,13 @@ package com.sigeclin.clinico.service;
 import com.sigeclin.clinico.model.AlergiaPaciente;
 import com.sigeclin.clinico.model.Consulta;
 import com.sigeclin.clinico.model.Triaje;
-import com.sigeclin.clinico.repository.AlergiaRepository;
+import com.sigeclin.clinico.repository.AlergiaPacienteRepository;
 import com.sigeclin.clinico.repository.ConsultaRepository;
 import com.sigeclin.clinico.repository.TriajeRepository;
 import com.sigeclin.filiacion.model.Paciente;
 import com.sigeclin.filiacion.repository.PacienteRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -16,13 +17,14 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class HistoriaClinicaService {
+public class HistoriaClinicaService implements IHistoriaClinicaService {
 
     private final PacienteRepository pacienteRepository;
     private final ConsultaRepository consultaRepository;
-    private final AlergiaRepository alergiaRepository;
+    private final AlergiaPacienteRepository alergiaRepository;
     private final TriajeRepository triajeRepository;
     private final JdbcTemplate jdbcTemplate;
 

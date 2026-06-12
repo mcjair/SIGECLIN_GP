@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe de Laboratorio - CLAS Grocio Prado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        @page { margin: 12mm 15mm; size: A4; }
+        * { font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: white; color: #1e293b; font-size: 10pt; line-height: 1.4; position: relative; min-height: 100vh; }
+        
+        /* Watermark logo */
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-10deg);
+            width: 70%;
+            max-width: 450px;
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 10px;
+            padding-bottom: 80px; /* Space for absolute footer */
+        }
+
+        /* Print Actions */
+        .no-print { text-align: center; margin: 15px 0; }
+        .no-print button { 
+            background: linear-gradient(135deg, #1066e4, #05bef2); 
+            color: white; 
+            border: none; 
+            padding: 10px 30px; 
+            border-radius: 30px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            font-size: 10pt; 
+            box-shadow: 0 4px 15px rgba(16, 102, 228, 0.3);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .no-print button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 102, 228, 0.4);
+        }
+
+        /* Header Layout */
+        .header-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            height: 75px;
+            object-fit: contain;
+        }
+        .header-text {
+            text-align: right;
+            flex-grow: 1;
+            padding-left: 20px;
+        }
+        .header-text h1 {
+            font-size: 14pt;
+            font-weight: 900;
+            color: #1e3a8a;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .header-text h2 {
+            font-size: 10pt;
+            font-weight: 700;
+            color: #4b5563;
+            margin-top: 2px;
+        }
+        .header-text p {
+            font-size: 8pt;
+            color: #6b7280;
+            font-style: italic;
+            margin-top: 1px;
+        }
+
+        /* Patient Info Box (General) */
+        .patient-box-general {
+            border: 2px solid #1066e4; /* Clinical Royal Blue accent border */
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 25px;
+            background: #f8fafc;
+        }
+        .patient-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            row-gap: 8px;
+            column-gap: 30px;
+            font-size: 9.5pt;
+        }
+        .patient-item {
+            display: flex;
+            align-items: baseline;
+        }
+        .patient-label {
+            font-weight: 700;
+            color: #1e293b;
+            min-width: 145px;
+            text-transform: capitalize;
+        }
+        .patient-value {
+            color: #334155;
+            font-weight: 600;
+        }
+
+        /* Table Design */
+        .area-section {
+            margin-bottom: 25px;
+        }
+        .area-title {
+            background: #f1f5f9;
+            color: #1e3a8a;
+            font-size: 9pt;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 4px solid #1066e4;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9.5pt;
+            margin-bottom: 15px;
+        }
+        th {
+            border-bottom: 2px solid #cbd5e1;
+            color: #475569;
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 8.5pt;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+        .anormal { color: #dc2626; font-weight: 800; }
+        .normal { color: #059669; font-weight: 600; }
+
+        /* Signature block */
+        .signature-section {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 50px;
+            page-break-inside: avoid;
+        }
+        .signature-box {
+            text-align: center;
+            max-width: 280px;
+        }
+        .signature-line {
+            border-top: 1.5px solid #475569;
+            margin-top: 50px;
+            padding-top: 5px;
+            font-size: 8.5pt;
+            font-weight: 800;
+            color: #1e293b;
+        }
+        .signature-sub {
+            font-size: 7.5pt;
+            color: #64748b;
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        /* Footer Info */
+        .footer-info {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1.5px solid #e2e8f0;
+            padding-top: 10px;
+            font-size: 8pt;
+            color: #64748b;
+        }
+        .footer-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .footer-item i {
+            color: #1066e4;
+            font-size: 10pt;
+        }
+
+        /* ===== CITOPATOLOGICO LAYOUT ===== */
+        .citopato-title {
+            text-align: center;
+            font-size: 16pt;
+            font-weight: 900;
+            text-decoration: underline;
+            color: #1e3a8a;
+            margin: 20px 0;
+            letter-spacing: 0.5px;
+        }
+        .citopato-patient-name {
+            font-size: 11pt;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .citopato-grid-box {
+            border-top: 2px solid #1e293b;
+            border-bottom: 2px solid #1e293b;
+            padding: 12px 0;
+            margin-bottom: 25px;
+        }
+        .citopato-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            row-gap: 6px;
+            column-gap: 40px;
+            font-size: 9.5pt;
+        }
+        .citopato-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px dashed #e2e8f0;
+            padding-bottom: 2px;
+        }
+        .citopato-label {
+            font-weight: 800;
+            color: #1e293b;
+            text-transform: uppercase;
+        }
+        .citopato-value {
+            color: #334155;
+            font-weight: 600;
+        }
+        .section-title-c {
+            font-size: 10.5pt;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .section-subtitle-c {
+            font-size: 9.5pt;
+            font-weight: 700;
+            text-decoration: underline;
+            color: #334155;
+            margin-bottom: 10px;
+        }
+        .citopato-bullets {
+            list-style-type: none;
+            padding-left: 15px;
+            margin-bottom: 20px;
+        }
+        .citopato-bullets li {
+            position: relative;
+            margin-bottom: 8px;
+            font-size: 9.5pt;
+            color: #334155;
+            padding-left: 15px;
+        }
+        .citopato-bullets li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            top: -2px;
+            font-size: 14pt;
+            color: #1066e4;
+        }
+        .citopato-bullets li strong {
+            color: #1e293b;
+        }
+        .macro-desc {
+            font-size: 9.5pt;
+            color: #334155;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+
+        /* Print Settings */
+        @media print {
+            .no-print { display: none; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .container { padding-bottom: 0; }
+            .footer-info { position: fixed; bottom: 15px; width: 100%; left: 0; right: 0; }
+        }
+    </style>
+</head>
+<body th:with="isCitopatologico=${orden != null && orden.indicaciones != null && (
+    #strings.contains(#strings.toLowerCase(orden.indicaciones), 'citopato') || 
+    #strings.contains(#strings.toLowerCase(orden.indicaciones), 'papanicolau') || 
+    #strings.contains(#strings.toLowerCase(orden.indicaciones), 'pap') || 
+    #strings.contains(#strings.toLowerCase(orden.indicaciones), 'cervix') ||
+    #strings.contains(#strings.toLowerCase(orden.indicaciones), 'cuello uterino')
+)}">
+    
+    <!-- Watermark background -->
+    <img src="/img/logo_grocio_prado.png" class="watermark" alt="Watermark Logo">
+
+    <div class="container">
+    <!-- Barra de Herramientas No Imprimible -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000; background: #ffffff; padding: 18px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(0,0,0,0.12); width: 240px; font-family: 'Plus Jakarta Sans', sans-serif;">
+        <h6 class="mb-3 fw-800 text-center" style="font-size: 0.8rem; color: #1e293b; letter-spacing: 0.5px; font-weight: 800; margin-bottom: 12px; text-transform: uppercase;">Opciones de Impresión</h6>
+        <button onclick="window.print()" class="btn w-100 rounded-pill py-2.5 fw-800 mb-2 shadow-sm border-0" 
+                style="background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%); color: white; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;">
+            <i class="bi bi-printer-fill"></i> IMPRIMIR INFORME
+        </button>
+        <button onclick="window.close()" class="btn w-100 rounded-pill py-2.5 fw-800 border-0" 
+                style="background: #f1f5f9; color: #475569; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s; font-weight: 800; cursor: pointer;"
+                onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">
+            <i class="bi bi-x-circle"></i> SALIR
+        </button>
+    </div>
+
+        <!-- ================== HEADER ================== -->
+        <div class="header-section">
+            <img src="/img/logo_grocio_prado.png" class="header-logo" alt="CLAS Grocio Prado Logo">
+            <div class="header-text">
+                <h1>Centro de Salud CLAS Grocio Prado</h1>
+                <h2>Especialidades Médicas - Categoría I-3</h2>
+                <p>“Comprometidos con la salud y bienestar de la comunidad”</p>
+            </div>
+        </div>
+
+        <!-- ================== GENERAL REPORT LAYOUT ================== -->
+        <div id="generalLayout" th:style="${isCitopatologico} ? 'display: none' : 'display: block'">
+            
+            <div class="patient-box-general">
+                <div class="patient-grid">
+                    <div class="patient-item">
+                        <span class="patient-label">Paciente</span>
+                        <span class="patient-value" id="lblPaciente" th:text="${paciente != null ? (paciente.apellidoPaterno + ' ' + (paciente.apellidoMaterno != null ? paciente.apellidoMaterno : '') + ', ' + paciente.nombres) : '---'}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">Fecha de Atención</span>
+                        <span class="patient-value" id="lblFecha" th:text="${orden != null ? #temporals.format(orden.fechaSolicitud, 'dd/MM/yyyy HH:mm:ss') : '---'}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">Sexo</span>
+                        <span class="patient-value" id="lblSexo" th:text="${paciente != null ? (paciente.sexo == 'M' ? 'MASCULINO' : 'FEMENINO') : '---'}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">Fecha de Impresión</span>
+                        <span class="patient-value" id="lblFechaImpresion" th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm:ss')}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">Edad</span>
+                        <span class="patient-value" id="lblEdad" th:text="${paciente != null ? paciente.getEdadCompleta() : '---'}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">N° de Solicitud</span>
+                        <span class="patient-value" id="lblHC" th:text="${orden != null ? '0126' + #numbers.formatInteger(orden.idOrden, 5) : '---'}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">DNI</span>
+                        <span class="patient-value" id="lblDni" th:text="${paciente != null ? paciente.numeroDocumento : '---'}">---</span>
+                    </div>
+                    <div class="patient-item">
+                        <span class="patient-label">ID Orden</span>
+                        <span class="patient-value" id="lblOrden" th:text="${orden != null ? 'ORD-' + #numbers.formatInteger(orden.idOrden, 5) : '---'}">---</span>
+                    </div>
+                    <div class="patient-item" style="grid-column: span 2;">
+                        <span class="patient-label">Indicado Dr(a).</span>
+                        <span class="patient-value" id="lblMedico" th:text="${medico != null ? ('Dr(a). ' + medico.nombres + ' ' + medico.apellidoPaterno + ' ' + (medico.apellidoMaterno != null ? medico.apellidoMaterno : '')) : '---'}">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenedor de tablas dinámicas agrupadas por Área (Se renderiza por JS) -->
+            <div id="generalResultsContainer"></div>
+
+            <!-- Firma General -->
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line">Mg. Blgo. Luis U. Moscoso García</div>
+                    <div class="signature-sub">CBP 12224 - RNBE 0696</div>
+                    <div class="signature-sub">BIÓLOGO - MICROBIÓLOGO</div>
+                    <div class="signature-sub">Esp. Laboratorio de Análisis Clínicos y Biológicos</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================== CITOPATOLOGICO (PAP) LAYOUT ================== -->
+        <div id="citopatologicoLayout" th:style="${isCitopatologico} ? 'display: block' : 'display: none'">
+            
+            <h3 class="citopato-title">INFORME CITOPATOLÓGICO</h3>
+            
+            <div class="citopato-patient-name">
+                Nombre: <span id="lblCitoPaciente" th:text="${paciente != null ? (paciente.apellidoPaterno + ' ' + (paciente.apellidoMaterno != null ? paciente.apellidoMaterno : '') + ' ' + paciente.nombres) : '---'}">---</span>
+            </div>
+
+            <div class="citopato-grid-box">
+                <div class="citopato-grid">
+                    <div class="citopato-item">
+                        <span class="citopato-label">Informe:</span>
+                        <span class="citopato-value" id="lblCitoInforme" th:text="${orden != null ? 'PAP-2026-' + #numbers.formatInteger(orden.idOrden, 4) : '---'}">---</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">Espécimen:</span>
+                        <span class="citopato-value">CÉRVIX</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">Edad:</span>
+                        <span class="citopato-value" id="lblCitoEdad" th:text="${paciente != null ? paciente.getEdadCompleta() : '---'}">---</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">Dep. Médico:</span>
+                        <span class="citopato-value">GINECOLOGÍA</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">I/D:</span>
+                        <span class="citopato-value">-</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">Fecha de Ingreso:</span>
+                        <span class="citopato-value" id="lblCitoFecha" th:text="${orden != null ? #temporals.format(orden.fechaSolicitud, 'dd/MM/yyyy') : '---'}">---</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">Med. Solicitante:</span>
+                        <span class="citopato-value" id="lblCitoMedico" th:text="${medico != null ? (medico.nombres + ' ' + medico.apellidoPaterno) : '---'}">---</span>
+                    </div>
+                    <div class="citopato-item">
+                        <span class="citopato-label">DNI:</span>
+                        <span class="citopato-value" id="lblCitoDni" th:text="${paciente != null ? paciente.numeroDocumento : '---'}">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title-c">DIAGNÓSTICO:</div>
+            <div class="section-subtitle-c">SISTEMA DE BETHESDA</div>
+
+            <ul class="citopato-bullets">
+                <li>
+                    <strong>TIPO DE MUESTRA:</strong>
+                    <span>Convencional.</span>
+                </li>
+                <li>
+                    <strong>CALIDAD DE LA MUESTRA:</strong>
+                    <span>Satisfactoria. Con células endocervicales.</span>
+                </li>
+                <li>
+                    <strong>INTERPRETACIÓN:</strong>
+                    <span id="lblCitoInterpretacion" th:text="${orden != null && orden.resultadoTexto != null && !orden.resultadoTexto.isEmpty() ? orden.resultadoTexto : 'Negativo para lesión intraepitelial y/o malignidad.'}">Negativo para lesión intraepitelial y/o malignidad.</span>
+                </li>
+                <li>
+                    <strong>OTROS HALLAZGOS:</strong>
+                    <span>Inflamación aguda leve. Metaplasia escamosa.</span>
+                </li>
+            </ul>
+
+            <div class="section-title-c">MACROSCOPÍA:</div>
+            <p class="macro-desc">
+                Se recibe extendido de citología convencional, el frotis se tiñe con el método de Papanicolau.
+            </p>
+
+            <div class="signature-section" style="margin-top: 30px;">
+                <div class="signature-box">
+                    <div class="signature-line">M.C. Lissy Huauya Loayza</div>
+                    <div class="signature-sub">Anatóma Patóloga</div>
+                    <div class="signature-sub">CMP 63221 - RNE 36987</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; font-weight: 800; font-size: 9.5pt;">
+                FECHA DE RESULTADO: <span th:text="${orden != null ? #temporals.format(orden.fechaResultado != null ? orden.fechaResultado : orden.fechaSolicitud, 'dd/MM/yyyy') : '---'}">---</span>
+            </div>
+
+        </div>
+
+        <!-- ================== FOOTER CONTACTS ================== -->
+        <div class="footer-info">
+            <div class="footer-item">
+                <i class="bi bi-telephone-fill"></i>
+                <span>(056) 541011</span>
+            </div>
+            <div class="footer-item">
+                <i class="bi bi-phone-fill"></i>
+                <span>932 204 567</span>
+            </div>
+            <div class="footer-item">
+                <i class="bi bi-envelope-fill"></i>
+                <span>clasgrocioprado@minsa.gob.pe</span>
+            </div>
+            <div class="footer-item">
+                <i class="bi bi-globe"></i>
+                <span>www.clasgrocioprado.gob.pe</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Hidden elements for Thymeleaf data passing to JavaScript -->
+    <div id="rawResultsData" style="display:none;"
+         th:if="${orden != null}"
+         th:data-id="${orden.idOrden}"
+         th:data-paciente="${paciente != null ? (paciente.apellidoPaterno + ' ' + (paciente.apellidoMaterno != null ? paciente.apellidoMaterno : '') + ', ' + paciente.nombres) : ''}"
+         th:data-dni="${paciente != null ? paciente.numeroDocumento : ''}"
+         th:data-medico="${medico != null ? ('Dr(a). ' + medico.nombres + ' ' + medico.apellidoPaterno + ' ' + (medico.apellidoMaterno != null ? medico.apellidoMaterno : '')) : ''}"
+         th:data-fecha="${orden.fechaSolicitud}"
+         th:data-fecha-resultado="${orden.fechaResultado}"
+         th:data-indicaciones="${orden.indicaciones}"
+         th:data-resultado-texto="${orden.resultadoTexto}">
+         
+         <div th:each="r : ${orden.resultados}"
+              th:data-codigo="${r.codigoExamen}"
+              th:data-valor="${r.valorResultado}"
+              th:data-unidad="${r.unidad}"
+              th:data-rmin="${r.rangoMinimo}"
+              th:data-rmax="${r.rangoMaximo}"
+              th:data-anormal="${r.esAnormal}">
+         </div>
+    </div>
+
+    <!-- Fallback client-side script in case server fails to fetch objects (LocalStorage compatibility) -->
+    <script th:inline="javascript">
+        const nameMap = {
+            "HEM-001": "Hemoglobina", "HEM-002": "Hematocrito", "HEM-003": "Leucocitos", "HEM-004": "Plaquetas", "HEM-005": "VSG", "HEM-006": "TP (Tiempo Protrombina)", "HEM-007": "TPT (Tiempo Tromboplastina)",
+            "BIO-001": "Glucosa en ayunas", "BIO-002": "Urea", "BIO-003": "Creatinina", "BIO-004": "Colesterol Total", "BIO-005": "Triglicéridos", "BIO-006": "TGO (AST)", "BIO-007": "TGP (ALT)", "BIO-008": "Bilirrubina Total", "BIO-009": "Ácido Úrico", "BIO-010": "Proteínas Totales",
+            "MIC-001": "Examen de orina completo", "MIC-002": "Coproparasitológico", "MIC-003": "Baciloscopía (BK)", "MIC-004": "Cultivo general",
+            "INM-001": "Prueba rápida VIH", "INM-002": "VDRL (Sífilis)", "INM-003": "HBsAg (Hepatitis B)", "INM-004": "Anti-HCV (Hepatitis C)", "INM-005": "Prueba de embarazo",
+            "URO-001": "Uroanálisis físico", "URO-002": "Uroanálisis químico", "URO-003": "Sedimento urinario",
+            "COP-001": "Coproparasitológico directo", "COP-002": "Sangre oculta en heces"
+        };
+
+        const defaultExamConfigs = {
+            "HEM-001": { placeholder: "14.5", rangoMinimo: 12.0, rangoMaximo: 16.0, rangoTexto: "12.0 - 16.0", unidad: "g/dL" },
+            "HEM-002": { placeholder: "42.0", rangoMinimo: 37.0, rangoMaximo: 47.0, rangoTexto: "37.0 - 47.0", unidad: "%" },
+            "HEM-003": { placeholder: "6500", rangoMinimo: 4500, rangoMaximo: 11000, rangoTexto: "4500 - 11000", unidad: "/mm³" },
+            "HEM-004": { placeholder: "250000", rangoMinimo: 150000, rangoMaximo: 450000, rangoTexto: "150000 - 450000", unidad: "/mm³" },
+            "HEM-005": { placeholder: "10", rangoMinimo: 0, rangoMaximo: 20, rangoTexto: "0 - 20", unidad: "mm/h" },
+            "HEM-006": { placeholder: "12.5", rangoMinimo: 11.0, rangoMaximo: 13.5, rangoTexto: "11.0 - 13.5", unidad: "seg" },
+            "HEM-007": { placeholder: "30.0", rangoMinimo: 25.0, rangoMaximo: 35.0, rangoTexto: "25.0 - 35.0", unidad: "seg" },
+            
+            "BIO-001": { placeholder: "90.0", rangoMinimo: 70.0, rangoMaximo: 110.0, rangoTexto: "70.0 - 110.0", unidad: "mg/dL" },
+            "BIO-002": { placeholder: "25.0", rangoMinimo: 15.0, rangoMaximo: 45.0, rangoTexto: "15.0 - 45.0", unidad: "mg/dL" },
+            "BIO-003": { placeholder: "0.90", rangoMinimo: 0.6, rangoMaximo: 1.2, rangoTexto: "0.6 - 1.2", unidad: "mg/dL" },
+            "BIO-004": { placeholder: "170.0", rangoMinimo: 100.0, rangoMaximo: 200.0, rangoTexto: "100.0 - 200.0", unidad: "mg/dL" },
+            "BIO-005": { placeholder: "120.0", rangoMinimo: 30.0, rangoMaximo: 150.0, rangoTexto: "30.0 - 150.0", unidad: "mg/dL" },
+            "BIO-006": { placeholder: "25.0", rangoMinimo: 5.0, rangoMaximo: 40.0, rangoTexto: "5.0 - 40.0", unidad: "U/L" },
+            "BIO-007": { placeholder: "20.0", rangoMinimo: 5.0, rangoMaximo: 35.0, rangoTexto: "5.0 - 35.0", unidad: "U/L" },
+            "BIO-008": { placeholder: "0.80", rangoMinimo: 0.2, rangoMaximo: 1.2, rangoTexto: "0.2 - 1.2", unidad: "mg/dL" },
+            "BIO-009": { placeholder: "5.00", rangoMinimo: 3.5, rangoMaximo: 7.2, rangoTexto: "3.5 - 7.2", unidad: "mg/dL" },
+            "BIO-010": { placeholder: "7.20", rangoMinimo: 6.0, rangoMaximo: 8.3, rangoTexto: "6.0 - 8.3", unidad: "g/dL" },
+            
+            "MIC-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-003": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "MIC-004": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            
+            "INM-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-003": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-004": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "INM-005": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            
+            "URO-001": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            "URO-002": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            "URO-003": { placeholder: "NORMAL", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NORMAL", unidad: "" },
+            
+            "COP-001": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" },
+            "COP-002": { placeholder: "NEGATIVO", rangoMinimo: null, rangoMaximo: null, rangoTexto: "NEGATIVO", unidad: "" }
+        };
+
+        window.onload = function() {
+            // Read from Thymeleaf rendered hidden div first
+            const rawDivs = document.querySelectorAll('#rawResultsData div');
+            let data = null;
+            
+            if (rawDivs.length > 0) {
+                const resultados = [];
+                const resultMap = {};
+                rawDivs.forEach(div => {
+                    const code = div.getAttribute('data-codigo');
+                    const val = div.getAttribute('data-valor');
+                    if (!resultMap[code] || (val && val.trim() !== '')) {
+                        resultMap[code] = {
+                            codigoExamen: code,
+                            valorResultado: val,
+                            unidad: div.getAttribute('data-unidad'),
+                            rangoMinimo: div.getAttribute('data-rmin') && div.getAttribute('data-rmin') !== 'null' ? div.getAttribute('data-rmin') : null,
+                            rangoMaximo: div.getAttribute('data-rmax') && div.getAttribute('data-rmax') !== 'null' ? div.getAttribute('data-rmax') : null,
+                            esAnormal: div.getAttribute('data-anormal') === 'true'
+                        };
+                    }
+                });
+                for (const res of Object.values(resultMap)) {
+                    resultados.push(res);
+                }
+                
+                const parent = document.getElementById('rawResultsData');
+                data = {
+                    idOrden: parent.getAttribute('data-id'),
+                    pacienteNombre: parent.getAttribute('data-paciente'),
+                    pacienteDni: parent.getAttribute('data-dni'),
+                    medicoSolicitante: parent.getAttribute('data-medico'),
+                    fecha: parent.getAttribute('data-fecha'),
+                    fechaResultado: parent.getAttribute('data-fecha-resultado'),
+                    indicaciones: parent.getAttribute('data-indicaciones'),
+                    resultadoTexto: parent.getAttribute('data-resultado-texto'),
+                    resultados: resultados
+                };
+            } else {
+                // Fallback to localStorage
+                try {
+                    const localData = JSON.parse(localStorage.getItem('lab_report') || '{}');
+                    if (localData && localData.resultados) {
+                        const resultMap = {};
+                        localData.resultados.forEach(r => {
+                            const code = r.codigoExamen;
+                            const val = r.valorResultado;
+                            if (!resultMap[code] || (val && String(val).trim() !== '')) {
+                                resultMap[code] = r;
+                            }
+                        });
+                        localData.resultados = Object.values(resultMap);
+                    }
+                    data = localData;
+                } catch(e) {
+                    console.error('Error loading fallback report:', e);
+                }
+            }
+            
+            if (data && data.idOrden) {
+                const isCito = data.indicaciones && (
+                    data.indicaciones.toLowerCase().includes('citopato') ||
+                    data.indicaciones.toLowerCase().includes('pap') ||
+                    data.indicaciones.toLowerCase().includes('cervix') ||
+                    data.indicaciones.toLowerCase().includes('cuello uterino')
+                );
+                
+                const dateFormatted = data.fecha ? new Date(data.fecha).toLocaleString('es-PE') : '---';
+                const dateShort = data.fecha ? new Date(data.fecha).toLocaleDateString('es-PE') : '---';
+
+                if (isCito) {
+                    document.getElementById('generalLayout').style.display = 'none';
+                    document.getElementById('citopatologicoLayout').style.display = 'block';
+                    
+                    document.getElementById('lblCitoPaciente').textContent = data.pacienteNombre || '---';
+                    document.getElementById('lblCitoInforme').textContent = 'PAP-2026-' + String(data.idOrden).padStart(4,'0');
+                    
+                    const ageEl = document.getElementById('lblEdad');
+                    document.getElementById('lblCitoEdad').textContent = ageEl ? ageEl.textContent : '---';
+                    
+                    document.getElementById('lblCitoDni').textContent = data.pacienteDni || '---';
+                    document.getElementById('lblCitoMedico').textContent = data.medicoSolicitante || '---';
+                    document.getElementById('lblCitoFecha').textContent = dateShort;
+                    
+                    if (data.resultadoTexto) {
+                        document.getElementById('lblCitoInterpretacion').textContent = data.resultadoTexto;
+                    }
+                } else {
+                    document.getElementById('generalLayout').style.display = 'block';
+                    document.getElementById('citopatologicoLayout').style.display = 'none';
+                    
+                    // Fallback element updates if Thymeleaf was not filled
+                    const lblPaciente = document.getElementById('lblPaciente');
+                    if (lblPaciente && (lblPaciente.textContent.trim() === '---' || lblPaciente.textContent.trim() === '')) {
+                        lblPaciente.textContent = data.pacienteNombre || '---';
+                        document.getElementById('lblFecha').textContent = dateFormatted;
+                        document.getElementById('lblSexo').textContent = '---';
+                        document.getElementById('lblFechaImpresion').textContent = new Date().toLocaleString('es-PE');
+                        document.getElementById('lblEdad').textContent = '---';
+                        document.getElementById('lblHC').textContent = '0126' + String(data.idOrden).padStart(5,'0');
+                        document.getElementById('lblDni').textContent = data.pacienteDni || '---';
+                        document.getElementById('lblOrden').textContent = 'ORD-' + String(data.idOrden).padStart(5,'0');
+                        document.getElementById('lblMedico').textContent = data.medicoSolicitante || '---';
+                    }
+                    
+                    renderGeneralTablesFromData(data);
+                }
+            }
+        };
+
+        function renderGeneralTablesFromData(data) {
+            const container = document.getElementById('generalResultsContainer');
+            container.innerHTML = '';
+            
+            const areas = {
+                "HEMATOLOGIA": { name: "HEMATOLOGÍA", code: "HEM", results: [] },
+                "BIOQUIMICA": { name: "BIOQUÍMICA", code: "BIO", results: [] },
+                "MICROBIOLOGIA": { name: "MICROBIOLOGÍA", code: "MIC", results: [] },
+                "INMUNOLOGIA": { name: "INMUNOLOGÍA", code: "INM", results: [] },
+                "UROANALISIS": { name: "UROANÁLISIS", code: "URO", results: [] },
+                "COPROLOGIA": { name: "COPROLOGÍA", code: "COP", results: [] }
+            };
+            
+            if (data.resultados && data.resultados.length) {
+                data.resultados.forEach(r => {
+                    if (!r.valorResultado || r.valorResultado.trim() === '' || r.valorResultado.trim() === '---') {
+                        return; // Omitir exámenes sin resultados (no pasaron por laboratorio)
+                    }
+                    let matched = false;
+                    for (const [key, areaObj] of Object.entries(areas)) {
+                        if (r.codigoExamen.startsWith(areaObj.code)) {
+                            areaObj.results.push(r);
+                            matched = true;
+                            break;
+                        }
+                    }
+                    if (!matched) {
+                        if (!areas["OTROS"]) {
+                            areas["OTROS"] = { name: "OTROS ANÁLISIS", code: "OTH", results: [] };
+                        }
+                        areas["OTROS"].results.push(r);
+                    }
+                });
+                
+                for (const [key, areaObj] of Object.entries(areas)) {
+                    if (areaObj.results.length > 0) {
+                        let tableHtml = `
+                        <div class="area-section">
+                            <div class="area-title">${areaObj.name}</div>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40%">ANÁLISIS</th>
+                                        <th style="width: 20%">RESULTADO</th>
+                                        <th style="width: 20%">UNIDAD</th>
+                                        <th style="width: 20%">RESULTADOS NORMALES</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                        
+                        areaObj.results.forEach(r => {
+                            const examName = (nameMap[r.codigoExamen] || r.codigoExamen).toUpperCase();
+                            const rClass = r.esAnormal ? 'anormal' : 'normal';
+                            const config = defaultExamConfigs[r.codigoExamen] || {};
+                            let rango = '---';
+                            if (r.rangoMinimo != null) {
+                                rango = `${r.rangoMinimo} - ${r.rangoMaximo}`;
+                            } else if (config.rangoTexto) {
+                                rango = config.rangoTexto;
+                            }
+                            tableHtml += `
+                                    <tr>
+                                        <td>${examName}</td>
+                                        <td class="${rClass}">${r.valorResultado || '---'}</td>
+                                        <td>${r.unidad || config.unidad || '---'}</td>
+                                        <td style="opacity: 0.65; font-weight: 500; color: #475569;">${rango}</td>
+                                    </tr>`;
+                        });
+                        
+                        tableHtml += `
+                                </tbody>
+                            </table>
+                        </div>`;
+                        container.innerHTML += tableHtml;
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

@@ -31,7 +31,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public String handleRuntime(RuntimeException e, RedirectAttributes ra) {
         log.error("Error inesperado: {}", e.getMessage(), e);
-        ra.addFlashAttribute("error", "Ocurrio un error inesperado: " + e.getMessage());
+        ra.addFlashAttribute("error", "Ocurrió un error inesperado en el sistema. Por favor, intente más tarde.");
         return "redirect:/dashboard";
     }
 

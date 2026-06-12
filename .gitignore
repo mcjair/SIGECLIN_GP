@@ -53,3 +53,6 @@ Desktop.ini
 # Local tools and binary directories
 .tools/
 
+# Scratch scripts (development utilities, not part of the project)
+scratch/
+

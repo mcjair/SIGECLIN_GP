@@ -1,128 +1,80 @@
-# 📘 Lógica, Flujo y Procesos del Sistema - SIGECLIN
+# 🏥 Documentación de Lógica y Flujo del Sistema SIGECLIN
 
-Este documento técnico detalla de manera integral la arquitectura de software, los flujos transaccionales clínicos, las funciones de negocio frontend y backend, y las buenas prácticas implementadas en el sistema **SIGECLIN** (Sistema de Gestión Clínica) para el Centro de Salud CLAS Grocio Prado.
-
----
-
-## 🏛️ 1. Arquitectura y Capas del Sistema (Desacoplamiento)
-
-SIGECLIN se construye bajo una **Arquitectura Multicapa (Layered Architecture)**, utilizando el framework **Spring Boot 3.2.5** en Java 17, con persistencia relacional en **PostgreSQL v16/v18** y renderizado de plantillas mediante **Thymeleaf**.
-
-```mermaid
-graph TD
-    subgraph Capa_Presentacion [Capa de Presentación]
-        UI[Thymeleaf Templates / HTML5 / CSS3 / JS]
-    end
-    subgraph Capa_Control [Capa de Control]
-        Controller[Controladores Spring MVC / REST]
-        DTO[Data Transfer Objects / ConsultaRequest]
-    end
-    subgraph Capa_Servicio [Capa de Servicio]
-        Service[Servicios Transaccionales / @Service]
-    end
-    subgraph Capa_Datos [Capa de Persistencia]
-        Repository[Repositorios Spring Data JPA / JpaRepository]
-    end
-    subgraph Base_Datos [Almacenamiento]
-        DB[(PostgreSQL Database)]
-    end
-
-    UI <--> Controller
-    Controller <--> Service
-    Service <--> Repository
-    Repository <--> DB
-```
-
-1.  **Presentación (V):** Plantillas dinámicas de Thymeleaf que generan interfaces responsivas con Bootstrap 5, mejoradas estéticamente con un diseño **Glassmorphic** (paneles translúcidos, desenfoque de fondo y sombras suaves) mediante `main.css`.
-2.  **Control (C):** Controladores tradicionales (`@Controller`) que gestionan la navegación de vistas y controladores REST (`@RestController`) que procesan peticiones asíncronas basadas en JSON.
-3.  **Servicio (M - Lógica):** Componentes `@Service` que encapsulan la lógica de negocio clínica (validaciones, transacciones ACID, etc.).
-4.  **Persistencia (M - Datos):** Repositorios Spring Data JPA y entidades mapeadas con Hibernate para la persistencia transaccional en PostgreSQL.
+Este documento detalla la arquitectura, los procesos de negocio, el flujo de atención al paciente y la lógica técnica implementada en el sistema **SIGECLIN (Sistema de Gestión Clínica)** hasta la fase actual de desarrollo.
 
 ---
 
-## 🔄 2. Flujo Completo del Paciente (Workflow Clínico)
+## 🏗️ 1. Arquitectura Base y Tecnologías
 
-El recorrido transaccional de un paciente en SIGECLIN se rige por un **Diagrama de Estados del Paciente** (`PENDIENTE_PAGO` ➔ `PENDIENTE_TRIAJE` ➔ `PENDIENTE_CONSULTA` ➔ `ATENDIDO`):
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Admisionista as Admisión
-    actor Cajero as Personal de Caja
-    actor Enfermero as Personal de Triaje
-    actor Medico as Médico Especialista
-    
-    Note over Admisionista: 1. Filiación / Registro
-    Admisionista->>Sistema: Registrar paciente por DNI (Crea Persona/Paciente)
-    Admisionista->>Sistema: Crear consulta inicial (Estado: PENDIENTE_PAGO)
-    
-    Note over Cajero: 2. Caja y Cobro
-    Cajero->>Sistema: Buscar paciente por DNI en bandeja de Caja
-    Cajero->>Sistema: Procesar cobro del servicio médico
-    Sistema->>Base de Datos: Registrar pago (pago_log) y actualizar estado a PENDIENTE_TRIAJE
-    
-    Note over Enfermero: 3. Toma de Constantes Vitales
-    Enfermero->>Sistema: Seleccionar paciente en bandeja de Triaje
-    Enfermero->>Sistema: Registrar P.A., Temp, F.C., SatO₂, Peso, Talla y Clasificación
-    Sistema->>Sistema: Evaluar Alertas Clínicas automáticamente (Fiebre, Hipertensión)
-    Sistema->>Base de Datos: Guardar Triaje y cambiar estado a PENDIENTE_CONSULTA
-    
-    Note over Medico: 4. Consulta Médica Especializada
-    Medico->>Sistema: Abrir paciente en bandeja de Consulta Externa (Med. General, etc.)
-    Sistema->>Medico: Mostrar Constantes Vitales y Alertas de Alergias
-    Medico->>Sistema: Buscar y agregar CIE-10 (Autocompletado <50ms)
-    Medico->>Sistema: Prescribir medicamentos (Valida Alergias en Frontend)
-    Medico->>Sistema: Llenar Anamnesis, Examen Clínico y Plan de Tratamiento
-    Medico->>Sistema: Finalizar Consulta (Estado: ATENDIDO)
-    Sistema->>Base de Datos: Persistir Consulta, Receta y Diagnósticos transaccionalmente
-```
+El sistema está construido bajo el paradigma **MVC (Modelo-Vista-Controlador)** utilizando las siguientes tecnologías:
+*   **Backend:** Java 17 + Spring Boot 3.x
+*   **Seguridad:** Spring Security (Autenticación basada en sesiones, BCrypt, Roles: `ADMIN`, `MEDICO_GENERAL`, `TRIAJE`, etc.)
+*   **Persistencia:** Spring Data JPA (Hibernate) + Spring JDBC (para reportes nativos de alto rendimiento).
+*   **Base de Datos:** PostgreSQL (Esquemas separados: `filiacion`, `clinico`, `maestras`, `seguridad`).
+*   **Frontend:** SSR (Server-Side Rendering) con Thymeleaf, HTML5, Vanilla JavaScript, CSS modular.
+*   **Diseño UX/UI:** Estándar de diseño propio denominado **"Impeccable UI"** (Glassmorphism, jerarquía visual de alta densidad, tarjetas premium).
 
 ---
 
-## ⚙️ 3. Detalle de Procesos y Funciones Técnicas
+## 🛤️ 2. Flujo Operativo Principal (El "Patient Journey")
 
-### 📂 A. Registro de Filiación (Herencia JOINED)
-*   **Lógica:** Para evitar la duplicidad de datos comunes (DNI, nombres, apellidos, teléfono, correo), se implementó una jerarquía relacional mediante la estrategia `@Inheritance(strategy = InheritanceType.JOINED)`.
-*   **Esquema:** La tabla `filiacion.persona` almacena los datos comunes, mientras que `filiacion.paciente` y `filiacion.personal` heredan de ella y almacenan campos específicos (Nro. de Historia Clínica para paciente; Nro. de Colegiatura/Especialidad para personal).
+El ciclo de vida de un paciente dentro del sistema sigue un orden secuencial estricto, modelando un centro de salud real:
 
-### 💳 B. Caja y Log de Pagos Directo
-*   **Lógica:** Al realizar un cobro por la atención médica, el sistema ejecuta una inserción directa y transaccional en la tabla `clinico.pago_log` mediante JDBC/JPA para auditorías de recaudación, actualizando el estado de la consulta a `PENDIENTE_TRIAJE` de manera inmediata.
+### A. Admisión y Filiación (`/admission/registro`)
+1.  **Registro:** El paciente llega y entrega su DNI. Se valida si ya existe en la base de datos (BD).
+2.  **Historia Clínica:** Si es nuevo, se le genera automáticamente un número de **Historia Clínica (HC)** y se registran sus datos demográficos (Tabla `filiacion.paciente`).
+3.  **Derivación:** El recepcionista asigna al paciente al servicio solicitado (Ej: Medicina General, Odontología).
 
-### 🩺 C. Triaje y Algoritmo de Alertas Clínicas
-*   **Lógica:** Al ingresar los parámetros fisiológicos, el servicio evalúa de forma algorítmica las constantes del paciente para clasificarlo:
-    *   **IMC:** $\text{IMC} = \frac{\text{Peso (kg)}}{\text{Talla (m)}^2}$ (clasifica en Bajo Peso, Saludable, Sobrepeso u Obesidad).
-    *   **Alertas Clínicas:** Detecta en tiempo real:
-        *   *Presión Arterial:* Hipertensión Crítica ($\ge 140/90$) o Prehipertensión ($\ge 120/80$).
-        *   *Temperatura:* Fiebre ($\ge 38.0^\circ\text{C}$) o Hipotermia ($< 35.0^\circ\text{C}$).
-        *   *Saturación:* Hipoxia / Dificultad Respiratoria ($< 95\%$).
+### B. Caja y Recaudación (`/caja/pago`)
+1.  **Monitor de Cobros:** El paciente aparece en el panel de Caja en estado "PENDIENTE".
+2.  **Pago:** El cajero visualiza el servicio, genera el cobro (calculando el monto basado en el servicio) e imprime el **Comprobante de Pago/Voucher**.
+3.  **Transición:** Una vez pagado, el estado del paciente cambia y es enviado a la cola de Triaje.
 
-### 🔍 D. Consulta Médica en 3 Columnas y Buscador CIE-10 con Caché
-*   **Diseño Visual:** Interfaz Premium de alta densidad estructurada en 3 columnas independientes para evitar el scroll del navegador:
-    *   **Columna 1 (Estado):** Constantes del Triaje actual y advertencia animada de Alergias Activas del Paciente.
-    *   **Columna 2 (Registro):** Pestañas de Anamnesis, Examen Físico, Plan de Tratamiento y Línea de Tiempo del Historial Médico del paciente.
-    *   **Columna 3 (Prescripción):** Buscador de diagnósticos CIE-10, prescripción de fármacos y emisión de órdenes de laboratorio.
-*   **Buscador CIE-10:** Se implementó una API REST asíncrona (`Cie10RestController`) optimizada con un catálogo precargado de 389 códigos de la Organización Mundial de la Salud (OMS). Utiliza caché en memoria para retornar sugerencias en menos de **50ms**.
+### C. Triaje y Signos Vitales (`/triaje/nuevo` -> `/triaje/registrar/{id}`)
+1.  **Identificación:** El enfermero(a) selecciona al paciente de la lista de espera de Triaje.
+2.  **Captura Biométrica:** Se registran el Peso, Talla y se calcula matemáticamente el **IMC** en tiempo real vía JavaScript y validado en el Backend.
+3.  **Funciones Vitales:** Se ingresan Presión Arterial, Frecuencia Cardíaca, Temperatura y Saturación de Oxígeno (SpO2).
+4.  **Alertas Clínicas Automáticas:** La lógica en `TriajeService` evalúa si hay valores críticos (ej. Fiebre > 38°C, o SpO2 < 95%) y lanza una bandera de **Riesgo Clínico** para el médico.
 
-### 🚫 E. Validación Interactiva de Alergias (Frontend & Backend)
-*   **Seguridad Clínica:** Al presionar "Agregar a Receta", un script de validación cruza en tiempo real el fármaco seleccionado por el médico contra la lista de alergias activas del paciente. Si hay una coincidencia (ej. Penicilina), el sistema **bloquea la adición** en el popup de SweetAlert con una advertencia visible, evitando errores antes del envío al servidor.
-*   **Capa de Negocio:** En caso de burlar el frontend, la capa `@Service` realiza una validación redundante arrojando `AlergiaActivaException` para evitar la persistencia del fármaco peligroso.
-
-### 🖨️ F. Impresión Limpia de Documentos Clínicos
-*   **Lógica:** Para la emisión de Recetas, Certificados Médicos y Hojas de Referencia, se diseñaron plantillas HTML independientes con reglas de impresión CSS (`@media print`):
-    *   Oculta de forma automática los botones de acción, menús de navegación y cabeceras del sistema.
-    *   Ajusta el contenido para imprimir de forma óptima en formato A4 físico.
-    *   Implementa la función JS `openCenteredPopup()` para calcular matemáticamente las coordenadas y abrir la ventana de impresión exactamente al centro del monitor del médico.
-
-### 📊 G. Exportación de Datos a Excel Real (Apache POI)
-*   **Lógica:** El sistema no genera archivos de texto CSV con formato renombrado. Utiliza la biblioteca **Apache POI** para construir un libro binario de Excel real (`.xlsx`) mediante `XSSFWorkbook`.
-*   **Detalle:** El archivo exporta de forma jerárquica las columnas de Pacientes, Historias Clínicas y Fechas de Registro formateadas profesionalmente para auditorías administrativas.
+### D. Consulta Médica (`/consulta/modulo/{servicio}` -> `/consulta/atender/{id}`)
+1.  **Gestión de Colas:** El médico ingresa a su módulo (Ej: Nutrición) y ve solo a los pacientes derivados a su especialidad mediante tarjetas de alta densidad (`consulta_cola.html`).
+2.  **Historial Clínico (Timeline):** Al abrir la consulta (`consulta_espera.html`), el sistema carga la línea de tiempo del paciente, mostrando cronológicamente atenciones pasadas, diagnósticos, fechas de próximo control (formateadas de ISO a DD/MM/YYYY) e historial de alergias.
+3.  **Atención (4 Pasos Básicos):**
+    *   **Anamnesis / Motivo de consulta.**
+    *   **Examen Físico.**
+    *   **Diagnóstico:** Búsqueda asíncrona ultrarrápida del catálogo CIE-10 (MINSA).
+    *   **Plan y Tratamiento.**
+4.  **Recetario Electrónico Seguro (Detección de Alergias):**
+    *   *Lógica Frontend:* Si el médico intenta prescribir un fármaco (ej. Penicilina) y el paciente tiene alergia registrada a ese componente, se bloquea el modal de receta con una alerta `SweetAlert2`.
+    *   *Lógica Backend:* Se reafirma el bloqueo a nivel de Servidor (`RecetaService`) lanzando una excepción si la validación del UI es vulnerada.
+5.  **Cierre y Documentación:** Al guardar la consulta, de forma **Transaccional** (`@Transactional`), se guarda la consulta, los diagnósticos y las medicinas. Se habilitan los botones para imprimir: **Receta**, **Referencia** o **Certificado Médico**.
 
 ---
 
-## 🌟 4. Buenas Prácticas de Ingeniería de Software Aplicadas
+## ⚙️ 3. Lógica Especializada y Servicios Core
 
-1.  **Inyección de Dependencias por Constructor (IoC):** Se evita el uso de `@Autowired` directo sobre campos de clase. La inyección se realiza a través de constructores parametrizados, facilitando las pruebas unitarias y garantizando la inmutabilidad de los servicios.
-2.  **Principio de Inversión de Dependencia (DIP):** Los controladores de presentación inyectan interfaces de servicio y no implementaciones concretas, facilitando el intercambio de lógica de datos.
-3.  **Encapsulamiento con DTOs:** Transferencia segura de payloads mediante clases DTO estructuradas (como `ConsultaRequest`), aislando la base de datos de los datos capturados en el frontend.
-4.  **Logging Profesional (SLF4J / Logback):** Registro y trazabilidad de eventos y excepciones a través del Logger corporativo, prohibiendo por completo el uso de `System.out.println` o `e.printStackTrace()`.
-5.  **Pruebas Automatizadas (JUnit y Jacoco):** Cobertura del código fuente y suite de **46 pruebas unitarias/integración** aprobadas que validan el correcto funcionamiento del sistema.
+### 📊 A. Motor de Estadísticas (DashboardService)
+El Dashboard (`/dashboard`) procesa grandes volúmenes de datos en milisegundos usando `JdbcTemplate`.
+*   **Problema resuelto:** Los nombres de los servicios en la base de datos tenían diferentes codificaciones y tildes (ej. "NUTRICION", "Nutrición", "Nutrición ").
+*   **Solución Técnica implementada:** Se reemplazó el cotejo estricto por sentencias SQL flexibles usando `ILIKE` (ej. `ILIKE 'NUTRIC%N'`) y sentencias `CASE WHEN` para estandarizar etiquetas en tiempo de ejecución. Esto garantiza que las barras de progreso y la carga diaria nunca proyecten un valor en "0" por errores ortográficos en la BD.
+
+### 🛡️ B. Seguridad y Autenticación
+*   Las contraseñas de los usuarios se almacenan encriptadas con algoritmo unidireccional `BCrypt`.
+*   `SecurityConfig.java` restringe el acceso a las rutas clínicas. Solo el rol `ADMIN` o roles específicos (ej. `MEDICO_GENERAL`) pueden acceder a sus respectivas áreas.
+
+### 💊 C. Manejo de Apoyo al Diagnóstico (Laboratorio)
+*   **Procesamiento Inteligente:** Al visualizar informes de laboratorio, el sistema oculta automáticamente las filas de los exámenes que no fueron solicitados.
+*   **Jerarquía de Severidad:** Diferencia visualmente los resultados NORMALES (verde tenue/gris) de aquellos que están FUERA DE RANGO (textos rojos/alertas visuales), facilitando la lectura rápida al médico.
+
+---
+
+## 🎨 4. Patrones de Diseño UX/UI Implementados
+
+El sistema implementa el **"Impeccable UI Standard"**, un framework CSS local que define la estética de alto nivel de la clínica:
+1.  **Glassmorphism (Panel de Cristal):** Uso de variables CSS (`--bg-card`, `--glass-border`) para crear contenedores semitransparentes con desenfoque de fondo (`backdrop-filter: blur`).
+2.  **Feedback Asíncrono:** Todas las acciones destructivas o importantes (Guardar Consulta, Eliminar Diagnóstico, Notificar Alergia) utilizan la librería `SweetAlert2` renderizada con íconos premium.
+3.  **Layout No-Scrollable:** Interfaces clínicas diseñadas para ocupar el `100vh` (alto total de la pantalla) divididas en paneles o columnas (`col-md-3`, `col-md-9`), evitando que el médico tenga que hacer scroll excesivo ("above the fold").
+4.  **Skeleton Loaders:** Las vistas pesadas tienen esqueletos de carga animados CSS (`placeholder-glow`) mientras la data viaja desde el servidor hasta el DOM.
+
+---
+*Documento autogenerado para evidencia de desarrollo arquitectónico e hitos del sistema SIGECLIN.*

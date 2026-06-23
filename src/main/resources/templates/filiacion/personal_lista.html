@@ -53,7 +53,7 @@
                                 <span><i class="bi bi-card-text me-1 text-primary"></i> DNI: <span style="color: var(--text-main);" th:text="${p.numeroDocumento}">00000000</span></span>
                                 <span><i class="bi bi-patch-check me-1 text-primary"></i> Colegiatura: <span style="color: var(--text-main);" th:text="${p.numeroColegiatura != null ? p.numeroColegiatura : 'NO REGISTRADA'}">---</span></span>
                                 <span><i class="bi bi-briefcase me-1 text-primary"></i> Categoría: 
-                                    <span class="text-primary" th:text="${p.idTipoPersonal == 1 ? 'MÉDICO' : (p.idTipoPersonal == 2 ? 'ENFERMERO' : (p.idTipoPersonal == 3 ? 'OBSTETRA' : (p.idTipoPersonal == 4 ? 'INGENIERO' : (p.idTipoPersonal == 6 ? 'ODONTÓLOGO' : (p.idTipoPersonal == 7 ? 'PSICÓLOGO' : (p.idTipoPersonal == 8 ? 'NUTRICIONISTA' : 'ESPECIALISTA'))))))}">MÉDICO</span>
+                                    <span class="text-primary" th:text="${mapTipos[p.idTipoPersonal] != null ? mapTipos[p.idTipoPersonal] : 'NO DEFINIDO'}">MÉDICO</span>
                                 </span>
                                 <span><i class="bi bi-calendar me-1 text-primary"></i> Ingreso: <span style="color: var(--text-main);" th:text="${p.fechaIngreso}">---</span></span>
                             </div>
@@ -150,14 +150,7 @@
                                 <div class="col-md-4">
                                     <label class="form-label-premium">Tipo Personal</label>
                                     <select name="idTipoPersonal" class="form-control-premium w-100 rounded-3 p-2 fw-bold" required>
-                                        <option value="1">MÉDICO</option>
-                                        <option value="2">ENFERMERO</option>
-                                        <option value="3">OBSTETRA</option>
-                                        <option value="6">ODONTÓLOGO</option>
-                                        <option value="7">PSICÓLOGO</option>
-                                        <option value="8">NUTRICIONISTA</option>
-                                        <option value="4">INGENIERO</option>
-                                        <option value="5">ESPECIALISTA</option>
+                                        <option th:each="tp : ${tiposPersonal}" th:value="${tp.id_tipo_personal}" th:text="${tp.descripcion}">TIPO</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4">

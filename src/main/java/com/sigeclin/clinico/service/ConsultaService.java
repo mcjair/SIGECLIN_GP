@@ -84,8 +84,26 @@ public class ConsultaService implements IConsultaService {
             medico = personalRepository.findByUsuarioUsername(triaje.getUsuario().getUsername()).orElse(null);
         }
         if (medico == null) {
-            medico = personalRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new RuntimeException("No hay personal médico registrado"));
+            // Fallback Inteligente para Administradores: Asignar al especialista según el servicio de destino.
+            Integer especialidadBuscada = 1; // Default: Medicina General
+            if (triaje.getServicioDestino() != null) {
+                String dest = triaje.getServicioDestino().toUpperCase();
+                if (dest.contains("OBSTETRICIA")) especialidadBuscada = 2;
+                else if (dest.contains("ODONTOLOG")) especialidadBuscada = 3;
+                else if (dest.contains("PSICOLOG")) especialidadBuscada = 4;
+                else if (dest.contains("NUTRICI")) especialidadBuscada = 5;
+            }
+            final Integer espFinal = especialidadBuscada;
+
+            medico = personalRepository.findAll().stream()
+                    .filter(p -> p.getIdEspecialidad() != null && p.getIdEspecialidad().equals(espFinal))
+                    .filter(p -> "activo".equalsIgnoreCase(p.getEstadoLaboral()))
+                    .findFirst()
+                    .orElseGet(() -> personalRepository.findAll().stream()
+                            .filter(p -> p.getIdTipoPersonal() != null && p.getIdTipoPersonal() == 1)
+                            .filter(p -> "activo".equalsIgnoreCase(p.getEstadoLaboral()))
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("No hay personal médico registrado")));
         }
 
         Consulta consulta = new Consulta();

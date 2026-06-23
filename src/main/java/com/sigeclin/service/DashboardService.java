@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -69,8 +70,8 @@ public class DashboardService implements IDashboardService {
                 "  WHEN t.servicio_destino ILIKE 'NUTRIC%N' THEN 'NUTRICIÓN' " +
                 "  ELSE t.servicio_destino " +
                 "END as servicio, t.clasificacion_urgencia as estado " +
-                "FROM clinico.triaje t " +
-                "JOIN filiacion.paciente pa ON t.id_paciente = pa.id_paciente " +
+                "FROM filiacion.paciente pa " +
+                "JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = pa.id_paciente) " +
                 "JOIN filiacion.persona p ON pa.id_paciente = p.id_persona " +
                 "WHERE pa.estado = 'PENDIENTE_CONSULTA' " +
                 "ORDER BY t.fecha_hora ASC LIMIT 5");
@@ -85,32 +86,32 @@ public class DashboardService implements IDashboardService {
             model.addAttribute("triajeCount", triajeCount != null ? triajeCount : 0);
 
             Integer medicinaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'MEDICINA GENERAL'", Integer.class);
             model.addAttribute("medicinaCount", medicinaCount != null ? medicinaCount : 0);
 
             Integer odontologiaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ODONTOLOG%A'", Integer.class);
             model.addAttribute("odontologiaCount", odontologiaCount != null ? odontologiaCount : 0);
 
             Integer enfermeriaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ENFERMER%A'", Integer.class);
             model.addAttribute("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
 
             Integer obstetriciaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'OBSTETRICIA'", Integer.class);
             model.addAttribute("obstetriciaCount", obstetriciaCount != null ? obstetriciaCount : 0);
 
             Integer psicologiaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'PSICOLOG%A'", Integer.class);
             model.addAttribute("psicologiaCount", psicologiaCount != null ? psicologiaCount : 0);
 
             Integer nutricionCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'NUTRIC%N'", Integer.class);
             model.addAttribute("nutricionCount", nutricionCount != null ? nutricionCount : 0);
 
@@ -144,6 +145,7 @@ public class DashboardService implements IDashboardService {
     }
 
     @Override
+    @Cacheable("dashboardStats")
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> stats = new HashMap<>();
         try {
@@ -183,8 +185,8 @@ public class DashboardService implements IDashboardService {
                 "  WHEN t.servicio_destino ILIKE 'NUTRIC%N' THEN 'NUTRICIÓN' " +
                 "  ELSE t.servicio_destino " +
                 "END as servicio, t.clasificacion_urgencia as estado " +
-                "FROM clinico.triaje t " +
-                "JOIN filiacion.paciente pa ON t.id_paciente = pa.id_paciente " +
+                "FROM filiacion.paciente pa " +
+                "JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = pa.id_paciente) " +
                 "JOIN filiacion.persona p ON pa.id_paciente = p.id_persona " +
                 "WHERE pa.estado = 'PENDIENTE_CONSULTA' " +
                 "ORDER BY t.fecha_hora ASC LIMIT 5");
@@ -195,32 +197,32 @@ public class DashboardService implements IDashboardService {
             stats.put("triajeCount", triajeCount != null ? triajeCount : 0);
 
             Integer medicinaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'MEDICINA GENERAL'", Integer.class);
             stats.put("medicinaCount", medicinaCount != null ? medicinaCount : 0);
 
             Integer odontologiaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ODONTOLOG%A'", Integer.class);
             stats.put("odontologiaCount", odontologiaCount != null ? odontologiaCount : 0);
 
             Integer enfermeriaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'ENFERMER%A'", Integer.class);
             stats.put("enfermeriaCount", enfermeriaCount != null ? enfermeriaCount : 0);
 
             Integer obstetriciaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'OBSTETRICIA'", Integer.class);
             stats.put("obstetriciaCount", obstetriciaCount != null ? obstetriciaCount : 0);
 
             Integer psicologiaCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'PSICOLOG%A'", Integer.class);
             stats.put("psicologiaCount", psicologiaCount != null ? psicologiaCount : 0);
 
             Integer nutricionCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON p.id_paciente = t.id_paciente " +
+                "SELECT count(*) FROM filiacion.paciente p JOIN clinico.triaje t ON t.id_triaje = (SELECT max(id_triaje) FROM clinico.triaje WHERE id_paciente = p.id_paciente) " +
                 "WHERE p.estado = 'PENDIENTE_CONSULTA' AND t.servicio_destino ILIKE 'NUTRIC%N'", Integer.class);
             stats.put("nutricionCount", nutricionCount != null ? nutricionCount : 0);
 

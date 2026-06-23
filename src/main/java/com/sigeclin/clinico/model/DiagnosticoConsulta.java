@@ -4,9 +4,13 @@ import com.sigeclin.maestras.model.Cie10;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
+
 @Data
 @Entity
 @Table(name = "diagnostico_consulta", schema = "clinico")
+@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 public class DiagnosticoConsulta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

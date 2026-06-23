@@ -5,8 +5,8 @@ services:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: sigeclin
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
+      POSTGRES_USER: ${POSTGRES_USER:-admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SuperSigeclinSecure2026!}
     ports:
       - "5432:5432"
     volumes:
@@ -24,8 +24,8 @@ services:
       - "3001:3001"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/sigeclin
-      SPRING_DATASOURCE_USERNAME: admin
-      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-SuperSigeclinSecure2026!}
       SIGECLIN_CIE10_DIR_PATH: /app/ciex
     depends_on:
       db:

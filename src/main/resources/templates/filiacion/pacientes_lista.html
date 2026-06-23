@@ -11,10 +11,13 @@
             <div class="card glass-panel-premium border-0 shadow-sm d-flex flex-column" style="width: 350px; min-width: 350px;">
                 <div class="p-4 border-bottom border-light">
                     <h6 class="fw-800 text-dark mb-3 text-uppercase small tracking-wider">Buscar Paciente</h6>
-                    <div class="position-relative">
-                        <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                        <input type="text" id="searchInput" class="form-control rounded-pill ps-5 border-0 shadow-sm bg-light py-2" placeholder="Nombre, apellidos o DNI..." onkeyup="filterPatients(this)">
-                    </div>
+                    <form th:action="@{/pacientes/lista}" method="get" class="m-0">
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" name="search" th:value="${search}" class="form-control rounded-pill ps-5 pe-5 border-0 shadow-sm bg-light py-2" placeholder="Escribe y presiona ENTER...">
+                            <a th:if="${search != null and !search.isEmpty()}" th:href="@{/pacientes/lista}" class="position-absolute top-50 end-0 translate-middle-y me-3 text-danger" title="Limpiar"><i class="bi bi-x-circle-fill"></i></a>
+                        </div>
+                    </form>
                 </div>
                 <div class="flex-grow-1 overflow-y-auto custom-scrollbar p-3" id="patientListContainer">
                     <div th:each="p : ${pacientes}" class="patient-row px-4 py-3 mb-3 rounded-4 border bg-white shadow-sm cursor-pointer transition-all d-flex align-items-center gap-3"
@@ -24,15 +27,18 @@
                          th:data-dni="${p.numeroDocumento}"
                          th:data-nombre="|${p.apellidoPaterno ?: ''} ${p.apellidoMaterno ?: ''}, ${p.nombres ?: ''}|"
                          th:data-fecha-nacimiento="${p.fechaNacimiento}"
-                         th:data-telefono="${p.telefonoPrincipal}">
+                         th:data-telefono="${p.telefonoPrincipal}"
+                         th:data-sexo="${p.sexo}">
                         
                         <!-- Vertical color accent line on active -->
                         <div class="active-indicator-bar" style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, var(--primary), var(--secondary)); opacity: 0; transition: opacity 0.25s ease;"></div>
 
-                        <!-- Rounded avatar with icon -->
-                        <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" 
-                             style="width: 40px; height: 40px; background-color: var(--primary-soft); color: var(--primary); transition: all 0.25s ease;">
-                            <i class="bi bi-person-fill" style="font-size: 1.15rem;"></i>
+                        <!-- Dynamic Gender Avatar -->
+                        <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm text-white" 
+                             style="width: 44px; height: 44px; font-size: 1.25rem; border: 2px solid rgba(255,255,255,0.8); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"
+                             th:styleappend="${p.sexo == 'F'} ? 'background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); box-shadow: 0 4px 10px rgba(236,72,153,0.3) !important;' : 'background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); box-shadow: 0 4px 10px rgba(59,130,246,0.3) !important;'">
+                            <i th:if="${p.sexo == 'F'}" class="bi bi-person-standing-dress"></i>
+                            <i th:unless="${p.sexo == 'F'}" class="bi bi-person-standing"></i>
                         </div>
                         
                         <!-- Info container -->
@@ -48,6 +54,19 @@
                         <i class="bi bi-chevron-right text-muted small flex-shrink-0 chevron-icon" style="font-size: 0.75rem;"></i>
                     </div>
                 </div>
+                <!-- Pagination Controls -->
+                <div class="p-3 border-top border-light d-flex justify-content-between align-items-center bg-white" style="border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem;" th:if="${totalPages > 1}">
+                    <span class="text-muted fw-bold" style="font-size: 0.75rem;" th:text="'Pág ' + (${currentPage} + 1) + ' de ' + ${totalPages}"></span>
+                    <ul class="pagination pagination-sm mb-0 shadow-xs">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link text-primary fw-bold" th:href="@{/pacientes/lista(page=${currentPage - 1}, search=${search})}"><i class="bi bi-chevron-left"></i></a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+                            <a class="page-link text-primary fw-bold" th:href="@{/pacientes/lista(page=${currentPage + 1}, search=${search})}"><i class="bi bi-chevron-right"></i></a>
+                        </li>
+                    </ul>
+                </div>
+                
             </div>
 
             <!-- RIGHT COLUMN: Timeline & Details -->
@@ -62,10 +81,12 @@
                     <div class="card glass-panel-premium border-0 shadow-sm p-4 mb-4 flex-shrink-0" style="border: 1px solid var(--border) !important;">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div class="d-flex gap-3 align-items-center flex-wrap">
-                                <!-- Customized high-contrast initials avatar to fix the solid blue circle bug -->
-                                <div class="rounded-circle d-flex align-items-center justify-content-center fw-900 shadow-sm text-primary flex-shrink-0" 
-                                     style="width: 58px; height: 58px; background-color: var(--primary-soft); color: var(--primary) !important; font-size: 1.35rem;" 
-                                     id="detInitials">P</div>
+                                <!-- Premium Header Avatar (Dynamic based on Gender via JS) -->
+                                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 text-white" 
+                                     style="width: 70px; height: 70px; font-size: 2.2rem; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 4px solid rgba(255,255,255,0.7);" 
+                                     id="detInitials">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
                                 <div>
                                     <div class="d-flex align-items-center gap-3 mb-2.5 flex-wrap">
                                         <h4 class="fw-900 text-dark mb-0" id="detName" style="letter-spacing: -0.025em;">Nombre Paciente</h4>
@@ -111,25 +132,13 @@
             </div>
 
             <script>
-                function filterPatients(input) {
-                    const q = input.value.toLowerCase();
-                    document.querySelectorAll('.patient-row').forEach(row => {
-                        const name = row.getAttribute('data-nombre').toLowerCase();
-                        const dni = row.querySelector('.text-muted span').innerText.toLowerCase();
-                        if (name.includes(q) || dni.includes(q)) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                }
-
                 function abrirHistorialFromCard(element) {
                     const idPersona = element.getAttribute('data-id');
                     const nombre = element.getAttribute('data-nombre');
                     const dni = element.getAttribute('data-dni');
                     const fechaNacimiento = element.getAttribute('data-fecha-nacimiento');
                     const telefono = element.getAttribute('data-telefono') || 'No registrado';
+                    const sexo = element.getAttribute('data-sexo');
                     
                     let edadStr = '---';
                     if (fechaNacimiento && fechaNacimiento !== 'null') {
@@ -143,7 +152,7 @@
                         edadStr = age + ' años';
                     }
                     
-                    abrirHistorial(element, idPersona, nombre, dni, edadStr, telefono);
+                    abrirHistorial(element, idPersona, nombre, dni, edadStr, telefono, sexo);
                 }
 
                 document.addEventListener("DOMContentLoaded", () => {
@@ -153,7 +162,7 @@
                     }
                 });
 
-                async function abrirHistorial(element, idPersona, nombre, dni, edad, telefono) {
+                async function abrirHistorial(element, idPersona, nombre, dni, edad, telefono, sexo) {
                     // Update active state in list
                     document.querySelectorAll('.patient-row').forEach(r => {
                         r.classList.remove('active');
@@ -172,7 +181,19 @@
 
                     // Set header info
                     document.getElementById('detName').innerText = nombre;
-                    document.getElementById('detInitials').innerText = nombre ? nombre.charAt(0) : 'P';
+                    
+                    // Dynamic Gender Avatar logic
+                    const detInitials = document.getElementById('detInitials');
+                    if (sexo === 'F') {
+                        detInitials.innerHTML = '<i class="bi bi-person-standing-dress"></i>';
+                        detInitials.style.background = 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)';
+                        detInitials.style.boxShadow = '0 6px 20px rgba(236,72,153,0.35)';
+                    } else {
+                        detInitials.innerHTML = '<i class="bi bi-person-standing"></i>';
+                        detInitials.style.background = 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)';
+                        detInitials.style.boxShadow = '0 6px 20px rgba(59,130,246,0.35)';
+                    }
+                    
                     document.getElementById('detDni').innerText = dni;
                     document.getElementById('detEdad').innerText = edad;
                     document.getElementById('detCelular').innerText = telefono;
@@ -310,27 +331,31 @@
                             }
                             
                             html += `
-                            <div class="mb-4 position-relative">
-                                <!-- Node -->
-                                <div class="position-absolute rounded-circle d-flex align-items-center justify-content-center text-white shadow-sm" 
-                                     style="width: 26px; height: 26px; left: -38px; top: 14px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);">
-                                    <i class="bi bi-activity" style="font-size: 0.75rem;"></i>
+                            <div class="mb-4 position-relative ps-4" style="border-left: 2px dashed rgba(16,102,228,0.3); margin-left: 16px;">
+                                <!-- Node con Resplandor (Neon Glow) -->
+                                <div class="position-absolute rounded-circle d-flex align-items-center justify-content-center text-white" 
+                                     style="width: 32px; height: 32px; left: -17px; top: 16px; background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%); box-shadow: 0 0 12px rgba(16,102,228,0.4); border: 3px solid white; z-index: 2; transition: all 0.3s ease;">
+                                    <i class="bi bi-clipboard-pulse text-white" style="font-size: 0.95rem;"></i>
                                 </div>
                                 
-                                <div class="card timeline-card-premium shadow-sm rounded-4 overflow-hidden">
-                                    <div class="card-header border-0 py-3 px-4 cursor-pointer collapsed" data-bs-toggle="collapse" data-bs-target="#col_${h.idAtencion}">
-                                        <div class="d-flex justify-content-between align-items-center">
+                                <div class="card timeline-card-premium border-0 shadow-sm rounded-4 overflow-hidden card-hover transition-all" style="backdrop-filter: blur(12px);">
+                                    <div class="card-header border-0 py-3 px-4 cursor-pointer collapsed bg-transparent" data-bs-toggle="collapse" data-bs-target="#col_${h.idAtencion}">
+                                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                                             <div>
                                                 <div class="d-flex align-items-center gap-2 mb-1">
-                                                    <i class="bi bi-calendar-event text-muted small"></i>
-                                                    <span class="small fw-bold text-muted">${datePart}</span>
-                                                    <span class="badge bg-success-soft text-success rounded-pill extra-small fw-900 tracking-wider">COMPLETADO</span>
+                                                    <div class="bg-primary bg-opacity-10 text-primary p-1 rounded-circle d-flex align-items-center justify-content-center" style="width: 22px; height: 22px;">
+                                                        <i class="bi bi-calendar-event" style="font-size: 0.65rem;"></i>
+                                                    </div>
+                                                    <span class="small fw-bold text-primary">${datePart}</span>
+                                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill extra-small fw-900 tracking-wider ms-2 shadow-xs border border-success border-opacity-25 py-1 px-2">COMPLETADO</span>
                                                 </div>
-                                                <h6 class="fw-800 text-dark mb-0">${title}</h6>
+                                                <h6 class="fw-900 text-dark mb-0 mt-2" style="font-size: 1.05rem; letter-spacing: -0.01em;">${title}</h6>
                                             </div>
                                             <div class="d-flex align-items-center gap-3">
-                                                <span class="badge bg-light border border-light-subtle text-dark fw-900 px-3 py-2 rounded-pill" style="font-size: 0.85rem;">S/ ${price}</span>
-                                                <i class="bi bi-chevron-down text-muted" style="font-size: 0.95rem;"></i>
+                                                <span class="badge px-4 py-2 rounded-pill shadow-xs border" style="font-size: 0.9rem; font-weight: 800; background: linear-gradient(to right, #f8fafc, #f1f5f9); color: var(--primary); border-color: rgba(16,102,228,0.15) !important;">S/ ${price}</span>
+                                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center transition-all icon-collapse-wrapper" style="width: 32px; height: 32px; border: 1px solid rgba(0,0,0,0.05);">
+                                                    <i class="bi bi-chevron-down text-primary" style="font-size: 1rem;"></i>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -489,10 +514,6 @@
                 }
             </script>
             <style>
-                body {
-                    background: radial-gradient(circle at 10% 20%, #f8fafc 0%, #f1f5f9 100%) !important;
-                }
-                
                 /* Custom Premium Scrollbar */
                 .custom-scrollbar::-webkit-scrollbar {
                     width: 6px;
@@ -509,25 +530,18 @@
                     background: rgba(148, 163, 184, 0.5);
                 }
 
-                .glass-panel-premium {
-                    background: #fcfdfe !important;
-                    border: 1px solid rgba(148, 163, 184, 0.12) !important;
-                    border-radius: 24px !important;
-                    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03), 0 5px 15px -5px rgba(0, 0, 0, 0.01) !important;
-                }
+                /* .glass-panel-premium movido a main.css para control global de Dark Mode */
 
                 /* Left Column Patient Rows */
                 .patient-row {
-                    background: #ffffff !important;
-                    border: 1px solid rgba(226, 232, 240, 0.8) !important;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                    border-radius: 16px !important;
+                    border: 1px solid rgba(226, 232, 240, 0.8);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    border-radius: 16px;
                 }
                 .patient-row:hover {
-                    background: #ffffff !important;
-                    border-color: rgba(16, 102, 228, 0.2) !important;
+                    border-color: rgba(16, 102, 228, 0.2);
                     transform: translateY(-3px);
-                    box-shadow: 0 12px 28px -5px rgba(16, 102, 228, 0.06), 0 5px 10px -5px rgba(16, 102, 228, 0.02) !important;
+                    box-shadow: 0 12px 28px -5px rgba(16, 102, 228, 0.06), 0 5px 10px -5px rgba(16, 102, 228, 0.02);
                 }
                 .patient-row:hover .avatar-circle {
                     background-color: var(--primary) !important;
@@ -565,7 +579,7 @@
                     border: 1px solid rgba(226, 232, 240, 0.8) !important;
                     border-radius: 20px !important;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-                    background: #ffffff !important;
+                    background: #ffffff;
                     box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.01) !important;
                 }
                 .timeline-card-premium:hover {
@@ -574,12 +588,12 @@
                     border-color: rgba(16, 102, 228, 0.12) !important;
                 }
                 .timeline-card-premium .card-header {
-                    background: #ffffff !important;
+                    background: #ffffff;
                     transition: background 0.25s ease;
                     border-bottom: 0 !important;
                 }
                 .timeline-card-premium .card-header:hover {
-                    background: rgba(248, 250, 252, 0.8) !important;
+                    background: rgba(248, 250, 252, 0.8);
                 }
                 .timeline-card-premium [data-bs-toggle="collapse"] .bi-chevron-down {
                     transition: transform 0.3s ease;

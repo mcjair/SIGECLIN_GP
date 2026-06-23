@@ -542,3 +542,101 @@ LEFT JOIN LATERAL (
 ) t ON true;
 
 CREATE UNIQUE INDEX idx_vw_hc_paciente ON clinico.vw_historia_clinica(id_paciente);
+
+-- ============================================================
+-- TABLAS DE AUDITORIA FORENSE (HIBERNATE ENVERS)
+-- ============================================================
+
+CREATE SEQUENCE IF NOT EXISTS public.revinfo_seq START WITH 1 INCREMENT BY 50;
+
+CREATE TABLE IF NOT EXISTS public.revinfo (
+    rev INTEGER NOT NULL,
+    revtstmp BIGINT,
+    PRIMARY KEY (rev)
+);
+
+CREATE TABLE IF NOT EXISTS clinico.consulta_aud (
+    id_consulta INT NOT NULL,
+    rev INT NOT NULL REFERENCES public.revinfo(rev),
+    revtype SMALLINT,
+    id_paciente INT,
+    id_cita INT,
+    id_triaje INT,
+    id_personal INT,
+    id_especialidad INT,
+    fecha_hora_inicio TIMESTAMP,
+    fecha_hora_fin TIMESTAMP,
+    tipo_consulta VARCHAR(30),
+    motivo_consulta TEXT,
+    anamnesis TEXT,
+    examen_fisico TEXT,
+    plan_tratamiento TEXT,
+    proximo_control DATE,
+    estado VARCHAR(20),
+    PRIMARY KEY (id_consulta, rev)
+);
+
+CREATE TABLE IF NOT EXISTS clinico.triaje_aud (
+    id_triaje INT NOT NULL,
+    rev INT NOT NULL REFERENCES public.revinfo(rev),
+    revtype SMALLINT,
+    id_paciente INT,
+    id_cita INT,
+    id_usuario INT,
+    fecha_hora TIMESTAMP,
+    presion_arterial_sistolica INT,
+    presion_arterial_diastolica INT,
+    frecuencia_cardiaca INT,
+    frecuencia_respiratoria INT,
+    temperatura NUMERIC(4,1),
+    saturacion_oxigeno INT,
+    peso_kg NUMERIC(5,2),
+    talla_cm NUMERIC(5,2),
+    clasificacion_urgencia VARCHAR(10),
+    servicio_destino VARCHAR(50),
+    checklist_sintomas JSONB,
+    observaciones TEXT,
+    PRIMARY KEY (id_triaje, rev)
+);
+
+CREATE TABLE IF NOT EXISTS clinico.receta_medica_aud (
+    id_receta INT NOT NULL,
+    rev INT NOT NULL REFERENCES public.revinfo(rev),
+    revtype SMALLINT,
+    id_consulta INT,
+    id_paciente INT,
+    id_personal INT,
+    fecha_emision TIMESTAMP,
+    estado VARCHAR(20),
+    indicaciones_generales TEXT,
+    fecha_proxima_revision DATE,
+    PRIMARY KEY (id_receta, rev)
+);
+
+CREATE TABLE IF NOT EXISTS clinico.detalle_receta_aud (
+    id_detalle INT NOT NULL,
+    rev INT NOT NULL REFERENCES public.revinfo(rev),
+    revtype SMALLINT,
+    id_receta INT,
+    id_medicamento INT,
+    dosis VARCHAR(50),
+    frecuencia VARCHAR(50),
+    duracion_dias INT,
+    cantidad_total INT,
+    id_via_administracion INT,
+    indicaciones_adicionales TEXT,
+    estado_dispensacion VARCHAR(20),
+    PRIMARY KEY (id_detalle, rev)
+);
+
+CREATE TABLE IF NOT EXISTS clinico.diagnostico_consulta_aud (
+    id_diagnostico INT NOT NULL,
+    rev INT NOT NULL REFERENCES public.revinfo(rev),
+    revtype SMALLINT,
+    id_consulta INT,
+    codigo_cie10 VARCHAR(10),
+    tipo VARCHAR(20),
+    observaciones TEXT,
+    fecha_registro TIMESTAMP,
+    PRIMARY KEY (id_diagnostico, rev)
+);

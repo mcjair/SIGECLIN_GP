@@ -9,9 +9,13 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
+
 @Data
 @Entity
 @Table(name = "triaje", schema = "clinico")
+@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Triaje {
 

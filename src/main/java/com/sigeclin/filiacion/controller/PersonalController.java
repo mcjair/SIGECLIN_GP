@@ -14,6 +14,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 
+import org.springframework.jdbc.core.JdbcTemplate;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @Slf4j
 @Controller
 @RequestMapping("/personal")
@@ -21,12 +25,23 @@ import java.util.List;
 public class PersonalController {
 
     private final IPersonalService personalService;
+    private final JdbcTemplate jdbcTemplate;
 
     @GetMapping("/lista")
     @PreAuthorize("hasAnyRole('ADMIN', 'MEDICO_GENERAL', 'ENFERMERIA')")
     public String listarPersonal(Model model) {
         List<Personal> personal = personalService.listarTodos();
         model.addAttribute("personalList", personal);
+        
+        List<Map<String, Object>> tipos = jdbcTemplate.queryForList("SELECT id_tipo_personal, descripcion FROM maestras.tipo_personal");
+        model.addAttribute("tiposPersonal", tipos);
+        
+        Map<Integer, String> mapTipos = tipos.stream().collect(Collectors.toMap(
+            row -> ((Number) row.get("id_tipo_personal")).intValue(),
+            row -> (String) row.get("descripcion")
+        ));
+        model.addAttribute("mapTipos", mapTipos);
+        
         return "filiacion/personal_lista";
     }
 

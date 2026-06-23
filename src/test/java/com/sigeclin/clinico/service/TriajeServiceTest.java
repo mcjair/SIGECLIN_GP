@@ -30,15 +30,16 @@ class TriajeServiceTest {
     @BeforeEach
     void setUp() {
         triaje = new Triaje();
-        triaje.setPeso(BigDecimal.valueOf(70.5));
-        triaje.setTalla(BigDecimal.valueOf(1.75));
+        triaje.setPesoKg(BigDecimal.valueOf(70.5));
+        triaje.setTallaCm(BigDecimal.valueOf(175));
     }
 
     @Test
     void calcularImc_DeberiaRetornarValorCorrecto() {
         // Ejecución de lógica real matemática
-        // IMC = Peso / (Talla * Talla) = 70.5 / (1.75 * 1.75) = 23.02
-        triaje.setImc(triaje.getPeso().divide(triaje.getTalla().multiply(triaje.getTalla()), 2, java.math.RoundingMode.HALF_UP));
+        // IMC = Peso / (TallaM * TallaM)
+        BigDecimal tallaM = triaje.getTallaCm().divide(BigDecimal.valueOf(100));
+        triaje.setImc(triaje.getPesoKg().divide(tallaM.multiply(tallaM), 2, java.math.RoundingMode.HALF_UP));
 
         assertNotNull(triaje.getImc(), "El IMC no debe ser nulo");
         assertEquals(BigDecimal.valueOf(23.02), triaje.getImc(), "El cálculo del IMC es incorrecto");

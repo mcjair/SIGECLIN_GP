@@ -108,6 +108,42 @@
     border-color: var(--glass-border) !important;
 }
 
+/* Global Glass Premium overrides */
+.glass-panel-premium {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 24px !important;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.03), 0 5px 15px -5px rgba(0, 0, 0, 0.01) !important;
+}
+
+/* Pacientes Lista Dark Mode Overrides */
+[data-theme="dark"] .patient-row,
+[data-theme="dark"] .timeline-card-premium {
+    background: var(--bg-card) !important;
+    border-color: var(--glass-border) !important;
+}
+[data-theme="dark"] .patient-row:hover,
+[data-theme="dark"] .timeline-card-premium:hover,
+[data-theme="dark"] .timeline-card-premium .card-header:hover {
+    background: rgba(15, 23, 42, 0.5) !important;
+    border-color: var(--primary) !important;
+}
+[data-theme="dark"] .timeline-block-motivo,
+[data-theme="dark"] .timeline-block-examen,
+[data-theme="dark"] .timeline-block-diagnostico,
+[data-theme="dark"] .timeline-block-plan,
+[data-theme="dark"] .doc-block-receta,
+[data-theme="dark"] .doc-block-cita,
+[data-theme="dark"] .doc-block-certificado,
+[data-theme="dark"] .doc-block-referencia {
+    background: rgba(15, 23, 42, 0.4) !important;
+    border-color: var(--glass-border) !important;
+}
+[data-theme="dark"] .bg-light-subtle {
+    background: rgba(15, 23, 42, 0.5) !important;
+    border-color: var(--glass-border) !important;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -2368,6 +2404,15 @@ body {
 [data-theme="dark"] .btn-emerald-grad { background: linear-gradient(135deg, #0d9488 0%, #34d399 100%); }
 [data-theme="dark"] .btn-indigo-grad { background: var(--primary-gradient); }
 [data-theme="dark"] .btn-amber-grad { background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%); }
+
+/* Corporate Premium Solid/Dark Buttons */
+.btn-navy-premium { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white !important; border: none; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2); }
+.btn-navy-premium:hover { background: linear-gradient(135deg, #1e293b 0%, #1e40af 100%); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(15, 23, 42, 0.3); }
+[data-theme="dark"] .btn-navy-premium { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+
+.btn-slate-dark { background: linear-gradient(135deg, #334155 0%, #1e293b 100%); color: white !important; border: none; box-shadow: 0 4px 10px rgba(51, 65, 85, 0.2); }
+.btn-slate-dark:hover { background: linear-gradient(135deg, #475569 0%, #0f172a 100%); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(51, 65, 85, 0.3); }
+[data-theme="dark"] .btn-slate-dark { background: linear-gradient(135deg, #475569 0%, #64748b 100%); }
 
 /* Hover translate utility */
 .hover-translate-y { transition: var(--transition); }

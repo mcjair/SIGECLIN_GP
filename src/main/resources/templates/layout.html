@@ -504,8 +504,33 @@
                     .catch(() => {});
             }
 
-            setInterval(checkNotifications, 30000);
             setTimeout(checkNotifications, 1000);
+
+            // ===== WEBSOCKETS (STOMP): NOTIFICACIONES REAL-TIME =====
+            let stompClient = null;
+            function connectWebSocket() {
+                if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+                    console.warn("Librerías WebSockets no cargadas.");
+                    return;
+                }
+                const socket = new SockJS('/ws-sigeclin');
+                stompClient = Stomp.over(socket);
+                stompClient.debug = null; // Apagar logs de debug
+                stompClient.connect({}, function(frame) {
+                    console.log('🔗 Conectado a SIGECLIN WebSockets: ' + frame);
+                    // Suscribirse al canal de notificaciones globales
+                    stompClient.subscribe('/topic/notificaciones', function(mensaje) {
+                        // Al recibir cualquier pulso en el canal, forzamos un redibujado de stats
+                        checkNotifications();
+                    });
+                }, function(error) {
+                    console.error('Error WebSocket: ', error);
+                    // Intentar reconectar a los 5 segundos
+                    setTimeout(connectWebSocket, 5000);
+                });
+            }
+            // Iniciar conexión WS al cargar
+            setTimeout(connectWebSocket, 2000);
 
             // ===== RELOJ EN VIVO (HH:MM:SS) =====
             function updateLiveClock() {
@@ -520,6 +545,8 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
         </script>
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     </footer>
 </body>
 </html>

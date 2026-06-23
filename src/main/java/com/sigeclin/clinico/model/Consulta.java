@@ -7,9 +7,13 @@ import lombok.Data;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
+
 @Data
 @Entity
 @Table(name = "consulta", schema = "clinico")
+@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 @com.fasterxml.jackson.annotation.JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Consulta {
     @Id

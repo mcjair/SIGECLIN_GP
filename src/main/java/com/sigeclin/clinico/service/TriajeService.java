@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 import java.util.List;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Slf4j
 @Service
@@ -14,11 +16,15 @@ import java.util.List;
 public class TriajeService implements ITriajeService {
 
     private final TriajeRepository triajeRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
+    @CacheEvict(value = "dashboardStats", allEntries = true)
     public Triaje guardarTriaje(Triaje triaje) {
         evaluarAlertasClinicas(triaje);
-        return triajeRepository.save(triaje);
+        Triaje saved = triajeRepository.save(triaje);
+        messagingTemplate.convertAndSend("/topic/notificaciones", "UPDATE");
+        return saved;
     }
 
     public void evaluarAlertasClinicas(Triaje triaje) {

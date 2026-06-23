@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.jdbc.core.JdbcTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -60,6 +61,7 @@ public class ConsultaService implements IConsultaService {
     }
 
     @Transactional
+    @CacheEvict(value = "dashboardStats", allEntries = true)
     public Consulta guardarConsultaCompleta(Integer triajeId, Map<String, Object> data) {
         Triaje triaje = triajeRepository.findById(triajeId)
                 .orElseThrow(() -> new RuntimeException("Triaje no encontrado"));

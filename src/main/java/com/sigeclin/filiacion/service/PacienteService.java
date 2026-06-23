@@ -9,7 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 import java.time.LocalDateTime;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @Slf4j
 @Service
@@ -17,6 +19,7 @@ import java.time.LocalDateTime;
 public class PacienteService implements IPacienteService {
 
     private final PacienteRepository pacienteRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public Paciente registrarPaciente(Paciente paciente) {
@@ -89,19 +92,23 @@ public class PacienteService implements IPacienteService {
     }
 
     @Transactional
+    @CacheEvict(value = "dashboardStats", allEntries = true)
     public void actualizarEstado(Integer idPaciente, String nuevoEstado) {
         pacienteRepository.findById(idPaciente).ifPresent(p -> {
             p.setEstado(nuevoEstado);
             pacienteRepository.save(p);
+            messagingTemplate.convertAndSend("/topic/notificaciones", "UPDATE");
         });
     }
 
     @Transactional
+    @CacheEvict(value = "dashboardStats", allEntries = true)
     public void actualizarEstadoPorDocumento(String doc, String nuevoEstado) {
         buscarPorDniOHC(doc).ifPresentOrElse(p -> {
             p.setEstado(nuevoEstado);
             pacienteRepository.save(p);
             log.debug("Estado actualizado a {} para paciente: {}", nuevoEstado, doc);
+            messagingTemplate.convertAndSend("/topic/notificaciones", "UPDATE");
         }, () -> {
             log.warn("No se pudo actualizar estado. Paciente no encontrado con: {}", doc);
         });

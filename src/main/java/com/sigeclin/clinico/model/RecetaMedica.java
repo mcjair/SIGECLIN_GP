@@ -9,9 +9,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.envers.Audited;
+import org.hibernate.envers.RelationTargetAuditMode;
+
 @Data
 @Entity
 @Table(name = "receta_medica", schema = "clinico")
+@Audited(targetAuditMode = RelationTargetAuditMode.NOT_AUDITED)
 public class RecetaMedica {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

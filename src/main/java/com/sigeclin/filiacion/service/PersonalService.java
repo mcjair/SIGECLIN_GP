@@ -18,6 +18,9 @@ public class PersonalService implements IPersonalService {
 
     private final PersonalRepository personalRepository;
     private final jakarta.persistence.EntityManager entityManager;
+    
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public List<Personal> listarTodos() {
         return personalRepository.findAll();
@@ -131,5 +134,65 @@ public class PersonalService implements IPersonalService {
         Personal p = buscarPorId(id);
         p.setEstadoLaboral("activo".equals(p.getEstadoLaboral()) ? "inactivo" : "activo");
         personalRepository.save(p);
+    }
+
+    @Transactional
+    public String generarUsuario(Integer idPersonal) {
+        Personal p = buscarPorId(idPersonal);
+        if (p == null || StringUtils.isBlank(p.getNombres()) || StringUtils.isBlank(p.getApellidoPaterno())) return null;
+        
+        String baseUser = p.getNombres().substring(0, 1).toLowerCase() + p.getApellidoPaterno().toLowerCase();
+        baseUser = baseUser.replaceAll("[^a-z0-9]", ""); // Limpieza de caracteres especiales
+        
+        // Verificar si ya tiene usuario
+        List<?> existing = entityManager.createNativeQuery("SELECT id_usuario FROM filiacion.usuario WHERE id_usuario = :id")
+                .setParameter("id", p.getIdPersona()).getResultList();
+        if (!existing.isEmpty()) {
+            // Actualizar el password para asegurarnos de que funciona
+            String nuevoHash = passwordEncoder.encode("admin");
+            entityManager.createNativeQuery("UPDATE filiacion.usuario SET password_hash = :hash WHERE id_usuario = :id")
+                .setParameter("hash", nuevoHash)
+                .setParameter("id", p.getIdPersona()).executeUpdate();
+            return null; // Ya existe, solo actualizamos el pass
+        }
+        
+        // Hash BCrypt dinámico de la contraseña "admin"
+        String hashAdmin = passwordEncoder.encode("admin");
+        
+        // Evitar colisiones de nombres de usuario (ej: si ya existe "jperez", creará "jperez1")
+        String username = baseUser;
+        int count = 1;
+        while (!entityManager.createNativeQuery("SELECT id_usuario FROM filiacion.usuario WHERE username = :usr")
+                .setParameter("usr", username).getResultList().isEmpty()) {
+            username = baseUser + count;
+            count++;
+        }
+        
+        // Crear Usuario
+        entityManager.createNativeQuery("INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) VALUES (:id, :usr, :hash, false, 0, false, CURRENT_TIMESTAMP)")
+                .setParameter("id", p.getIdPersona())
+                .setParameter("usr", username)
+                .setParameter("hash", hashAdmin)
+                .executeUpdate();
+                
+        // Vincular usuario al personal
+        entityManager.createNativeQuery("UPDATE filiacion.personal SET id_usuario = :id WHERE id_personal = :id")
+                .setParameter("id", p.getIdPersona())
+                .executeUpdate();
+                
+        // Asignación inteligente de roles según profesión
+        Integer idRol = 2; // Por defecto: ADMISION
+        if (p.getIdTipoPersonal() != null) {
+            if (p.getIdTipoPersonal() == 1) idRol = 6; // MEDICO_GENERAL
+            else if (p.getIdTipoPersonal() == 2) idRol = 5; // ENFERMERIA
+            else if (p.getIdTipoPersonal() == 3) idRol = 7; // OBSTETRA
+        }
+        
+        entityManager.createNativeQuery("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (:id, :rol)")
+                .setParameter("id", p.getIdPersona())
+                .setParameter("rol", idRol)
+                .executeUpdate();
+                
+        return username;
     }
 }

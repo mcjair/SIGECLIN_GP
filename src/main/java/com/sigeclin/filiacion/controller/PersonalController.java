@@ -53,8 +53,22 @@ public class PersonalController {
             return "redirect:/personal/lista";
         }
         try {
-            personalService.guardar(personal);
-            ra.addFlashAttribute("success", "Personal guardado correctamente.");
+            if (personal.getNumeroColegiatura() != null && personal.getNumeroColegiatura().trim().isEmpty()) {
+                personal.setNumeroColegiatura(null);
+            }
+            boolean isNew = personal.getIdPersona() == null;
+            Personal saved = personalService.guardar(personal);
+            
+            if (isNew) {
+                String generatedUser = personalService.generarUsuario(saved.getIdPersona());
+                if (generatedUser != null) {
+                    ra.addFlashAttribute("success", "Personal creado exitosamente. Credenciales de acceso generadas: Usuario: [" + generatedUser + "] | Clave: [admin]");
+                } else {
+                    ra.addFlashAttribute("success", "Personal guardado correctamente.");
+                }
+            } else {
+                ra.addFlashAttribute("success", "Personal guardado correctamente.");
+            }
         } catch (Exception e) {
             ra.addFlashAttribute("error", "Error al guardar: " + e.getMessage());
         }

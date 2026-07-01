@@ -74,19 +74,23 @@ public class TriajeController {
 
     @PostMapping("/guardar")
     public String guardarTriaje(@Valid @ModelAttribute Triaje triaje, BindingResult bindingResult,
-                                Authentication authentication, RedirectAttributes redirectAttributes) {
+                                Authentication authentication, org.springframework.ui.Model model, RedirectAttributes redirectAttributes) {
         log.info(">>> [SIGECLIN] Iniciando registro de Triaje...");
         if (bindingResult.hasErrors()) {
             String msg = bindingResult.getAllErrors().stream()
                     .map(e -> e.getDefaultMessage())
                     .reduce((a, b) -> a + "; " + b)
-                    .orElse("Error de validación");
+                    .orElse("Error de validación en los datos ingresados.");
             log.warn("Validación fallida en Triaje: {}", msg);
-            redirectAttributes.addFlashAttribute("error", msg);
+            
+            // UX Perfection: Retenemos los datos del formulario (Estado)
             if (triaje.getPaciente() != null && triaje.getPaciente().getIdPersona() != null) {
-                return "redirect:/triaje/registrar/" + triaje.getPaciente().getIdPersona();
+                Paciente p = pacienteService.buscarPorId(triaje.getPaciente().getIdPersona()).orElse(triaje.getPaciente());
+                model.addAttribute("paciente", p);
+                model.addAttribute("edad", p.getEdadCompleta());
             }
-            return "redirect:/triaje/nuevo";
+            model.addAttribute("errorObj", msg);
+            return "clinico/triaje_registro";
         }
 
         try {

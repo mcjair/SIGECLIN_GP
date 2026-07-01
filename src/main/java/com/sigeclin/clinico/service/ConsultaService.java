@@ -33,8 +33,9 @@ public class ConsultaService implements IConsultaService {
     private final ResultadoLaboratorioRepository resultadoLaboratorioRepository;
     private final JdbcTemplate jdbcTemplate;
 
-    public List<com.sigeclin.clinico.model.Consulta> obtenerHistorialPaciente(Integer idPaciente) {
-        return consultaRepository.findByPacienteIdPersonaOrderByFechaHoraInicioDesc(idPaciente);
+    public List<Consulta> obtenerHistorialPaciente(Integer idPaciente) {
+        // Fallback estructurado: Limitar a 50 para evitar OutOfMemory y usar EntityGraph contra N+1
+        return consultaRepository.findByPacienteIdPersonaOrderByFechaHoraInicioDesc(idPaciente, org.springframework.data.domain.PageRequest.of(0, 50)).getContent();
     }
 
     public List<Triaje> obtenerPacientesEnEspera() {
@@ -63,6 +64,10 @@ public class ConsultaService implements IConsultaService {
     @Transactional
     @CacheEvict(value = "dashboardStats", allEntries = true)
     public Consulta guardarConsultaCompleta(Integer triajeId, Map<String, Object> data) {
+        if (consultaRepository.existsByTriajeIdTriaje(triajeId)) {
+            throw new RuntimeException("Este paciente ya fue atendido para el triaje indicado. No se puede duplicar ni sobrescribir la atención.");
+        }
+        
         Triaje triaje = triajeRepository.findById(triajeId)
                 .orElseThrow(() -> new RuntimeException("Triaje no encontrado"));
 
@@ -113,10 +118,17 @@ public class ConsultaService implements IConsultaService {
         consulta.setTriaje(triaje);
         consulta.setMedico(medico);
         consulta.setIdEspecialidad(medico.getIdEspecialidad() != null ? medico.getIdEspecialidad() : 1);
-        consulta.setMotivoConsulta(data.get("motivo") != null ? (String) data.get("motivo") : "Atención Médica General");
-        consulta.setAnamnesis((String) data.get("anamnesis"));
-        consulta.setExamenFisico((String) data.get("examenFisico"));
-        consulta.setPlanTratamiento((String) data.get("planTratamiento"));
+        String motivo = data.get("motivo") != null ? (String) data.get("motivo") : "Atención Médica General";
+        consulta.setMotivoConsulta(motivo.toUpperCase());
+        
+        String anamnesis = (String) data.get("anamnesis");
+        consulta.setAnamnesis(anamnesis != null ? anamnesis.toUpperCase() : null);
+        
+        String examenFisico = (String) data.get("examenFisico");
+        consulta.setExamenFisico(examenFisico != null ? examenFisico.toUpperCase() : null);
+        
+        String planTrat = (String) data.get("planTratamiento");
+        consulta.setPlanTratamiento(planTrat != null ? planTrat.toUpperCase() : null);
         
         if (data.get("proximoControl") != null && !data.get("proximoControl").toString().isEmpty()) {
             try {
@@ -194,7 +206,7 @@ public class ConsultaService implements IConsultaService {
             orden.setIdPersonalSolicitante(medico.getIdPersona());
             orden.setTipo("LABORATORIO");
             orden.setEstado("solicitada");
-            orden.setIndicaciones((String) data.get("planTratamiento"));
+            orden.setIndicaciones(consulta.getPlanTratamiento());
 
             for (Map<String, Object> examData : examenes) {
                 ResultadoLaboratorio rl = new ResultadoLaboratorio();

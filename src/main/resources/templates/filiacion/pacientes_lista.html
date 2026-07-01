@@ -8,19 +8,19 @@
         <div id="pacientes-content" class="h-100 d-flex gap-4 p-4" style="max-height: 100vh; margin-top: -15px;">
             
             <!-- LEFT COLUMN: Patient Search and List -->
-            <div class="card glass-panel-premium border-0 shadow-sm d-flex flex-column" style="width: 350px; min-width: 350px;">
+            <div class="card glass-panel-premium border-0 shadow-sm d-flex flex-column" style="width: 380px; min-width: 380px;">
                 <div class="p-4 border-bottom border-light">
                     <h6 class="fw-800 text-dark mb-3 text-uppercase small tracking-wider">Buscar Paciente</h6>
                     <form th:action="@{/pacientes/lista}" method="get" class="m-0">
                         <div class="position-relative">
                             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                            <input type="text" name="search" th:value="${search}" class="form-control rounded-pill ps-5 pe-5 border-0 shadow-sm bg-light py-2" placeholder="Escribe y presiona ENTER...">
+                            <input type="text" name="search" th:value="${search}" class="form-control rounded-pill ps-5 pe-4 border-0 shadow-sm bg-light py-2" placeholder="Escribe y presiona ENTER...">
                             <a th:if="${search != null and !search.isEmpty()}" th:href="@{/pacientes/lista}" class="position-absolute top-50 end-0 translate-middle-y me-3 text-danger" title="Limpiar"><i class="bi bi-x-circle-fill"></i></a>
                         </div>
                     </form>
                 </div>
                 <div class="flex-grow-1 overflow-y-auto custom-scrollbar p-3" id="patientListContainer">
-                    <div th:each="p : ${pacientes}" class="patient-row px-4 py-3 mb-3 rounded-4 border bg-white shadow-sm cursor-pointer transition-all d-flex align-items-center gap-3"
+                    <div th:each="p : ${pacientes}" class="patient-row kpi-card border-0 px-4 py-3 mb-3 cursor-pointer d-flex align-items-center gap-3"
                          style="min-height: 92px; position: relative; overflow: hidden;"
                          onclick="abrirHistorialFromCard(this)"
                          th:data-id="${p.idPersona}"
@@ -35,8 +35,7 @@
 
                         <!-- Dynamic Gender Avatar -->
                         <div class="avatar-circle rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm text-white" 
-                             style="width: 44px; height: 44px; font-size: 1.25rem; border: 2px solid rgba(255,255,255,0.8); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"
-                             th:styleappend="${p.sexo == 'F'} ? 'background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%); box-shadow: 0 4px 10px rgba(236,72,153,0.3) !important;' : 'background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); box-shadow: 0 4px 10px rgba(59,130,246,0.3) !important;'">
+                             style="width: 44px; height: 44px; font-size: 1.25rem; border: 2px solid rgba(255,255,255,0.8); background: linear-gradient(135deg, var(--premium-teal) 0%, var(--premium-teal-hover) 100%); box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3) !important; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
                             <i th:if="${p.sexo == 'F'}" class="bi bi-person-standing-dress"></i>
                             <i th:unless="${p.sexo == 'F'}" class="bi bi-person-standing"></i>
                         </div>
@@ -78,7 +77,7 @@
                 
                 <div id="activePatientView" class="h-100 d-none flex-column">
                     <!-- HEADER INFO -->
-                    <div class="card glass-panel-premium border-0 shadow-sm p-4 mb-4 flex-shrink-0" style="border: 1px solid var(--border) !important;">
+                    <div class="kpi-card p-4 mb-4 flex-shrink-0 border-0">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div class="d-flex gap-3 align-items-center flex-wrap">
                                 <!-- Premium Header Avatar (Dynamic based on Gender via JS) -->
@@ -120,7 +119,7 @@
                     </div>
 
                     <!-- TIMELINE BOX -->
-                    <div class="card glass-panel-premium border-0 shadow-sm p-4 flex-grow-1 d-flex flex-column overflow-hidden">
+                    <div class="premium-table-wrapper p-4 flex-grow-1 d-flex flex-column overflow-hidden border-0">
                         <div class="d-flex justify-content-between align-items-center mb-4 flex-shrink-0">
                             <h5 class="fw-800 text-dark mb-0">Timeline de Evolución Clínica</h5>
                         </div>
@@ -186,13 +185,11 @@
                     const detInitials = document.getElementById('detInitials');
                     if (sexo === 'F') {
                         detInitials.innerHTML = '<i class="bi bi-person-standing-dress"></i>';
-                        detInitials.style.background = 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)';
-                        detInitials.style.boxShadow = '0 6px 20px rgba(236,72,153,0.35)';
                     } else {
                         detInitials.innerHTML = '<i class="bi bi-person-standing"></i>';
-                        detInitials.style.background = 'linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)';
-                        detInitials.style.boxShadow = '0 6px 20px rgba(59,130,246,0.35)';
                     }
+                    detInitials.style.background = 'linear-gradient(135deg, var(--premium-teal) 0%, var(--premium-teal-hover) 100%)';
+                    detInitials.style.boxShadow = '0 6px 20px rgba(13, 148, 136, 0.35)';
                     
                     document.getElementById('detDni').innerText = dni;
                     document.getElementById('detEdad').innerText = edad;
@@ -331,10 +328,10 @@
                             }
                             
                             html += `
-                            <div class="mb-4 position-relative ps-4" style="border-left: 2px dashed rgba(16,102,228,0.3); margin-left: 16px;">
+                            <div class="mb-4 position-relative ps-4" style="border-left: 2px dashed rgba(13, 148, 136, 0.3); margin-left: 16px;">
                                 <!-- Node con Resplandor (Neon Glow) -->
                                 <div class="position-absolute rounded-circle d-flex align-items-center justify-content-center text-white" 
-                                     style="width: 32px; height: 32px; left: -17px; top: 16px; background: linear-gradient(135deg, #1066e4 0%, #05bef2 100%); box-shadow: 0 0 12px rgba(16,102,228,0.4); border: 3px solid white; z-index: 2; transition: all 0.3s ease;">
+                                     style="width: 32px; height: 32px; left: -17px; top: 16px; background: linear-gradient(135deg, var(--premium-teal) 0%, var(--premium-teal-hover) 100%); box-shadow: 0 0 12px rgba(13, 148, 136, 0.4); border: 3px solid white; z-index: 2; transition: all 0.3s ease;">
                                     <i class="bi bi-clipboard-pulse text-white" style="font-size: 0.95rem;"></i>
                                 </div>
                                 
@@ -352,7 +349,7 @@
                                                 <h6 class="fw-900 text-dark mb-0 mt-2" style="font-size: 1.05rem; letter-spacing: -0.01em;">${title}</h6>
                                             </div>
                                             <div class="d-flex align-items-center gap-3">
-                                                <span class="badge px-4 py-2 rounded-pill shadow-xs border" style="font-size: 0.9rem; font-weight: 800; background: linear-gradient(to right, #f8fafc, #f1f5f9); color: var(--primary); border-color: rgba(16,102,228,0.15) !important;">S/ ${price}</span>
+                                                <span class="badge px-4 py-2 rounded-pill shadow-xs border" style="font-size: 0.9rem; font-weight: 800; background: linear-gradient(to right, #f8fafc, #f1f5f9); color: var(--primary); border-color: rgba(13, 148, 136, 0.2) !important;">S/ ${price}</span>
                                                 <div class="bg-light rounded-circle d-flex align-items-center justify-content-center transition-all icon-collapse-wrapper" style="width: 32px; height: 32px; border: 1px solid rgba(0,0,0,0.05);">
                                                     <i class="bi bi-chevron-down text-primary" style="font-size: 1rem;"></i>
                                                 </div>
@@ -541,21 +538,60 @@
                 .patient-row:hover {
                     border-color: rgba(16, 102, 228, 0.2);
                     transform: translateY(-3px);
-                    box-shadow: 0 12px 28px -5px rgba(16, 102, 228, 0.06), 0 5px 10px -5px rgba(16, 102, 228, 0.02);
                 }
-                .patient-row:hover .avatar-circle {
-                    background-color: var(--primary) !important;
-                    color: white !important;
-                    transform: scale(1.05);
+                :root {
+                    --premium-teal: #0d9488;
+                    --premium-teal-hover: #0f766e;
                 }
+                .fw-black { font-weight: 900; }
+                .tracking-tight { letter-spacing: -0.05em; }
+                .tracking-wider { letter-spacing: 0.05em; }
+
+                /* KPI Cards Premium */
+                .kpi-card {
+                    background: #ffffff;
+                    border-radius: 16px;
+                    border: 1px solid rgba(0,0,0,0.03) !important;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.02) !important;
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                }
+                .kpi-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 25px rgba(0,0,0,0.06) !important;
+                }
+
+                /* Premium Table Wrapper */
+                .premium-table-wrapper {
+                    background: #ffffff;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+                    border: 1px solid rgba(0,0,0,0.03);
+                }
+
+                .bg-blue-soft { background: #eff6ff !important; } .text-blue { color: #3b82f6 !important; }
+                .bg-green-soft { background: #f0fdf4 !important; } .text-green { color: #10b981 !important; }
+                .bg-red-soft { background: #fef2f2 !important; } .text-red { color: #ef4444 !important; }
+                .bg-yellow-soft { background: #fefce8 !important; } .text-yellow { color: #eab308 !important; }
+
+                .avatar-circle { font-family: 'Inter', sans-serif; }
+                .min-width-0 { min-width: 0; }
+                
+                .glass-panel-premium {
+                    background: rgba(255, 255, 255, 0.85);
+                    backdrop-filter: blur(16px);
+                    -webkit-backdrop-filter: blur(16px);
+                    border: 1px solid rgba(255, 255, 255, 0.4);
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.03);
+                }
+                
                 .patient-row.active {
-                    background: linear-gradient(135deg, rgba(16, 102, 228, 0.06) 0%, rgba(16, 102, 228, 0.01) 100%) !important;
-                    border-color: rgba(16, 102, 228, 0.45) !important;
-                    box-shadow: 0 12px 30px -5px rgba(16, 102, 228, 0.1) !important;
+                    background: linear-gradient(135deg, rgba(13, 148, 136, 0.06) 0%, rgba(13, 148, 136, 0.01) 100%) !important;
+                    border-color: rgba(13, 148, 136, 0.3) !important;
+                    box-shadow: 0 12px 30px -5px rgba(13, 148, 136, 0.1) !important;
                 }
                 .patient-row.active .active-indicator-bar {
                     opacity: 1 !important;
-                    background: linear-gradient(to bottom, #1066e4, #05bef2) !important;
+                    background: linear-gradient(to bottom, var(--premium-teal), #34d399) !important;
                 }
                 .patient-row.active .avatar-circle {
                     background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%) !important;

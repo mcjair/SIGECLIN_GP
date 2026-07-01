@@ -14,4 +14,5 @@ public interface IPersonalService {
     Personal guardar(Personal personal);
     void eliminar(Integer id);
     void toggleEstado(Integer id);
+    String generarUsuario(Integer idPersonal);
 }

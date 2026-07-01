@@ -36,34 +36,40 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .map(rol -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + rol.getCodigo()))
                 .collect(java.util.stream.Collectors.toList());
 
-        return User.builder()
-                .username(usuario.getUsername())
-                .password(usuario.getPasswordHash())
-                .authorities(authorities)
-                .disabled(Boolean.TRUE.equals(usuario.getCuentaBloqueada()))
-                .accountLocked(Boolean.TRUE.equals(usuario.getCuentaBloqueada()))
-                .build();
+        return new CustomUserDetails(
+                usuario.getUsername(),
+                usuario.getPasswordHash(),
+                !Boolean.TRUE.equals(usuario.getCuentaBloqueada()),
+                true,
+                true,
+                !Boolean.TRUE.equals(usuario.getCuentaBloqueada()),
+                authorities,
+                Boolean.TRUE.equals(usuario.getRequiereCambioPassword())
+        );
+    }
+
+    public static class CustomUserDetails extends User {
+        private final boolean requiereCambioPassword;
+
+        public CustomUserDetails(String username, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, java.util.Collection<? extends org.springframework.security.core.GrantedAuthority> authorities, boolean requiereCambioPassword) {
+            super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
+            this.requiereCambioPassword = requiereCambioPassword;
+        }
+
+        public boolean isRequiereCambioPassword() {
+            return requiereCambioPassword;
+        }
     }
 
     @Transactional
     public void registrarIntentoFallido(String username) {
-        usuarioRepository.findByUsername(username).ifPresent(usuario -> {
-            int intentos = usuario.getIntentosFallidos() != null ? usuario.getIntentosFallidos() + 1 : 1;
-            usuario.setIntentosFallidos(intentos);
-            if (intentos >= MAX_INTENTOS_FALLIDOS) {
-                usuario.setCuentaBloqueada(true);
-                log.warn("Cuenta bloqueada por {} intentos fallidos: {}", MAX_INTENTOS_FALLIDOS, username);
-            }
-            usuarioRepository.save(usuario);
-        });
+        usuarioRepository.updateFailedAttempt(username, MAX_INTENTOS_FALLIDOS);
+        log.warn("Se registró un intento fallido para el usuario: {}", username);
     }
 
     @Transactional
     public void resetearIntentosFallidos(String username) {
-        usuarioRepository.findByUsername(username).ifPresent(usuario -> {
-            usuario.setIntentosFallidos(0);
-            usuario.setFechaUltimoAcceso(LocalDateTime.now());
-            usuarioRepository.save(usuario);
-        });
+        usuarioRepository.updateLoginSuccess(username, LocalDateTime.now());
+        log.debug("Estadísticas de login reiniciadas con éxito para: {}", username);
     }
 }

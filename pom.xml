@@ -120,6 +120,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
+		<!-- Apache POI for Excel Export -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>5.2.3</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -189,6 +196,10 @@
 								</goals>
 							</execution>
 						</executions>
+						<configuration>
+							<!-- Bloquear la compilación si se halla una vulnerabilidad Alta o Crítica (CVSS > 7.0) -->
+							<failBuildOnCVSS>7.0</failBuildOnCVSS>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

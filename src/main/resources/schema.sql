@@ -552,6 +552,7 @@ CREATE SEQUENCE IF NOT EXISTS public.revinfo_seq START WITH 1 INCREMENT BY 50;
 CREATE TABLE IF NOT EXISTS public.revinfo (
     rev INTEGER NOT NULL,
     revtstmp BIGINT,
+    username VARCHAR(50),
     PRIMARY KEY (rev)
 );
 

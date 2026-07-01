@@ -27,8 +27,9 @@ public class MassiveSeeder implements CommandLineRunner {
 
         log.info("======================================================");
         log.info("[MASSIVE SEEDER] 1. Inhabilitando personal y usuarios antiguos (test)...");
-        jdbc.update("UPDATE filiacion.personal SET estado_laboral = 'inactivo' WHERE id_personal < 1000");
-        jdbc.update("UPDATE filiacion.usuario SET cuenta_bloqueada = true WHERE username != 'admin' AND id_usuario < 1000");
+        // Mantener a todo el personal y usuarios activos y desbloqueados globalmente
+        jdbc.update("UPDATE filiacion.personal SET estado_laboral = 'activo'");
+        jdbc.update("UPDATE filiacion.usuario SET cuenta_bloqueada = false");
         
         // Garantizar que la planilla oficial siempre esté ACTIVA
         jdbc.update("UPDATE filiacion.personal SET estado_laboral = 'activo' WHERE id_personal >= 1001");

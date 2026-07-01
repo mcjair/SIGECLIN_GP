@@ -8,9 +8,9 @@
             
             <!-- HEADER EXTENSION -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <p class="text-muted small mb-0 fw-bold">Gestión de análisis clínicos por área — Norma Técnica I-3 MINSA</p>
-                <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="recargarPanel()">
-                    <i class="bi bi-arrow-clockwise me-2"></i> Actualizar
+                <p class="text-muted small mb-0 fw-medium">Gestión de análisis clínicos por área — Norma Técnica I-3 MINSA</p>
+                <button class="btn btn-premium-primary text-white rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="recargarPanel()">
+                    <i class="bi bi-arrow-clockwise"></i> Actualizar
                 </button>
             </div>
 
@@ -21,80 +21,80 @@
                 </div>
                 
                 <div class="d-flex gap-2 flex-wrap" id="filterPills">
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" onclick="aplicarFiltro('todas', this)">Todas</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('HEMATOLOGIA', this)">Hematología</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('BIOQUIMICA', this)">Bioquímica</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('MICROBIOLOGIA', this)">Microbiología</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('INMUNOLOGIA', this)">Inmunología</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('UROANALISIS', this)">Uroanálisis</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('COPROLOGIA', this)">Coprología</span>
+                    <button class="btn-filter active" onclick="aplicarFiltro('todas', this)">Todas</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('HEMATOLOGIA', this)">Hematología</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('BIOQUIMICA', this)">Bioquímica</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('MICROBIOLOGIA', this)">Microbiología</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('INMUNOLOGIA', this)">Inmunología</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('UROANALISIS', this)">Uroanálisis</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('COPROLOGIA', this)">Coprología</button>
                 </div>
             </div>
 
             <!-- KPI CARDS -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #eff6ff; color: #3b82f6;">
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-blue-soft text-blue">
                             <i class="bi bi-file-earmark-medical fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0" id="kpiTotal">0</h4>
-                            <span class="text-muted extra-small fw-bold">Total Órdenes</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight" id="kpiTotal">0</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Total Órdenes</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #fefce8; color: #eab308;">
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-yellow-soft text-yellow">
                             <i class="bi bi-clock-history fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0" id="kpiPendientes">0</h4>
-                            <span class="text-muted extra-small fw-bold">Pendientes</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight" id="kpiPendientes">0</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Pendientes</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #f0fdf4; color: #22c55e;">
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-green-soft text-green">
                             <i class="bi bi-check2-all fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0" id="kpiValidadas">0</h4>
-                            <span class="text-muted extra-small fw-bold">Validadas</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight" id="kpiValidadas">0</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Validadas</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #fef2f2; color: #ef4444;">
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-red-soft text-red">
                             <i class="bi bi-exclamation-triangle fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0" id="kpiUrgentes">0</h4>
-                            <span class="text-muted extra-small fw-bold">Urgentes</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight" id="kpiUrgentes">0</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Urgentes</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- DATA TABLE -->
-            <div class="card border-0 shadow-sm rounded-4 flex-grow-1 overflow-hidden d-flex flex-column">
-                <div class="table-responsive flex-grow-1 custom-scrollbar">
-                    <table class="table table-hover align-middle mb-0 border-0">
+            <div class="premium-table-wrapper flex-grow-1 overflow-hidden d-flex flex-column">
+                <div class="table-responsive flex-grow-1 custom-scrollbar overflow-y-auto">
+                    <table class="table align-middle mb-0 premium-table">
                         <thead>
                             <tr>
-                                <th class="ps-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">N° Orden</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Paciente</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Análisis</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Área</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Resultado</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider text-center">Estado</th>
-                                <th class="pe-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider text-end">Acciones</th>
+                                <th class="ps-4 py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">N° Orden</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Paciente</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Análisis</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Área</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Resultado</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider text-center">Estado</th>
+                                <th class="pe-4 py-3 fw-bold text-muted extra-small text-uppercase tracking-wider text-end">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody class="border-top-0" id="ordenesBody">
+                        <tbody id="ordenesBody">
                             <tr>
                                 <td colspan="7" class="text-center py-5 text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-2"></i>
@@ -131,13 +131,133 @@
     <div th:replace="~{layout :: footer}"></div>
 
     <style>
+        :root {
+            --premium-teal: #0d9488;
+            --premium-teal-hover: #0f766e;
+        }
+        .fw-black { font-weight: 900; }
+        .tracking-tight { letter-spacing: -0.05em; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        
+        /* KPI Cards Premium */
+        .kpi-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.06);
+        }
+        .kpi-icon-box {
+            width: 48px; height: 48px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .bg-blue-soft { background: #eff6ff; } .text-blue { color: #3b82f6; }
+        .bg-green-soft { background: #f0fdf4; } .text-green { color: #10b981; }
+        .bg-red-soft { background: #fef2f2; } .text-red { color: #ef4444; }
+        .bg-yellow-soft { background: #fefce8; } .text-yellow { color: #eab308; }
+        .bg-purple-soft { background: #f5f3ff; } .text-purple { color: #8b5cf6; }
+
+        /* Filter Buttons */
+        .btn-filter {
+            background: transparent;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-filter:hover { background: #f8fafc; border-color: #cbd5e1; color: #334155; }
+        .btn-filter.active {
+            background: var(--premium-teal);
+            border-color: var(--premium-teal);
+            color: white;
+            box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2);
+        }
+
+        /* Premium Table */
+        .premium-table-wrapper {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+        .premium-table thead th {
+            background: #f8fafc;
+            border-bottom: 2px solid #f1f5f9;
+            color: #64748b;
+        }
+        .premium-table tbody tr {
+            transition: all 0.2s;
+            border-bottom: 1px dashed #f1f5f9;
+        }
+        .premium-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        .premium-table tbody tr:last-child { border-bottom: none; }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-active { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+        .status-inactive { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+        /* Badges */
+        .premium-badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 12px; border-radius: 8px; font-size: 0.75rem;
+        }
+        .premium-badge .dot {
+            width: 6px; height: 6px; border-radius: 50%;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            width: 32px; height: 32px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #64748b;
+            display: inline-flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .btn-action:hover {
+            background: #f8fafc; color: var(--premium-teal); border-color: #cbd5e1;
+        }
+        .action-danger:hover { color: #ef4444; }
+
+        /* Primary Button */
+        .btn-premium-primary {
+            background: linear-gradient(135deg, var(--premium-teal), #0f766e);
+            border: none;
+            transition: all 0.3s;
+        }
+        .btn-premium-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3) !important;
+        }
+
         .nav-tabs .nav-link { background: transparent; color: var(--text-muted); border: none; transition: var(--transition); }
         .nav-tabs .nav-link:hover { background: rgba(99,102,241,0.08); color: var(--primary); }
         .nav-tabs .nav-link.active { background: white !important; color: var(--primary) !important; box-shadow: 0 2px 8px rgba(99,102,241,0.15); }
         .resultado-normal { color: #059669; font-weight: 800; }
         .resultado-anormal { color: #dc2626; font-weight: 800; animation: pulse-glow 1.5s infinite; }
         @keyframes pulse-glow { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
-        .badge-urgente { background: rgba(220,38,38,0.12); color: #dc2626; }
+        .badge-urgente { background: rgba(220,38,38,0.12); color: #dc2626; border: 1px solid #fecaca; }
         .examen-check:checked + label { background: var(--primary-soft); border-color: var(--primary); }
         .examen-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 8px 12px; transition: var(--transition); cursor: pointer; }
         .examen-item:hover { border-color: var(--primary); background: rgba(99,102,241,0.04); }
@@ -295,7 +415,7 @@
         let searchQuery = '';
 
         function aplicarFiltro(area, element) {
-            document.querySelectorAll('.filter-pill').forEach(el => {
+            document.querySelectorAll('.btn-filter').forEach(el => {
                 el.classList.remove('active');
             });
             element.classList.add('active');
@@ -355,10 +475,10 @@
             let html = '';
             filtradas.forEach((o, i) => {
                 const r = o.resultados && o.resultados.length ? o.resultados[0] : null;
-                const valor = r ? r.valorResultado : '---';
+                const valor = (r && r.valorResultado && r.valorResultado !== "null") ? r.valorResultado : '---';
                 const unidad = r ? (r.unidad || '') : '';
                 const esAnormal = r ? r.esAnormal : false;
-                const valClass = r ? (esAnormal ? 'resultado-anormal' : 'resultado-normal') : 'text-muted';
+                const valClass = (valor !== '---') ? (esAnormal ? 'resultado-anormal' : 'resultado-normal') : 'text-muted';
                 const urgClass = o.urgente ? 'badge-urgente' : '';
                 const isPendiente = o.estado === 'solicitada' || o.estado === 'resultado_ingresado';
                 
@@ -368,16 +488,20 @@
                     areaPill = a.charAt(0).toUpperCase() + a.slice(1).toLowerCase();
                 }
 
-                html += `<tr class="hover-scale transition-all">
-                    <td class="ps-4"><div class="fw-800 text-primary">ORD-${String(o.idOrden).padStart(5,'0')}</div></td>
-                    <td><div class="fw-800 text-ink text-uppercase small">${o.pacienteNombre || 'PACIENTE #' + o.idOrden}</div><div class="extra-small text-muted fw-bold">${o.pacienteDni || '---'}</div></td>
-                    <td><div class="fw-800 text-ink">${o.indicaciones || 'Análisis clínico'}</div></td>
-                    <td><span class="badge bg-primary-soft text-primary fw-800 rounded-pill px-3">${areaPill}</span></td>
-                    <td><div class="${valClass} fs-5">${valor} <span class="fs-6">${unidad}</span></div></td>
-                    <td class="text-center"><span class="badge ${o.estado === 'validado' ? 'bg-success-soft text-success' : o.estado === 'resultado_ingresado' ? 'bg-primary-soft text-primary' : 'bg-warning-soft text-warning'} px-3 rounded-pill fw-800 ${urgClass}">${o.estado.toUpperCase()}</span></td>
+                html += `<tr class="med-row">
+                    <td class="ps-4 py-3"><div class="fw-bold text-dark">ORD-${String(o.idOrden).padStart(5,'0')}</div></td>
+                    <td><div class="fw-bold text-dark text-uppercase small">${o.pacienteNombre || 'PACIENTE #' + o.idOrden}</div><div class="extra-small text-muted fw-medium">${o.pacienteDni || '---'}</div></td>
+                    <td><div class="fw-medium text-muted small text-truncate text-uppercase" style="max-width: 250px;" title="${o.indicaciones ? o.indicaciones.toUpperCase() : 'ANÁLISIS CLÍNICO'}">${o.indicaciones ? o.indicaciones.toUpperCase() : 'ANÁLISIS CLÍNICO'}</div></td>
+                    <td><span class="premium-badge bg-light text-dark fw-bold border"><span class="dot bg-primary me-2"></span>${areaPill}</span></td>
+                    <td><div class="${valClass} fs-5 fw-bold">${valor} <span class="fs-6 fw-medium text-muted">${unidad}</span></div></td>
+                    <td class="text-center">
+                        <div class="status-indicator ${o.estado === 'validado' ? 'status-active' : (o.estado === 'resultado_ingresado' ? 'bg-primary-soft text-primary border border-primary' : 'status-inactive')} mx-auto ${urgClass}">
+                            ${o.estado.toUpperCase().replace('_', ' ')}
+                        </div>
+                    </td>
                     <td class="pe-4 text-end">
-                        ${isPendiente ? `<button class="btn btn-sm btn-indigo-grad btn-action-tbl rounded-pill shadow-sm" onclick="abrirResultados(${o.idOrden})"><i class="bi bi-pencil-square me-1"></i> RESULTADOS</button>` :
-                        `<button class="btn btn-sm btn-light border text-muted btn-action-tbl rounded-pill shadow-sm" onclick="imprimirInforme(${o.idOrden})"><i class="bi bi-printer me-1"></i> INFORME</button>`}
+                        ${isPendiente ? `<button class="btn-action" title="Ingresar Resultados" onclick="abrirResultados(${o.idOrden})"><i class="bi bi-pencil"></i></button>` :
+                        `<button class="btn-action" title="Imprimir Informe" onclick="imprimirInforme(${o.idOrden})"><i class="bi bi-printer"></i></button>`}
                     </td>
                 </tr>`;
             });

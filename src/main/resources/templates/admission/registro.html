@@ -439,6 +439,31 @@
                     });
                 }
                 
+                // Interceptar error directo de validación (@Valid) sin perder los datos
+                const serverErrorObj = /*[[${errorObj}]]*/ null;
+                if (serverErrorObj) {
+                    Swal.fire({
+                        title: 'Revisión Necesaria',
+                        text: serverErrorObj,
+                        icon: 'warning',
+                        background: '#ffffff',
+                        borderRadius: '24px',
+                        confirmButtonColor: '#f59e0b',
+                        customClass: {
+                            title: 'fw-800 text-dark',
+                            popup: 'shadow-lg border-0'
+                        }
+                    });
+                    
+                    // Desbloquear el formulario para que el usuario pueda corregir
+                    document.getElementById('formContainer').classList.remove('form-locked');
+                    document.getElementById('formOverlay').style.display = 'none';
+                    const btnGuardar = document.getElementById('btnGuardar');
+                    btnGuardar.classList.remove('disabled');
+                    btnGuardar.classList.add('pulse-glow-btn');
+                }
+                
+                // Errores graves del sistema por URL
                 if (urlParams.has('error')) {
                     const msg = urlParams.get('msg') || 'Ocurrió un error inesperado al procesar la admisión.';
                     Swal.fire({

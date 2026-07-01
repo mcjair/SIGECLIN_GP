@@ -7,5 +7,5 @@ public interface IDashboardService {
 
     void cargarDatosDashboard(Model model);
 
-    Map<String, Object> getDashboardStats();
+    Map<String, Object> getDashboardStats(String filter);
 }

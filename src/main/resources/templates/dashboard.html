@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{layout :: head(title='SIGECLIN - Control Operativo Premium')}"></head>
-<body class="bg-premium overflow-hidden">
+<body class="bg-premium">
     <div th:replace="~{layout :: sidebar}"></div>
     
     <main th:replace="~{layout :: main(pageTitle='Panel de Control Operativo', content=~{::#p-content})}">
-        <div id="p-content" class="p-dashboard-premium-wrapper animate-fade-in">
+        <div id="p-content" class="p-dashboard-premium-wrapper animate-fade-in d-flex flex-column" style="height: calc(100vh - 85px); overflow: hidden; gap: 1rem;">
 
             <!-- TOP BAR -->
             <div class="d-flex justify-content-between align-items-center w-100">
@@ -14,100 +14,80 @@
                         <span class="neon-dot" id="systemDot" th:classappend="${dbActive ? '' : 'inactive'}"></span>
                         <span class="p-status-txt" id="systemStatusText" th:text="${dbActive ? 'SISTEMA SIGECLIN • EN LÍNEA' : 'SISTEMA SIGECLIN • OFFLINE'}">SISTEMA SIGECLIN • EN LÍNEA</span>
                     </div>
-                    <div class="p-search-box">
-                        <i class="bi bi-search"></i>
-                        <input type="text" id="dashboardSearch" placeholder="Buscar paciente o historial..." onkeypress="handleSearch(event)">
-                    </div>
                 </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="p-date-txt fw-800 text-muted" id="realDate" th:text="${fechaActual}">Martes, 19 Mayo 2026</span>
-                    <span class="p-date-txt fw-800 text-primary" id="realClock">00:00:00</span>
+                <div class="d-flex align-items-center gap-3">
+                    <select id="timeFilter" class="form-select form-select-sm fw-bold border-0 shadow-sm text-primary" style="background-color: rgba(16, 102, 228, 0.1); border-radius: 8px; cursor: pointer; width: 130px;" onchange="updateDashboardStats()">
+                        <option value="day">Hoy</option>
+                        <option value="week">Esta Semana</option>
+                        <option value="month">Este Mes</option>
+                    </select>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="p-date-txt fw-800 text-muted" id="realDate" th:text="${fechaActual}">Martes, 19 Mayo 2026</span>
+                        <span class="p-date-txt fw-800 text-primary" id="realClock">00:00:00</span>
+                    </div>
                 </div>
             </div>
 
             <!-- KPI GRID (Glassmorphic) -->
-            <div class="p-kpi-grid">
+            <div class="p-kpi-grid flex-shrink-0">
                 <!-- Ingresos Caja -->
-                <div class="glass-card-premium p-4 d-flex align-items-center gap-4">
-                    <div class="glass-kpi-icon icon-indigo-primary"><i class="bi bi-cash-stack"></i></div>
+                <div class="glass-card-premium p-3 d-flex align-items-center gap-3">
+                    <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="bi bi-cash-stack fs-5"></i></div>
                     <div class="p-info flex-grow-1">
                         <small class="text-muted fw-bold d-block text-uppercase tracking-wider mb-1" style="font-size: 0.65rem;">Ingresos Caja</small>
-                        <h3 class="fw-900 text-dark mb-0 tracking-tight" id="kpiIngresos" th:text="${'S/ ' + #numbers.formatDecimal(ingresosHoy ?: 0.00, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</h3>
+                        <h3 class="fw-900 text-dark mb-0 tracking-tight fs-4" id="kpiIngresos" th:text="${'S/ ' + #numbers.formatDecimal(ingresosHoy ?: 0.00, 1, 'COMMA', 2, 'POINT')}">S/ 0.00</h3>
                         <span class="stat-trend-indicator mt-1 d-inline-block"><i class="bi bi-graph-up-arrow me-1"></i>Hoy</span>
                     </div>
                 </div>
                 <!-- Atenciones Hoy -->
-                <div class="glass-card-premium p-4 d-flex align-items-center gap-4">
-                    <div class="glass-kpi-icon icon-indigo-deep"><i class="bi bi-person-check"></i></div>
+                <div class="glass-card-premium p-3 d-flex align-items-center gap-3">
+                    <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="bi bi-person-check fs-5"></i></div>
                     <div class="p-info flex-grow-1">
                         <small class="text-muted fw-bold d-block text-uppercase tracking-wider mb-1" style="font-size: 0.65rem;">Atenciones Hoy</small>
-                        <h3 class="fw-900 text-dark mb-0 tracking-tight" id="kpiAtenciones" th:text="${atencionesHoy ?: 0}">0</h3>
-                        <span class="stat-trend-indicator mt-1 d-inline-block" th:if="${atencionesHoy > 0}" style="background: rgba(79, 70, 229, 0.1); color: var(--primary);">En proceso</span>
+                        <h3 class="fw-900 text-dark mb-0 tracking-tight fs-4" id="kpiAtenciones" th:text="${atencionesHoy ?: 0}">0</h3>
+                        <span class="stat-trend-indicator mt-1 d-inline-block" th:if="${atencionesHoy > 0}" style="background: rgba(13, 148, 136, 0.1); color: var(--primary);">En proceso</span>
                         <span class="stat-trend-indicator mt-1 d-inline-block" th:unless="${atencionesHoy > 0}">Iniciando</span>
                     </div>
                 </div>
                 <!-- Eficiencia -->
-                <div class="glass-card-premium p-4 d-flex align-items-center gap-4">
-                    <div class="glass-kpi-icon icon-indigo-light"><i class="bi bi-activity"></i></div>
+                <div class="glass-card-premium p-3 d-flex align-items-center gap-3">
+                    <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="bi bi-activity fs-5"></i></div>
                     <div class="p-info flex-grow-1">
                         <small class="text-muted fw-bold d-block text-uppercase tracking-wider mb-1" style="font-size: 0.65rem;">Eficiencia Operativa</small>
-                        <h3 class="fw-900 text-dark mb-0 tracking-tight" id="kpiEficiencia" th:text="${eficiencia + ' %'}">0 %</h3>
+                        <h3 class="fw-900 text-dark mb-0 tracking-tight fs-4" id="kpiEficiencia" th:text="${eficiencia + ' %'}">0 %</h3>
                         <span class="stat-trend-indicator mt-1 d-inline-block">MINSA/ESSALUD</span>
                     </div>
                 </div>
                 <!-- Espera Promedio -->
-                <div class="glass-card-premium p-4 d-flex align-items-center gap-4">
-                    <div class="glass-kpi-icon icon-indigo-gold"><i class="bi bi-clock"></i></div>
+                <div class="glass-card-premium p-3 d-flex align-items-center gap-3">
+                    <div class="bg-primary-soft text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;"><i class="bi bi-clock fs-5"></i></div>
                     <div class="p-info flex-grow-1">
                         <small class="text-muted fw-bold d-block text-uppercase tracking-wider mb-1" style="font-size: 0.65rem;">Espera Promedio</small>
-                        <h3 class="fw-900 text-dark mb-0 tracking-tight" id="kpiEspera" th:text="${esperaPromedio + ' min'}">0 min</h3>
+                        <h3 class="fw-900 text-dark mb-0 tracking-tight fs-4" id="kpiEspera" th:text="${esperaPromedio + ' min'}">0 min</h3>
                         <span class="stat-trend-indicator mt-1 d-inline-block">Flujo óptimo</span>
                     </div>
                 </div>
             </div>
 
             <!-- MAIN CONTENT -->
-            <div class="p-main-content">
+            <div class="p-main-content d-flex gap-3" style="flex: 1; min-height: 0;">
                 <!-- Monitor de Operaciones Médicas -->
-                <div class="glass-card-premium p-4 d-flex flex-column" style="min-height: 350px;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-900 text-dark mb-0 fs-5">Monitor de Operaciones Médicas</h4>
+                <div class="glass-card-premium p-3 d-flex flex-column h-100" style="flex: 2;">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
+                        <h4 class="fw-900 text-dark mb-0 fs-6">Monitor de Operaciones Médicas</h4>
                         <span class="badge bg-light text-primary border border-primary-subtle rounded-3 py-1 px-3 fw-bold small">Carga Horaria</span>
                     </div>
-                    <div class="p-chart-box flex-grow-1 d-flex flex-column justify-content-end min-height-0">
-                        <svg id="opChartSvg" th:data-loads="${#strings.listJoin(chartData, ',')}" viewBox="0 0 800 180" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="pG" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="var(--primary)" stop-opacity="0.25"/>
-                                    <stop offset="100%" stop-color="var(--primary)" stop-opacity="0"/>
-                                </linearGradient>
-                            </defs>
-                            <!-- Grid lines -->
-                            <line class="chart-grid-line" x1="0" y1="30" x2="800" y2="30" />
-                            <line class="chart-grid-line" x1="0" y1="80" x2="800" y2="80" />
-                            <line class="chart-grid-line" x1="0" y1="130" x2="800" y2="130" />
-                            <!-- Curve Fills -->
-                            <path id="chartPathFill" d="" fill="url(#pG)" />
-                            <path id="chartPathMain" class="chart-path-main" d="" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" />
-                        </svg>
-                        <div class="p-chart-footer">
-                            <span>08:00 AM</span>
-                            <span>10:00 AM</span>
-                            <span>12:00 PM</span>
-                            <span>02:00 PM</span>
-                            <span>04:00 PM</span>
-                            <span>06:00 PM</span>
-                            <span>08:00 PM</span>
-                        </div>
+                    <div class="p-chart-box flex-grow-1 position-relative w-100" style="height: 100%; min-height: 0;">
+                        <canvas id="opChartCanvas" th:data-loads="${#strings.listJoin(chartData, ',')}"></canvas>
                     </div>
                 </div>
                 <!-- Cola de Espera -->
-                <div class="glass-card-premium p-4 d-flex flex-column" style="min-height: 350px;">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h4 class="fw-900 text-dark mb-0 fs-5">Cola de Triaje / Espera</h4>
+                <div class="glass-card-premium p-3 d-flex flex-column h-100" style="flex: 1;">
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-shrink-0">
+                        <h4 class="fw-900 text-dark mb-0 fs-6">Cola de Triaje / Espera</h4>
                         <span class="badge bg-primary rounded-pill px-3 py-1" id="waitlistCount" th:text="${#lists.size(colaEspera)}">0</span>
                     </div>
-                    <div class="p-list-box flex-grow-1" id="waitlistContainer" style="overflow-y: auto; max-height: 250px;">
+                    <div class="p-list-box flex-grow-1 min-height-0 custom-scrollbar" id="waitlistContainer" style="overflow-y: auto;">
                         <div th:each="item : ${colaEspera}" class="live-wait-item mb-2 animate-fade-in">
                             <div class="p-item-info">
                                 <strong class="d-block text-dark fw-bold" th:text="${item.nombre}">Nombre Paciente</strong>
@@ -119,43 +99,28 @@
                         </div>
                         <div th:if="${#lists.isEmpty(colaEspera)}" class="text-center py-5 text-muted small" id="noPatientsMessage">
                             <i class="bi bi-inbox-fill d-block mb-3 fs-2 text-dim"></i>
-                            <span>Sin pacientes en espera de consulta.</span>
+                            <span>Sin pacientes en espera.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- BOTTOM GRID -->
-            <div class="p-bottom-grid mt-2" style="height: auto !important; grid-template-rows: auto !important; gap: 1.5rem !important;">
+            <div class="p-bottom-grid flex-shrink-0" style="height: 175px; display: flex; gap: 1rem;">
                 <!-- Ocupación por servicio -->
-                <div class="glass-card-premium p-4 d-flex flex-column justify-content-center">
-                    <small class="fw-800 text-muted d-block text-uppercase mb-3" style="font-size: 0.65rem; letter-spacing: 0.5px;">Ocupación por Servicio</small>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1 small fw-bold">
-                            <span>Medicina General</span>
-                            <span id="medBarPercent" th:text="${medicinaCount}">0</span>
-                        </div>
-                        <div class="progress-bar-service">
-                            <div class="progress-bar-fill" id="medBar" th:style="'width: ' + (${medicinaCount > 0 ? (medicinaCount * 10) : 0}) + '%'"></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="d-flex justify-content-between mb-1 small fw-bold">
-                            <span>Triaje (Pre-Admisión)</span>
-                            <span id="trjBarPercent" th:text="${triajeCount}">0</span>
-                        </div>
-                        <div class="progress-bar-service">
-                            <div class="progress-bar-fill" id="trjBar" th:style="'width: ' + (${triajeCount > 0 ? (triajeCount * 10) : 0}) + '%'" style="background: linear-gradient(135deg, var(--info) 0%, var(--primary) 100%);"></div>
+                <div class="glass-card-premium p-3 d-flex flex-column justify-content-center w-100">
+                    <small class="fw-800 text-muted d-block text-uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">Ocupación por Servicio</small>
+                    <div class="position-relative w-100 flex-grow-1 min-height-0" style="height: 100%;">
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+                            <canvas id="doughnutCanvas" th:data-medicina="${medicinaCount}" th:data-triaje="${triajeCount}"></canvas>
                         </div>
                     </div>
                 </div>
 
                 <!-- Recursos del servidor (Telemetría) -->
-                <div class="glass-card-premium p-4 d-flex flex-column align-items-center justify-content-center">
+                <div class="glass-card-premium p-3 d-flex flex-column align-items-center justify-content-center w-100">
                     <small class="fw-800 text-muted d-block text-uppercase mb-3" style="font-size: 0.65rem; letter-spacing: 0.5px;">Recursos del Servidor</small>
-                    <div class="d-flex align-items-center gap-4 w-100 px-3">
+                    <div class="d-flex align-items-center gap-3 w-100 px-3">
                         <div class="position-relative d-flex align-items-center justify-content-center" style="width: 70px; height: 70px;">
                             <svg class="telemetry-progress-ring" width="70" height="70">
                                 <circle stroke-width="6" stroke="rgba(0,0,0,0.05)" fill="transparent" r="28" cx="35" cy="35"/>
@@ -177,9 +142,9 @@
                 </div>
 
                 <!-- Últimas transacciones -->
-                <div class="glass-card-premium p-4 d-flex flex-column justify-content-center">
-                    <small class="fw-800 text-muted d-block text-uppercase mb-2" style="font-size: 0.65rem; letter-spacing: 0.5px;">Últimas Transacciones (Caja)</small>
-                    <div id="transactionsContainer" class="d-flex flex-column gap-2" style="max-height: 80px; overflow-y: auto;">
+                <div class="glass-card-premium p-3 d-flex flex-column w-100 h-100">
+                    <small class="fw-800 text-muted d-block text-uppercase mb-2 flex-shrink-0" style="font-size: 0.65rem; letter-spacing: 0.5px;">Últimas Transacciones (Caja)</small>
+                    <div id="transactionsContainer" class="d-flex flex-column gap-2 flex-grow-1 min-height-0 custom-scrollbar" style="overflow-y: auto;">
                         <div th:each="tx : ${ultimasTransacciones}" class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
                             <span class="text-dark fw-bold" style="font-size: 0.75rem;" th:text="${tx.concepto}">Concepto</span>
                             <strong class="text-success" style="font-size: 0.75rem;" th:text="${'S/ ' + tx.monto}">S/ 0.00</strong>
@@ -190,177 +155,231 @@
                     </div>
                 </div>
             </div>
-        </div>
 
-        <script>
-            // 1. Redirección inteligente de búsqueda
-            function handleSearch(event) {
-                if (event.key === 'Enter') {
-                    const query = document.getElementById('dashboardSearch').value.trim();
-                    if (query) {
-                        window.location.href = `/admission/registro?search=${encodeURIComponent(query)}`;
+            <!-- Carga de Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                // Variables Globales de Chart.js
+                let mainChart = null;
+                let doughnutChart = null;
+
+                // 2. Render de Gráfica Chart.js Dinámica
+                function renderChart(dataPoints) {
+                    const ctx = document.getElementById('opChartCanvas');
+                    if (!ctx) return;
+
+                    if (mainChart) {
+                        mainChart.data.datasets[0].data = dataPoints;
+                        mainChart.update();
+                        return;
                     }
-                }
-            }
 
-            // 2. Render de Gráfica SVG Dinámica
-            function renderChart(dataPoints) {
-                const svg = document.getElementById('opChartSvg');
-                const pathMain = document.getElementById('chartPathMain');
-                const pathFill = document.getElementById('chartPathFill');
-                
-                if (!svg || !pathMain || !pathFill) return;
-                
-                const width = 800;
-                const height = 180;
-                const maxVal = Math.max(...dataPoints, 5); // Fallback mínimo a escala 5
-                
-                // Generar puntos coordinados
-                const step = width / (dataPoints.length - 1);
-                const coords = dataPoints.map((val, idx) => {
-                    const x = idx * step;
-                    const y = height - 20 - ((val / maxVal) * (height - 40));
-                    return { x, y };
-                });
-                
-                // Dibujar línea principal con curvas Bezier (Cubic Splines)
-                let dMain = `M ${coords[0].x} ${coords[0].y}`;
-                for (let i = 0; i < coords.length - 1; i++) {
-                    const curr = coords[i];
-                    const next = coords[i + 1];
-                    const cpX1 = curr.x + step / 2;
-                    const cpY1 = curr.y;
-                    const cpX2 = next.x - step / 2;
-                    const cpY2 = next.y;
-                    dMain += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
-                }
-                
-                pathMain.setAttribute('d', dMain);
-                
-                // Dibujar área de relleno (cerramos la línea abajo)
-                const dFill = `${dMain} L ${coords[coords.length - 1].x} ${height} L ${coords[0].x} ${height} Z`;
-                pathFill.setAttribute('d', dFill);
-            }
+                    // Paleta corporativa Premium Turquesa
+                    const primaryColor = '#0d9488';
+                    const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 200);
+                    gradient.addColorStop(0, 'rgba(13, 148, 136, 0.4)');
+                    gradient.addColorStop(1, 'rgba(13, 148, 136, 0.01)');
 
-            // 3. Polling AJAX de Métricas
-            function updateDashboardStats() {
-                fetch('/api/dashboard/stats')
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            console.error('Error de telemetría:', data.error);
-                            return;
+                    mainChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: ['08:00 AM', '10:00 AM', '12:00 PM', '02:00 PM', '04:00 PM', '06:00 PM', '08:00 PM'],
+                            datasets: [{
+                                label: 'Carga Horaria',
+                                data: dataPoints,
+                                borderColor: primaryColor,
+                                backgroundColor: gradient,
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4, // Curva Spline suave
+                                pointBackgroundColor: '#ffffff',
+                                pointBorderColor: primaryColor,
+                                pointBorderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+                            scales: {
+                                y: { display: false, beginAtZero: true },
+                                x: { grid: { display: false }, ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } } }
+                            },
+                            interaction: { mode: 'nearest', axis: 'x', intersect: false }
                         }
+                    });
+                }
 
-                        // Actualizar KPIs
-                        document.getElementById('kpiIngresos').innerText = `S/ ${parseFloat(data.ingresosHoy).toFixed(2)}`;
-                        document.getElementById('kpiAtenciones').innerText = data.atencionesHoy;
-                        document.getElementById('kpiEficiencia').innerText = `${data.eficiencia} %`;
-                        document.getElementById('kpiEspera').innerText = `${data.esperaPromedio} min`;
+                function renderDoughnut(medicinaCount, triajeCount) {
+                    const ctxDoughnut = document.getElementById('doughnutCanvas');
+                    if (!ctxDoughnut) return;
 
-                        // Actualizar Ocupación por servicio
-                        document.getElementById('medBarPercent').innerText = data.medicinaCount;
-                        document.getElementById('medBar').style.width = `${Math.min(data.medicinaCount * 10, 100)}%`;
-                        
-                        document.getElementById('trjBarPercent').innerText = data.triajeCount;
-                        document.getElementById('trjBar').style.width = `${Math.min(data.triajeCount * 10, 100)}%`;
+                    let renderData = [medicinaCount, triajeCount];
+                    let renderColors = ['#0d9488', '#38bdf8'];
+                    let renderLabels = ['Medicina General', 'Triaje (Espera)'];
 
-                        // Actualizar Telemetría JVM
-                        document.getElementById('memoryText').innerText = `${data.memoryPercent}%`;
-                        const strokeDashArray = 175.92;
-                        const dashOffset = strokeDashArray - (strokeDashArray * data.memoryPercent / 100);
-                        document.getElementById('memoryRing').setAttribute('stroke-dashoffset', dashOffset);
-                        
-                        const systemDot = document.getElementById('systemDot');
-                        const systemStatusText = document.getElementById('systemStatusText');
-                        if (data.dbActive) {
-                            systemDot.classList.remove('inactive');
-                            systemStatusText.innerText = 'SISTEMA SIGECLIN • EN LÍNEA';
-                            document.getElementById('dbStatusText').innerText = 'Conectado';
-                            document.getElementById('dbStatusText').className = 'text-success';
-                        } else {
-                            systemDot.classList.add('inactive');
-                            systemStatusText.innerText = 'SISTEMA SIGECLIN • OFFLINE';
-                            document.getElementById('dbStatusText').innerText = 'Desconectado';
-                            document.getElementById('dbStatusText').className = 'text-danger';
+                    // Fallback para cuando no hay datos (Evita que desaparezca)
+                    if (medicinaCount === 0 && triajeCount === 0) {
+                        renderData = [1];
+                        renderColors = ['#e2e8f0'];
+                        renderLabels = ['Sin Atenciones'];
+                    }
+
+                    if (doughnutChart) {
+                        doughnutChart.data.labels = renderLabels;
+                        doughnutChart.data.datasets[0].data = renderData;
+                        doughnutChart.data.datasets[0].backgroundColor = renderColors;
+                        doughnutChart.update();
+                        return;
+                    }
+
+                    doughnutChart = new Chart(ctxDoughnut, {
+                        type: 'doughnut',
+                        data: {
+                            labels: renderLabels,
+                            datasets: [{
+                                data: renderData,
+                                backgroundColor: renderColors,
+                                borderWidth: 0,
+                                hoverOffset: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            cutout: '75%', // Dona delgada y elegante
+                            plugins: {
+                                legend: { position: 'right', labels: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 }, usePointStyle: true, boxWidth: 6 } }
+                            }
                         }
+                    });
+                }
 
-                        // Actualizar Cola de Espera
-                        const waitlistContainer = document.getElementById('waitlistContainer');
-                        if (data.colaEspera && data.colaEspera.length > 0) {
-                            // Reconstruir lista de forma limpia
-                            let html = '';
-                            data.colaEspera.forEach(item => {
-                                const state = (item.estado || 'Normal').toLowerCase();
-                                let classState = 'status-normal';
-                                if (state === 'urgente') classState = 'status-urgente';
-                                else if (state === 'prioritario') classState = 'status-prioritario';
+                // 3. Polling AJAX de Métricas (Con Filtro)
+                function updateDashboardStats() {
+                    const filterValue = document.getElementById('timeFilter') ? document.getElementById('timeFilter').value : 'day';
+                    fetch('/api/dashboard/stats?filter=' + filterValue)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                console.error('Error de telemetría:', data.error);
+                                return;
+                            }
 
-                                html += `
-                                    <div class="live-wait-item mb-2 animate-fade-in">
-                                        <div class="p-item-info">
-                                            <strong class="d-block text-dark fw-bold">${item.nombre}</strong>
-                                            <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">${item.servicio}</small>
-                                        </div>
-                                        <span class="tag-wait-status ${classState}">${item.estado || 'Normal'}</span>
-                                    </div>
-                                `;
-                            });
+                            // Actualizar KPIs
+                            document.getElementById('kpiIngresos').innerText = `S/ ${parseFloat(data.ingresosHoy).toFixed(2)}`;
+                            document.getElementById('kpiAtenciones').innerText = data.atencionesHoy;
+                            document.getElementById('kpiEficiencia').innerText = `${data.eficiencia} %`;
+                            document.getElementById('kpiEspera').innerText = `${data.esperaPromedio} min`;
+
+                            // Actualizar Ocupación por servicio (Doughnut Chart)
+                            if (typeof renderDoughnut === 'function') {
+                                renderDoughnut(data.medicinaCount || 0, data.triajeCount || 0);
+                            }
+
+                            // Actualizar Telemetría JVM
+                            document.getElementById('memoryText').innerText = `${data.memoryPercent}%`;
+                            const strokeDashArray = 175.92;
+                            const dashOffset = strokeDashArray - (strokeDashArray * data.memoryPercent / 100);
+                            document.getElementById('memoryRing').setAttribute('stroke-dashoffset', dashOffset);
                             
-                            document.getElementById('waitlistCount').innerText = data.colaEspera.length;
-                            waitlistContainer.innerHTML = html;
-                        } else {
-                            document.getElementById('waitlistCount').innerText = '0';
-                            waitlistContainer.innerHTML = `
-                                <div class="text-center py-5 text-muted small" id="noPatientsMessage">
-                                    <i class="bi bi-inbox-fill d-block mb-3 fs-2 text-dim"></i>
-                                    <span>Sin pacientes en espera de consulta.</span>
-                                </div>
-                            `;
-                        }
+                            const systemDot = document.getElementById('systemDot');
+                            const systemStatusText = document.getElementById('systemStatusText');
+                            if (data.dbActive) {
+                                systemDot.classList.remove('inactive');
+                                systemStatusText.innerText = 'SISTEMA SIGECLIN • EN LÍNEA';
+                                document.getElementById('dbStatusText').innerText = 'Conectado';
+                                document.getElementById('dbStatusText').className = 'text-success';
+                            } else {
+                                systemDot.classList.add('inactive');
+                                systemStatusText.innerText = 'SISTEMA SIGECLIN • OFFLINE';
+                                document.getElementById('dbStatusText').innerText = 'Desconectado';
+                                document.getElementById('dbStatusText').className = 'text-danger';
+                            }
 
-                        // Actualizar Transacciones de Caja
-                        const transactionsContainer = document.getElementById('transactionsContainer');
-                        if (data.ultimasTransacciones && data.ultimasTransacciones.length > 0) {
-                            let txHtml = '';
-                            data.ultimasTransacciones.forEach(tx => {
-                                txHtml += `
-                                    <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
-                                        <span class="text-dark fw-bold" style="font-size: 0.75rem;">${tx.concepto}</span>
-                                        <strong class="text-success" style="font-size: 0.75rem;">S/ ${parseFloat(tx.monto).toFixed(2)}</strong>
+                            // Actualizar Cola de Espera
+                            const waitlistContainer = document.getElementById('waitlistContainer');
+                            if (data.colaEspera && data.colaEspera.length > 0) {
+                                let html = '';
+                                data.colaEspera.forEach(item => {
+                                    const state = (item.estado || 'Normal').toLowerCase();
+                                    let classState = 'status-normal';
+                                    if (state === 'urgente') classState = 'status-urgente';
+                                    else if (state === 'prioritario') classState = 'status-prioritario';
+
+                                    html += `
+                                        <div class="live-wait-item mb-2 animate-fade-in">
+                                            <div class="p-item-info">
+                                                <strong class="d-block text-dark fw-bold">${item.nombre}</strong>
+                                                <small class="text-muted text-uppercase fw-semibold" style="font-size: 0.65rem;">${item.servicio}</small>
+                                            </div>
+                                            <span class="tag-wait-status ${classState}">${item.estado || 'Normal'}</span>
+                                        </div>
+                                    `;
+                                });
+                                document.getElementById('waitlistCount').innerText = data.colaEspera.length;
+                                waitlistContainer.innerHTML = html;
+                            } else {
+                                document.getElementById('waitlistCount').innerText = '0';
+                                waitlistContainer.innerHTML = `
+                                    <div class="text-center py-5 text-muted small" id="noPatientsMessage">
+                                        <i class="bi bi-inbox-fill d-block mb-3 fs-2 text-dim"></i>
+                                        <span>Sin pacientes en espera de consulta.</span>
                                     </div>
                                 `;
-                            });
-                            transactionsContainer.innerHTML = txHtml;
-                        } else {
-                            transactionsContainer.innerHTML = `
-                                <div class="text-center py-2 text-muted small" id="noTransactionsMessage">
-                                    Sin transacciones hoy
-                                </div>
-                            `;
-                        }
+                            }
 
-                        // Re-renderizar Gráfica
-                        if (data.chartData) {
-                            renderChart(data.chartData);
-                        }
-                    })
-                    .catch(err => console.error('Error al consultar estadísticas del dashboard:', err));
-            }
+                            // Actualizar Transacciones de Caja
+                            const transactionsContainer = document.getElementById('transactionsContainer');
+                            if (data.ultimasTransacciones && data.ultimasTransacciones.length > 0) {
+                                let txHtml = '';
+                                data.ultimasTransacciones.forEach(tx => {
+                                    txHtml += `
+                                        <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light-subtle">
+                                            <span class="text-dark fw-bold" style="font-size: 0.75rem;">${tx.concepto}</span>
+                                            <strong class="text-success" style="font-size: 0.75rem;">S/ ${parseFloat(tx.monto).toFixed(2)}</strong>
+                                        </div>
+                                    `;
+                                });
+                                transactionsContainer.innerHTML = txHtml;
+                            } else {
+                                transactionsContainer.innerHTML = `
+                                    <div class="text-center py-2 text-muted small" id="noTransactionsMessage">
+                                        Sin transacciones hoy
+                                    </div>
+                                `;
+                            }
 
-            // Inicialización
-            (function init() {
-                const svg = document.getElementById('opChartSvg');
-                if (svg) {
-                    const loadsAttr = svg.getAttribute('data-loads');
-                    if (loadsAttr) {
-                        const dataPoints = loadsAttr.split(',').map(Number);
-                        renderChart(dataPoints);
-                    }
+                            // Re-renderizar Gráfica Principal
+                            if (data.chartData) {
+                                renderChart(data.chartData);
+                            }
+                        })
+                        .catch(err => console.error('Error al consultar estadísticas del dashboard:', err));
                 }
-                setInterval(updateDashboardStats, 15000);
-            })();
-        </script>
+
+                // Inicialización
+                (function init() {
+                    const canvasMain = document.getElementById('opChartCanvas');
+                    if (canvasMain) {
+                        const loadsAttr = canvasMain.getAttribute('data-loads');
+                        if (loadsAttr) {
+                            const dataPoints = loadsAttr.split(',').map(Number);
+                            renderChart(dataPoints);
+                        }
+                    }
+                    const canvasDoughnut = document.getElementById('doughnutCanvas');
+                    if (canvasDoughnut) {
+                        const medCount = Number(canvasDoughnut.getAttribute('data-medicina') || 0);
+                        const trjCount = Number(canvasDoughnut.getAttribute('data-triaje') || 0);
+                        renderDoughnut(medCount, trjCount);
+                    }
+                    setInterval(updateDashboardStats, 15000);
+                })();
+            </script>
+        </div>
     </main>
     <div th:replace="~{layout :: footer}"></div>
 </body>

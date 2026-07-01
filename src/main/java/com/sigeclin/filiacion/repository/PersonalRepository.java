@@ -13,4 +13,8 @@ public interface PersonalRepository extends JpaRepository<Personal, Integer> {
     
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Personal p, Usuario u WHERE p.idUsuario = u.idPersona AND u.username = :username")
     Optional<Personal> findByUsuarioUsername(@org.springframework.data.repository.query.Param("username") String username);
+    
+    @Override
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"tipoDocumento"})
+    java.util.List<Personal> findAll();
 }

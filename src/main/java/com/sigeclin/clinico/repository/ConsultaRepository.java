@@ -7,5 +7,8 @@ import java.util.List;
 
 @Repository
 public interface ConsultaRepository extends JpaRepository<Consulta, Integer> {
-    List<Consulta> findByPacienteIdPersonaOrderByFechaHoraInicioDesc(Integer idPaciente);
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"medico", "triaje"})
+    org.springframework.data.domain.Page<Consulta> findByPacienteIdPersonaOrderByFechaHoraInicioDesc(Integer idPaciente, org.springframework.data.domain.Pageable pageable);
+
+    boolean existsByTriajeIdTriaje(Integer idTriaje);
 }

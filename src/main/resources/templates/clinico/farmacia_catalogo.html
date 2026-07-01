@@ -9,9 +9,9 @@
             
             <!-- HEADER EXTENSION (Below Layout Title) -->
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <p class="text-muted small mb-0">Gestiona el vademécum de fármacos disponibles para las recetas</p>
-                <button class="btn btn-sm text-white rounded-pill px-4 py-2 fw-800 shadow-sm" style="background-color: #0d9488;" onclick="abrirModalNuevo()">
-                    <i class="bi bi-plus-lg me-1"></i> Nuevo Medicamento
+                <p class="text-muted small mb-0 fw-medium">Gestiona el vademécum de fármacos disponibles para las recetas</p>
+                <button class="btn btn-premium-primary text-white rounded-pill px-4 py-2 fw-bold shadow-sm d-flex align-items-center gap-2" onclick="abrirModalNuevo()">
+                    <i class="bi bi-plus-circle-fill"></i> Nuevo Medicamento
                 </button>
             </div>
 
@@ -23,78 +23,78 @@
                 </div>
                 
                 <div class="d-flex gap-2 flex-wrap" id="filterPills">
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill active" onclick="aplicarFiltro('Todos', this)">Todos</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Antibiótico', this)">Antibiótico</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Analgésico', this)">Analgésico</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Corticoesteroide', this)">Corticoesteroide</span>
-                    <span class="badge rounded-pill px-3 py-2 fw-800 cursor-pointer filter-pill" onclick="aplicarFiltro('Antiinflamatorio', this)">Antiinflamatorio</span>
+                    <button class="btn-filter active" onclick="aplicarFiltro('Todos', this)">Todos</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('Antibiótico', this)">Antibiótico</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('Analgésico', this)">Analgésico</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('Corticoesteroide', this)">Corticoesteroide</button>
+                    <button class="btn-filter" onclick="aplicarFiltro('Antiinflamatorio', this)">Antiinflamatorio</button>
                 </div>
             </div>
 
             <!-- KPI CARDS -->
             <div class="row g-3 mb-4">
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #eff6ff; color: #3b82f6;">
-                            <i class="bi bi-box fs-5"></i>
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-blue-soft text-blue">
+                            <i class="bi bi-box-seam fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0">10</h4>
-                            <span class="text-muted extra-small fw-bold">Total Registrados</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight">10</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Total Registrados</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #f0fdf4; color: #22c55e;">
-                            <i class="bi bi-check-lg fs-5"></i>
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-green-soft text-green">
+                            <i class="bi bi-check-circle fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0">10</h4>
-                            <span class="text-muted extra-small fw-bold">Activos</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight">10</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Activos</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #fefce8; color: #eab308;">
-                            <i class="bi bi-x-lg fs-5"></i>
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-red-soft text-red">
+                            <i class="bi bi-x-circle fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0">0</h4>
-                            <span class="text-muted extra-small fw-bold">Inactivos</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight">0</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Inactivos</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px; background-color: #f5f3ff; color: #8b5cf6;">
-                            <i class="bi bi-capsule fs-5"></i>
+                    <div class="kpi-card h-100 p-3 d-flex flex-row align-items-center gap-3">
+                        <div class="kpi-icon-box bg-purple-soft text-purple">
+                            <i class="bi bi-grid fs-5"></i>
                         </div>
                         <div>
-                            <h4 class="fw-800 mb-0">5</h4>
-                            <span class="text-muted extra-small fw-bold">Categorías</span>
+                            <h3 class="fw-black mb-0 text-dark tracking-tight">5</h3>
+                            <span class="text-muted extra-small fw-bold text-uppercase tracking-wider">Categorías</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- DATA TABLE -->
-            <div class="card border-0 shadow-sm rounded-4 flex-grow-1 overflow-hidden d-flex flex-column">
-                <div class="table-responsive flex-grow-1 custom-scrollbar">
-                    <table class="table table-hover align-middle mb-0 border-0">
+            <div class="premium-table-wrapper flex-grow-1 overflow-hidden d-flex flex-column">
+                <div class="table-responsive flex-grow-1 custom-scrollbar overflow-y-auto">
+                    <table class="table align-middle mb-0 premium-table">
                         <thead>
                             <tr>
-                                <th class="ps-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Medicamento</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Tipo / Categoría</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Dosis Sugerida</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider">Frecuencia Sugerida</th>
-                                <th class="py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider text-center">Estado</th>
-                                <th class="pe-4 py-3 fw-800 text-muted extra-small text-uppercase border-0 tracking-wider text-end">Acciones</th>
+                                <th class="ps-4 py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Medicamento</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Tipo / Categoría</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Dosis Sugerida</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider">Frecuencia Sugerida</th>
+                                <th class="py-3 fw-bold text-muted extra-small text-uppercase tracking-wider text-center">Estado</th>
+                                <th class="pe-4 py-3 fw-bold text-muted extra-small text-uppercase tracking-wider text-end">Acciones</th>
                             </tr>
                         </thead>
-                        <tbody class="border-top-0" id="tablaMedicamentos">
-                            <tr><td colspan="6" class="text-center py-4 text-muted">Cargando medicamentos...</td></tr>
+                        <tbody id="tablaMedicamentos">
+                            <tr><td colspan="6" class="text-center py-5 text-muted"><div class="spinner-border text-primary spinner-border-sm me-2"></div>Cargando medicamentos...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -137,14 +137,18 @@
                                 const cat = categorizar(m.nombreGenerico);
                                 if(m.activo) activos++;
                                 html += `<tr class="med-row" data-cat="${cat}">
-                                    <td class="ps-4 py-3"><div class="fw-800 text-dark"><i class="bi bi-capsule-pill text-info me-2"></i>${m.nombreGenerico} ${m.concentracion || ''}</div></td>
-                                    <td><span class="badge bg-primary-soft text-primary fw-800 rounded-pill px-3">${cat}</span></td>
-                                    <td class="text-muted small fw-bold">${dosis(cat)}</td>
-                                    <td class="text-muted small fw-bold">${freq(cat)}</td>
-                                    <td class="text-center"><span class="badge ${m.activo ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'} fw-800 rounded-pill px-3">${m.activo ? 'Activo' : 'Inactivo'}</span></td>
+                                    <td class="ps-4 py-3"><div class="fw-bold text-dark"><i class="bi bi-capsule text-primary opacity-50 me-2"></i>${m.nombreGenerico} <span class="text-muted fw-medium">${m.concentracion || ''}</span></div></td>
+                                    <td><span class="premium-badge bg-light text-dark fw-bold border"><span class="dot bg-primary me-2"></span>${cat}</span></td>
+                                    <td class="text-muted small fw-medium">${dosis(cat).toUpperCase()}</td>
+                                    <td class="text-muted small fw-medium">${freq(cat).toUpperCase()}</td>
+                                    <td class="text-center">
+                                        <div class="status-indicator ${m.activo ? 'status-active' : 'status-inactive'} mx-auto">
+                                            ${m.activo ? 'Activo' : 'Inactivo'}
+                                        </div>
+                                    </td>
                                     <td class="pe-4 text-end">
-                                        <button class="btn btn-sm btn-light text-muted rounded-circle me-1" onclick="editarMed(${m.idMedicamento}, '${m.nombreGenerico}', '${m.concentracion||''}', '${m.presentacion||''}')"><i class="bi bi-pencil"></i></button>
-                                        <button class="btn btn-sm btn-light text-muted rounded-circle" onclick="eliminarMed(${m.idMedicamento})"><i class="bi bi-trash"></i></button>
+                                        <button class="btn-action" title="Editar" onclick="editarMed(${m.idMedicamento}, '${m.nombreGenerico}', '${m.concentracion||''}', '${m.presentacion||''}')"><i class="bi bi-pencil"></i></button>
+                                        <button class="btn-action action-danger ms-1" title="Eliminar" onclick="eliminarMed(${m.idMedicamento})"><i class="bi bi-trash"></i></button>
                                     </td>
                                 </tr>`;
                             });
@@ -160,7 +164,7 @@
 
                 function aplicarFiltro(cat, btnElement) {
                     // Update UI pills
-                    document.querySelectorAll('.filter-pill').forEach(b => {
+                    document.querySelectorAll('.btn-filter').forEach(b => {
                         b.classList.remove('active');
                     });
                     btnElement.classList.add('active');
@@ -179,7 +183,7 @@
                 function filtrarTabla() {
                     const q = document.getElementById('searchInput').value.toLowerCase();
                     const rows = document.querySelectorAll('.med-row');
-                    const activePill = document.querySelector('.filter-pill.active').innerText.replace(/\s\(\d+\)/, '');
+                    const activePill = document.querySelector('.btn-filter.active').innerText.replace(/\s\(\d+\)/, '');
                     
                     rows.forEach(r => {
                         const text = r.innerText.toLowerCase();
@@ -341,15 +345,124 @@
             </script>
             
             <style>
-                .badge { font-weight: 800 !important; }
+                :root {
+                    --premium-teal: #0d9488;
+                    --premium-teal-hover: #0f766e;
+                }
+                .fw-black { font-weight: 900; }
+                .tracking-tight { letter-spacing: -0.05em; }
                 .tracking-wider { letter-spacing: 0.05em; }
-                .cursor-pointer { cursor: pointer; }
-                .bg-primary-soft { background-color: var(--primary-soft) !important; color: var(--primary) !important; }
-                .bg-success-soft { background-color: rgba(34, 197, 94, 0.1) !important; color: #15803d !important; }
                 
-                table tr { transition: all 0.2s ease; }
-                table tbody tr:hover { background-color: var(--primary-soft) !important; }
-                table td { border-bottom: 1px solid var(--border); vertical-align: middle; }
+                /* KPI Cards Premium */
+                .kpi-card {
+                    background: #ffffff;
+                    border-radius: 16px;
+                    border: 1px solid rgba(0,0,0,0.03);
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                }
+                .kpi-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 12px 25px rgba(0,0,0,0.06);
+                }
+                .kpi-icon-box {
+                    width: 48px; height: 48px;
+                    border-radius: 14px;
+                    display: flex; align-items: center; justify-content: center;
+                }
+                .bg-blue-soft { background: #eff6ff; } .text-blue { color: #3b82f6; }
+                .bg-green-soft { background: #f0fdf4; } .text-green { color: #10b981; }
+                .bg-red-soft { background: #fef2f2; } .text-red { color: #ef4444; }
+                .bg-purple-soft { background: #f5f3ff; } .text-purple { color: #8b5cf6; }
+
+                /* Filter Buttons */
+                .btn-filter {
+                    background: transparent;
+                    border: 1px solid #e2e8f0;
+                    color: #64748b;
+                    border-radius: 20px;
+                    padding: 6px 16px;
+                    font-size: 0.85rem;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                }
+                .btn-filter:hover { background: #f8fafc; border-color: #cbd5e1; color: #334155; }
+                .btn-filter.active {
+                    background: var(--premium-teal);
+                    border-color: var(--premium-teal);
+                    color: white;
+                    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.2);
+                }
+
+                /* Premium Table */
+                .premium-table-wrapper {
+                    background: #ffffff;
+                    border-radius: 16px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+                    border: 1px solid rgba(0,0,0,0.03);
+                }
+                .premium-table thead th {
+                    background: #f8fafc;
+                    border-bottom: 2px solid #f1f5f9;
+                    color: #64748b;
+                }
+                .premium-table tbody tr {
+                    transition: all 0.2s;
+                    border-bottom: 1px dashed #f1f5f9;
+                }
+                .premium-table tbody tr:hover {
+                    background-color: #f8fafc;
+                }
+                .premium-table tbody tr:last-child { border-bottom: none; }
+
+                /* Status Indicators */
+                .status-indicator {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 4px 12px;
+                    border-radius: 20px;
+                    font-size: 0.75rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.05em;
+                }
+                .status-active { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+                .status-inactive { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+
+                /* Badges */
+                .premium-badge {
+                    display: inline-flex; align-items: center;
+                    padding: 4px 12px; border-radius: 8px; font-size: 0.75rem;
+                }
+                .premium-badge .dot {
+                    width: 6px; height: 6px; border-radius: 50%;
+                }
+
+                /* Action Buttons */
+                .btn-action {
+                    width: 32px; height: 32px;
+                    border-radius: 8px;
+                    border: 1px solid #e2e8f0;
+                    background: #ffffff;
+                    color: #64748b;
+                    display: inline-flex; align-items: center; justify-content: center;
+                    transition: all 0.2s;
+                }
+                .btn-action:hover {
+                    background: #f8fafc; color: var(--premium-teal); border-color: #cbd5e1;
+                }
+                .action-danger:hover { color: #ef4444; }
+
+                /* Primary Button */
+                .btn-premium-primary {
+                    background: linear-gradient(135deg, var(--premium-teal), #0f766e);
+                    border: none;
+                    transition: all 0.3s;
+                }
+                .btn-premium-primary:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 15px rgba(13, 148, 136, 0.3) !important;
+                }
             </style>
         </div>
     </main>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(title='SIGECLIN - Inteligencia de Negocios')}"></head>
+<body class="bg-deep overflow-hidden">
+    <div th:replace="~{layout :: sidebar}"></div>
+    
+    <main th:replace="~{layout :: main(pageTitle='Reportes Financieros y Atenciones', content=~{::#reportes-content})}">
+        <div id="reportes-content" class="h-100 d-flex flex-column p-4 animate-fade-in" style="max-height: 100vh; margin-top: -15px;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <p class="text-muted small mb-0 fw-medium">Centro de Inteligencia de Negocios y Exportación de Datos Operativos</p>
+            </div>
+            
+            <div class="card glass-panel-premium border-0 shadow-sm rounded-4 p-4 mb-4">
+                <h5 class="fw-900 text-dark mb-4"><i class="bi bi-funnel-fill text-primary me-2"></i> Motor de Extracción de Datos</h5>
+                
+                <form th:action="@{/reportes/descargarExcel}" method="get" id="formFiltros" target="_blank">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label-premium">Rango de Búsqueda</label>
+                            <select id="tipoRango" class="form-control-premium w-100 rounded-3 p-2 fw-bold" onchange="actualizarFechas()">
+                                <option value="diario">Hoy (Diario)</option>
+                                <option value="semanal">Última Semana</option>
+                                <option value="mensual">Último Mes</option>
+                                <option value="anual">Último Año (Anual)</option>
+                                <option value="personalizado">Personalizado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label-premium">Fecha Inicio</label>
+                            <input type="date" id="fechaInicio" name="fechaInicio" class="form-control-premium w-100 rounded-3 p-2 fw-bold" th:value="${fechaHoy}" required readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label-premium">Fecha Fin</label>
+                            <input type="date" id="fechaFin" name="fechaFin" class="form-control-premium w-100 rounded-3 p-2 fw-bold" th:value="${fechaHoy}" required readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label-premium">Filtro por Servicio</label>
+                            <select name="servicio" class="form-control-premium w-100 rounded-3 p-2 fw-bold">
+                                <option value="TODOS">Todos los Servicios</option>
+                                <option value="Medicina General">Medicina General</option>
+                                <option value="Odontología">Odontología</option>
+                                <option value="Enfermería">Enfermería</option>
+                                <option value="Psicología">Psicología</option>
+                                <option value="Obstetricia">Obstetricia</option>
+                                <option value="Nutrición">Nutrición</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-3 mt-2 justify-content-end border-top pt-4">
+                        <button type="submit" class="btn btn-premium-main rounded-pill px-5 py-2.5 fw-bold shadow-glow border-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-excel-fill fs-5"></i> GENERAR Y DESCARGAR EXCEL
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Banner Informativo -->
+            <div class="alert alert-info border-0 rounded-4 shadow-sm p-4 d-flex align-items-center gap-4 flex-grow-1" style="background: rgba(13, 148, 136, 0.05);">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 60px; height: 60px;">
+                    <i class="bi bi-file-earmark-spreadsheet fs-2"></i>
+                </div>
+                <div>
+                    <h5 class="fw-900 text-dark mb-2">Estructura del Reporte Gerencial</h5>
+                    <p class="text-muted small mb-0 fw-medium" style="max-width: 700px;">
+                        El archivo Excel generado (.xlsx) consolida en tiempo real la información clínica y financiera del rango seleccionado. Incluye columnas detalladas de: Identificación del Paciente, Servicio Atendido, Médico Tratante, Personal de Triaje (Tópico), Personal de Caja y el <strong>cálculo preciso de las Ganancias (S/)</strong> recaudadas por cada atención.
+                    </p>
+                </div>
+            </div>
+            
+            <script>
+                function actualizarFechas() {
+                    const tipo = document.getElementById('tipoRango').value;
+                    const fi = document.getElementById('fechaInicio');
+                    const ff = document.getElementById('fechaFin');
+                    
+                    const hoy = new Date();
+                    hoy.setMinutes(hoy.getMinutes() - hoy.getTimezoneOffset());
+                    const fechaHoyStr = hoy.toISOString().split('T')[0];
+                    
+                    if (tipo === 'diario') {
+                        fi.value = fechaHoyStr;
+                        ff.value = fechaHoyStr;
+                        fi.readOnly = true;
+                        ff.readOnly = true;
+                    } else if (tipo === 'semanal') {
+                        const semana = new Date(hoy);
+                        semana.setDate(semana.getDate() - 7);
+                        fi.value = semana.toISOString().split('T')[0];
+                        ff.value = fechaHoyStr;
+                        fi.readOnly = true;
+                        ff.readOnly = true;
+                    } else if (tipo === 'mensual') {
+                        const mes = new Date(hoy);
+                        mes.setMonth(mes.getMonth() - 1);
+                        fi.value = mes.toISOString().split('T')[0];
+                        ff.value = fechaHoyStr;
+                        fi.readOnly = true;
+                        ff.readOnly = true;
+                    } else if (tipo === 'anual') {
+                        const anio = new Date(hoy);
+                        anio.setFullYear(anio.getFullYear() - 1);
+                        fi.value = anio.toISOString().split('T')[0];
+                        ff.value = fechaHoyStr;
+                        fi.readOnly = true;
+                        ff.readOnly = true;
+                    } else if (tipo === 'personalizado') {
+                        fi.readOnly = false;
+                        ff.readOnly = false;
+                        fi.focus();
+                    }
+                }
+            </script>
+        </div>
+    </main>
+</body>
+</html>

@@ -35,7 +35,7 @@ public class HistoriaClinicaService implements IHistoriaClinicaService {
         Map<String, Object> historia = new HashMap<>();
         Paciente paciente = pacienteOpt.get();
         
-        List<Consulta> consultas = consultaRepository.findByPacienteIdPersonaOrderByFechaHoraInicioDesc(idPaciente);
+        List<Consulta> consultas = consultaRepository.findByPacienteIdPersonaOrderByFechaHoraInicioDesc(idPaciente, org.springframework.data.domain.PageRequest.of(0, 50)).getContent();
         List<AlergiaPaciente> alergias = alergiaRepository.findByPacienteIdPersonaAndActivaTrue(idPaciente);
         
         List<Triaje> triajes = triajeRepository.findByPacienteIdPersonaOrderByFechaHoraDesc(idPaciente);

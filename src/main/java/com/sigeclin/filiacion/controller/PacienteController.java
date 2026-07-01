@@ -86,14 +86,19 @@ public class PacienteController {
     @PostMapping("/guardar")
     public String registrarPaciente(@Valid @ModelAttribute Paciente paciente, BindingResult bindingResult,
                                     @RequestParam(required = false) String servicio,
+                                    org.springframework.ui.Model model,
                                     RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
+            // Perfeccionamiento UX: Retenemos los datos escritos por el usuario en lugar de hacer redirect
+            model.addAttribute("tiposDoc", tipoDocumentoRepository.findAll());
             String msg = bindingResult.getAllErrors().stream()
                     .map(e -> e.getDefaultMessage())
                     .reduce((a, b) -> a + "; " + b)
-                    .orElse("Error de validación");
-            redirectAttributes.addFlashAttribute("error", msg);
-            return "redirect:/admission/registro";
+                    .orElse("Error de validación en los datos ingresados.");
+            
+            // Pasamos el error para que SweetAlert lo dibuje en el mismo template
+            model.addAttribute("errorObj", msg);
+            return "admission/registro";
         }
         try {
             if (servicio != null && !servicio.isEmpty()) {

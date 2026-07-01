@@ -21,8 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.Optional;
 
-@Configuration
-@Profile("!test")
+@org.springframework.stereotype.Component
 @RequiredArgsConstructor
 @Slf4j
 @Order(1)
@@ -40,6 +39,74 @@ public class SystemInitializer implements CommandLineRunner {
         log.info(">>> [SIGECLIN] Iniciando Sincronización Total del Sistema...");
         
         try {
+            // 1. Renombrar accesos genéricos de servicios médicos para alinearlos con la regla de negocio
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'tpejerrey' WHERE username = 'medicina'");
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'varias_demo' WHERE username = 'enfermeria'");
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'mhuayayo' WHERE username = 'obstetricia'");
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'cvilvanti' WHERE username = 'odontologia'");
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'cquiros' WHERE username = 'psicologia'");
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'esuarez_demo' WHERE username = 'nutricion'");
+            
+            // Eliminar 'medico' limpiando sus roles primero si existen
+            jdbcTemplate.execute("DELETE FROM seguridad.usuario_rol WHERE id_usuario IN (SELECT id_usuario FROM filiacion.usuario WHERE username = 'medico')");
+            jdbcTemplate.execute("DELETE FROM filiacion.usuario WHERE username = 'medico'");
+            
+            log.info(">>> [SIGECLIN] Accesos de servicio médico renombrados y corregidos.");
+
+            // 2. Garantizar que todo el personal esté marcado como activo y desbloqueado
+            jdbcTemplate.execute("UPDATE filiacion.personal SET estado_laboral = 'activo'");
+            jdbcTemplate.execute("UPDATE filiacion.usuario SET cuenta_bloqueada = false, intentos_fallidos = 0");
+            log.info(">>> [SIGECLIN] Cuentas de personal reactivadas y desbloqueadas.");
+
+            // 3. Autogenerar usuarios para todo el personal que no tenga cuenta asignada
+            String passHash = passwordEncoder.encode("admin");
+            java.util.List<java.util.Map<String, Object>> sinUsuario = jdbcTemplate.queryForList(
+                "SELECT p.id_persona, p.nombres, p.apellido_paterno " +
+                "FROM filiacion.personal per " +
+                "JOIN filiacion.persona p ON per.id_personal = p.id_persona " +
+                "LEFT JOIN filiacion.usuario u ON p.id_persona = u.id_usuario " +
+                "WHERE u.id_usuario IS NULL"
+            );
+
+            for (java.util.Map<String, Object> p : sinUsuario) {
+                Integer idPersona = (Integer) p.get("id_persona");
+                String nombres = (String) p.get("nombres");
+                String apellidoPaterno = (String) p.get("apellido_paterno");
+
+                // Regla: 1era letra nombre + apellido paterno
+                String baseUser = nombres.substring(0, 1).toLowerCase() + apellidoPaterno.toLowerCase();
+                baseUser = baseUser.replaceAll("[^a-z0-9]", "");
+
+                // Control de colisiones
+                String username = baseUser;
+                int suffix = 1;
+                while (true) {
+                    Integer exists = jdbcTemplate.queryForObject(
+                        "SELECT COUNT(*) FROM filiacion.usuario WHERE username = ?",
+                        Integer.class,
+                        username
+                    );
+                    if (exists == 0) break;
+                    username = baseUser + suffix;
+                    suffix++;
+                }
+
+                // Insertar usuario
+                jdbcTemplate.update(
+                    "INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) " +
+                    "VALUES (?, ?, ?, false, 0, false, CURRENT_TIMESTAMP)",
+                    idPersona, username, passHash
+                );
+
+                // Enlazar id_usuario en personal
+                jdbcTemplate.update(
+                    "UPDATE filiacion.personal SET id_usuario = ? WHERE id_personal = ?",
+                    idPersona, idPersona
+                );
+
+                log.info(">>> [SIGECLIN] Usuario autogenerado para {}: {}", nombres + " " + apellidoPaterno, username);
+            }
+
             long userCount = usuarioRepository.count();
             if (userCount > 0) {
                 log.info(">>> [SIGECLIN] Base de datos ya inicializada (usuarios encontrados: {}). Omitiendo purga y sembrado para proteger datos.", userCount);
@@ -69,6 +136,9 @@ public class SystemInitializer implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE clinico.triaje ADD COLUMN IF NOT EXISTS servicio_destino VARCHAR(50)");
             jdbcTemplate.execute("ALTER TABLE clinico.triaje ADD COLUMN IF NOT EXISTS alerta_clinica BOOLEAN DEFAULT false");
             jdbcTemplate.execute("ALTER TABLE clinico.triaje ADD COLUMN IF NOT EXISTS detalle_alerta TEXT");
+            
+            // A08: Integridad de datos (Auditoría Envers)
+            jdbcTemplate.execute("ALTER TABLE public.revinfo ADD COLUMN IF NOT EXISTS username VARCHAR(50)");
             
             // Actualizar restricción de urgencia para incluir 'naranja'
             try {
@@ -149,7 +219,7 @@ public class SystemInitializer implements CommandLineRunner {
         String[] roles = {"MEDICO GENERAL", "ENFERMERIA", "OBSTETRICIA", "ODONTOLOGIA", "PSICOLOGIA", "NUTRICION", "ADMIN"};
         for (String r : roles) {
             String code = r.replace(" ", "_");
-            jdbcTemplate.execute("INSERT INTO seguridad.rol (codigo, descripcion) VALUES ('" + code + "', '" + r + "') ON CONFLICT (codigo) DO NOTHING");
+            jdbcTemplate.update("INSERT INTO seguridad.rol (codigo, descripcion) VALUES (?, ?) ON CONFLICT (codigo) DO NOTHING", code, r);
         }
     }
 
@@ -170,10 +240,10 @@ public class SystemInitializer implements CommandLineRunner {
     }
 
     private void insertPersonal(int id, String dni, String nom, String apP, String apM, int type, String coleg, String sex) {
-        jdbcTemplate.execute("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, sexo, fecha_nacimiento) " +
-                             "VALUES (" + (200 + id) + ", 1, '" + dni + "', '" + nom + "', '" + apP + "', '" + apM + "', '" + sex + "', '1980-01-01')");
-        jdbcTemplate.execute("INSERT INTO filiacion.personal (id_personal, id_tipo_personal, numero_colegiatura, fecha_ingreso, estado_laboral) " +
-                             "VALUES (" + (200 + id) + ", " + type + ", '" + (coleg == null ? "" : coleg) + "', NOW(), 'activo')");
+        jdbcTemplate.update("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, sexo, fecha_nacimiento) " +
+                             "VALUES (?, 1, ?, ?, ?, ?, ?, '1980-01-01')", 200 + id, dni, nom, apP, apM, sex);
+        jdbcTemplate.update("INSERT INTO filiacion.personal (id_personal, id_tipo_personal, numero_colegiatura, fecha_ingreso, estado_laboral) " +
+                             "VALUES (?, ?, ?, NOW(), 'activo')", 200 + id, type, coleg == null ? "" : coleg);
     }
 
     private void seedUsers() {
@@ -181,31 +251,31 @@ public class SystemInitializer implements CommandLineRunner {
         
         // Admin
         String pass = passwordEncoder.encode("admin");
-        jdbcTemplate.execute("DELETE FROM filiacion.usuario WHERE username = 'admin'");
-        jdbcTemplate.execute("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, fecha_nacimiento) " +
+        jdbcTemplate.update("DELETE FROM filiacion.usuario WHERE username = ?", "admin");
+        jdbcTemplate.update("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, fecha_nacimiento) " +
                              "VALUES (100, 1, '00000000', 'ADMINISTRADOR', 'SISTEMA', '', '1980-01-01')");
-        jdbcTemplate.execute("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) " +
-                             "VALUES (100, 'admin', '" + pass + "')");
+        jdbcTemplate.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) " +
+                             "VALUES (100, 'admin', ?)", pass);
         
         // Roles for admin
-        Integer adminRolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = 'ADMIN'", Integer.class);
-        jdbcTemplate.execute("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (100, " + adminRolId + ")");
+        Integer adminRolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = ?", Integer.class, "ADMIN");
+        jdbcTemplate.update("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (100, ?)", adminRolId);
 
-        // Service Users
-        createServiceUser("medicina", pass, "MEDICO_GENERAL", 201);
-        createServiceUser("enfermeria", pass, "ENFERMERIA", 202);
-        createServiceUser("obstetricia", pass, "OBSTETRICIA", 203);
-        createServiceUser("odontologia", pass, "ODONTOLOGIA", 204);
-        createServiceUser("psicologia", pass, "PSICOLOGIA", 205);
-        createServiceUser("nutricion", pass, "NUTRICION", 206);
+        // Service Users (using first letter + surname)
+        createServiceUser("tpejerrey", pass, "MEDICO_GENERAL", 201);
+        createServiceUser("varias_demo", pass, "ENFERMERIA", 202); // demo (to avoid collision with official varias)
+        createServiceUser("mhuayayo", pass, "OBSTETRICIA", 203);
+        createServiceUser("cvilvanti", pass, "ODONTOLOGIA", 204);
+        createServiceUser("cquiros", pass, "PSICOLOGIA", 205);
+        createServiceUser("esuarez_demo", pass, "NUTRICION", 206); // demo (to avoid collision with official esuarez)
     }
 
     private void createServiceUser(String user, String pass, String rolCode, int personId) {
-        jdbcTemplate.execute("DELETE FROM filiacion.usuario WHERE username = '" + user + "'");
-        jdbcTemplate.execute("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) VALUES (" + personId + ", '" + user + "', '" + pass + "')");
-        Integer rolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = '" + rolCode + "'", Integer.class);
-        jdbcTemplate.execute("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (" + personId + ", " + rolId + ")");
-        jdbcTemplate.execute("UPDATE filiacion.personal SET id_usuario = " + personId + " WHERE id_personal = " + personId);
+        jdbcTemplate.update("DELETE FROM filiacion.usuario WHERE username = ?", user);
+        jdbcTemplate.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) VALUES (?, ?, ?)", personId, user, pass);
+        Integer rolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = ?", Integer.class, rolCode);
+        jdbcTemplate.update("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (?, ?)", personId, rolId);
+        jdbcTemplate.update("UPDATE filiacion.personal SET id_usuario = ? WHERE id_personal = ?", personId, personId);
         
         // Sincronizar secuencias para evitar errores de duplicados (id_persona = 205, etc.)
         syncSequences();

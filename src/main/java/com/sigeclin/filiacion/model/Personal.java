@@ -26,7 +26,7 @@ public class Personal extends Persona {
     @Column(name = "id_usuario")
     private Integer idUsuario;
 
-    @Pattern(regexp = "^(CMP|CEP|COP|CPP|CPsP|CPSP|CNP|CIP|REG)[- ]\\d+$", message = "Formato de colegiatura invalido (ej: CMP-12345)")
+    @Pattern(regexp = "^(CMP|CEP|COP|CPP|CPsP|CPSP|CNP|CIP|REG)[- ]\\d+$|^$", message = "Formato de colegiatura invalido (ej: CMP-12345)")
     private String numeroColegiatura;
     
     @NotNull(message = "La fecha de ingreso es obligatoria")

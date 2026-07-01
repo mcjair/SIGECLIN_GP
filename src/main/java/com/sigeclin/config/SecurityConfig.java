@@ -22,7 +22,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests((requests) -> requests
-                .requestMatchers("/", "/login", "/error", "/css/**", "/js/**", "/webjars/**", "/api/cie10/**", "/api/auth/**", "/actuator/health").permitAll()
+                .requestMatchers("/", "/login", "/error", "/css/**", "/js/**", "/webjars/**", "/api/cie10/**", "/api/auth/**", "/actuator/health", "/dev/**").permitAll()
                 .anyRequest().authenticated()
             )
             .userDetailsService(userDetailsService)
@@ -33,14 +33,14 @@ public class SecurityConfig {
             )
             .logout((logout) -> logout.permitAll())
             .sessionManagement(session -> session
+                .invalidSessionUrl("/login?invalid")
                 .maximumSessions(1)
                 .maxSessionsPreventsLogin(false)
                 .expiredUrl("/login?expired")
             )
-            .csrf(csrf -> csrf.ignoringRequestMatchers(
-                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/consulta/guardar", "POST"),
-                new org.springframework.security.web.util.matcher.AntPathRequestMatcher("/api/**", "POST")
-            ))
+            .csrf(csrf -> csrf
+                .ignoringRequestMatchers("/login", "/dev/**", "/api/**")
+            )
             .headers(headers -> headers
                 .xssProtection(xss -> xss
                     .headerValue(org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK)

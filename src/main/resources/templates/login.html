@@ -36,7 +36,7 @@
         }
         
         [data-theme="dark"] body {
-            background: radial-gradient(circle at 50% 50%, #0f172a 0%, #090f1d 100%);
+            background: radial-gradient(circle at 50% 50%, #064e3b 0%, #022c22 100%);
         }
         
         [data-theme="dark"] .login-card {
@@ -56,13 +56,13 @@
         .logo-circle {
             width: 80px;
             height: 80px;
-            background: var(--logo-gradient, linear-gradient(135deg, #1066e4 0%, #05bef2 100%));
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
             border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 1.5rem;
-            box-shadow: var(--logo-shadow, 0 15px 35px rgba(16, 102, 228, 0.35));
+            box-shadow: 0 15px 35px rgba(13, 148, 136, 0.35);
         }
         
         .form-floating > .form-control {
@@ -207,12 +207,10 @@
                     <input class="form-check-input" type="checkbox" id="remember" name="remember-me">
                     <label class="form-check-label small fw-bold text-muted" for="remember">Recordarme</label>
                 </div>
-                <a href="#" class="small fw-800 text-primary text-decoration-none">¿Olvidó su clave?</a>
+                <a href="#" class="small fw-800 text-decoration-none" style="color: #0d9488;">¿Olvidó su clave?</a>
             </div>
 
-            <button type="submit" class="btn-premium-action w-100 text-uppercase">
-                <span class="transition"></span>
-                <span class="gradient"></span>
+            <button type="submit" class="btn w-100 text-uppercase fw-900 text-white" style="background: linear-gradient(135deg, #0d9488, #0f766e); height: 50px; border-radius: 12px; box-shadow: 0 8px 20px rgba(13, 148, 136, 0.3);">
                 <span class="label">Ingresar al Sistema <i class="bi bi-arrow-right ms-2"></i></span>
             </button>
         </form>
@@ -277,7 +275,7 @@
                 </div>
                 <div class="modal-footer border-0 pt-0 px-4 pb-4">
                     <button type="button" class="btn btn-secondary rounded-pill px-4 fw-800" data-bs-dismiss="modal">CANCELAR</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-800 shadow-sm" id="btnRecuperar" onclick="recuperarClave()">
+                    <button type="button" class="btn rounded-pill px-4 fw-800 shadow-sm text-white" id="btnRecuperar" onclick="recuperarClave()" style="background: linear-gradient(135deg, #0d9488, #0f766e);">
                         <i class="bi bi-check-lg me-1"></i> RESTABLECER
                     </button>
                 </div>

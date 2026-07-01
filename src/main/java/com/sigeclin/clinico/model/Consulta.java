@@ -45,8 +45,14 @@ public class Consulta {
     @Column(nullable = false)
     private String motivoConsulta;
 
+    @Convert(converter = com.sigeclin.config.CryptoConverter.class)
+    @Column(columnDefinition = "TEXT")
     private String anamnesis;
+
+    @Convert(converter = com.sigeclin.config.CryptoConverter.class)
+    @Column(columnDefinition = "TEXT")
     private String examenFisico;
+    
     private String planTratamiento;
     private LocalDate proximoControl;
     

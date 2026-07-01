@@ -8,7 +8,39 @@
         <div id="personal-content" class="animate-fade-in">
             
             <!-- Flash Messages -->
-            <div th:if="${success}" class="alert alert-success d-flex align-items-center gap-2 rounded-4 border-0 shadow-sm py-3 px-4 mb-3" role="alert" style="background: rgba(16,185,129,0.1); color: #0d9488;">
+            <!-- Panel Premium de Credenciales Autogeneradas -->
+            <div th:if="${success != null and #strings.contains(success, 'Credenciales de acceso generadas')}" 
+                 class="card border-0 shadow-sm p-4 mb-4 animate-fade-in" 
+                 style="background: linear-gradient(135deg, #1e3a8a 0%, #0d9488 100%); color: white; border-radius: 20px;">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="rounded-circle bg-white bg-opacity-20 p-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 54px; height: 54px;">
+                        <i class="bi bi-shield-lock-fill fs-3 text-white"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h5 class="fw-800 mb-1" style="letter-spacing: -0.2px;">¡Usuario de Personal Creado Exitosamente!</h5>
+                        <p class="mb-3 opacity-90 small">Se han generado las credenciales oficiales de acceso bajo la regla de negocio corporativa (inicial de nombre + primer apellido):</p>
+                        
+                        <div class="row g-3" style="max-width: 500px;">
+                            <div class="col-6">
+                                <div class="p-3 bg-white bg-opacity-10 rounded-3 border border-white border-opacity-10">
+                                    <span class="d-block text-white opacity-70 small fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">NOMBRE DE USUARIO</span>
+                                    <span class="fs-5 fw-900 text-warning mt-1 d-block font-monospace" 
+                                          th:text="${#strings.substringBefore(#strings.substringAfter(success, 'Usuario: ['), ']')}">usuario</span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-3 bg-white bg-opacity-10 rounded-3 border border-white border-opacity-10">
+                                    <span class="d-block text-white opacity-70 small fw-bold" style="font-size: 0.65rem; letter-spacing: 0.5px;">CONTRASEÑA GLOBAL</span>
+                                    <span class="fs-5 fw-900 text-warning mt-1 d-block font-monospace">admin</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerta común para otros éxitos -->
+            <div th:if="${success != null and !#strings.contains(success, 'Credenciales de acceso generadas')}" class="alert alert-success d-flex align-items-center gap-2 rounded-4 border-0 shadow-sm py-3 px-4 mb-3" role="alert" style="background: rgba(16,185,129,0.1); color: #0d9488;">
                 <i class="bi bi-check-circle-fill fs-5"></i>
                 <span class="fw-bold" th:text="${success}">Operación exitosa</span>
             </div>
@@ -24,7 +56,7 @@
                         <h4 class="fw-800 mb-1" style="color: var(--text-main);">Directorio de Personal Médico</h4>
                         <p class="text-muted small mb-0">Gestión centralizada de profesionales, colegiaturas y permisos de acceso.</p>
                     </div>
-                    <button class="btn btn-navy-premium rounded-pill px-4 fw-bold" onclick="abrirModalPersonal(null)">
+                    <button class="btn btn-premium-main text-white rounded-pill px-4 fw-bold" onclick="abrirModalPersonal(null)">
                         <i class="bi bi-person-plus me-2"></i> Nuevo Personal
                     </button>
                 </div>
@@ -35,30 +67,8 @@
                 <div th:each="p : ${personalList}" class="card glass-panel-premium border-0 shadow-sm overflow-hidden animate-fade-in p-0 mb-3 hover-scale transition-all position-relative" style="border-radius: 20px;"
                      th:with="
                         rolName=${mapTipos[p.idTipoPersonal] != null ? #strings.toUpperCase(mapTipos[p.idTipoPersonal]) : ''},
-                        colorStart=${p.estadoLaboral != 'activo' ? '#94a3b8' :
-                                    (#strings.contains(rolName, 'MEDICINA') ? '#2563eb' :
-                                    (#strings.contains(rolName, 'ENFERMERIA') ? '#0891b2' :
-                                    (#strings.contains(rolName, 'OBSTETRICIA') ? '#db2777' :
-                                    (#strings.contains(rolName, 'ODONTOLOGIA') ? '#4f46e5' :
-                                    (#strings.contains(rolName, 'PSICOLOGIA') ? '#7c3aed' :
-                                    (#strings.contains(rolName, 'NUTRICION') ? '#ea580c' :
-                                    (#strings.contains(rolName, 'FARMACIA') ? '#059669' :
-                                    (#strings.contains(rolName, 'LABORATORIO') ? '#be185d' :
-                                    (#strings.contains(rolName, 'CAJA') ? '#ca8a04' :
-                                    (#strings.contains(rolName, 'TRIAJE') ? '#dc2626' :
-                                    (#strings.contains(rolName, 'ADMIN') ? '#1e293b' : '#475569' )))))))))))},
-                        colorEnd=${p.estadoLaboral != 'activo' ? '#cbd5e1' :
-                                    (#strings.contains(rolName, 'MEDICINA') ? '#3b82f6' :
-                                    (#strings.contains(rolName, 'ENFERMERIA') ? '#06b6d4' :
-                                    (#strings.contains(rolName, 'OBSTETRICIA') ? '#ec4899' :
-                                    (#strings.contains(rolName, 'ODONTOLOGIA') ? '#6366f1' :
-                                    (#strings.contains(rolName, 'PSICOLOGIA') ? '#8b5cf6' :
-                                    (#strings.contains(rolName, 'NUTRICION') ? '#f97316' :
-                                    (#strings.contains(rolName, 'FARMACIA') ? '#10b981' :
-                                    (#strings.contains(rolName, 'LABORATORIO') ? '#e11d48' :
-                                    (#strings.contains(rolName, 'CAJA') ? '#eab308' :
-                                    (#strings.contains(rolName, 'TRIAJE') ? '#ef4444' :
-                                    (#strings.contains(rolName, 'ADMIN') ? '#334155' : '#64748b' )))))))))))}">
+                        colorStart=${p.estadoLaboral != 'activo' ? '#94a3b8' : '#0d9488'},
+                        colorEnd=${p.estadoLaboral != 'activo' ? '#cbd5e1' : '#0f766e'}">
                                     
                     <!-- Indicador de estado lateral (Left border) -->
                     <div class="position-absolute start-0 top-0 bottom-0" style="width: 6px; transition: all 0.3s ease;"
@@ -86,9 +96,9 @@
                                 <i th:if="${rolName == '' or (!#strings.contains(rolName, 'MEDICINA') and !#strings.contains(rolName, 'ODON') and !#strings.contains(rolName, 'OBSTETRICIA') and !#strings.contains(rolName, 'ENFERMERIA') and !#strings.contains(rolName, 'PSICOLOGIA') and !#strings.contains(rolName, 'NUTRICION') and !#strings.contains(rolName, 'LABORATORIO') and !#strings.contains(rolName, 'FARMACIA') and !#strings.contains(rolName, 'ADMISION') and !#strings.contains(rolName, 'CAJA') and !#strings.contains(rolName, 'TRIAJE') and !#strings.contains(rolName, 'ADMIN'))}" class="bi bi-person-fill"></i>
                             </div>
                         </div>
-                        <div class="col-5 py-1 pe-3">
+                        <div class="col-12 col-lg-5 py-2 py-lg-1 pe-0 pe-lg-3 text-center text-lg-start">
                             <h6 class="fw-900 mb-2 text-uppercase text-truncate" style="color: var(--text-main); font-size: 0.95rem; letter-spacing: 0.2px;" th:text="${p.nombres + ' ' + p.apellidoPaterno + ' ' + (p.apellidoMaterno ?: '')}">Ricardo Gómez</h6>
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center justify-content-center justify-content-lg-start gap-2">
                                 <div class="d-flex align-items-center gap-1.5 px-3 py-1 rounded-pill shadow-xs" 
                                      th:styleappend="'background-color: ' + ${colorStart} + '15 !important; border: 1px solid ' + ${colorStart} + '30; color: ' + ${colorStart} + ' !important;'">
                                     <i class="bi bi-briefcase-fill" style="font-size: 0.75rem;"></i> 
@@ -100,13 +110,13 @@
                                       th:text="${p.estadoLaboral == 'activo' ? 'EN FUNCIONES' : 'INACTIVO'}">ACTIVO</span>
                             </div>
                         </div>
-                        <div class="col d-flex align-items-center justify-content-center border-start border-light border-2 px-3">
-                             <div class="d-flex gap-5 w-100 justify-content-center">
+                        <div class="col-12 col-lg d-flex align-items-center justify-content-center border-start-0 border-lg-start border-light border-2 px-3 my-3 my-lg-0 py-2 py-lg-0" style="background-color: rgba(148, 163, 184, 0.02); border-radius: 12px;">
+                             <div class="d-flex gap-4 w-100 justify-content-center">
                                  <div class="d-flex align-items-center gap-2">
                                      <div class="rounded-circle d-flex align-items-center justify-content-center bg-light shadow-sm" style="width: 32px; height: 32px;">
                                          <i class="bi bi-person-vcard fs-6 text-secondary"></i>
                                      </div>
-                                     <div class="d-flex flex-column lh-1">
+                                     <div class="d-flex flex-column lh-1 text-start">
                                          <span class="text-muted fw-bold" style="font-size: 0.60rem; letter-spacing: 0.5px;">DOCUMENTO</span>
                                          <span class="text-dark fw-900 mt-1" style="font-size: 0.85rem;" th:text="${p.numeroDocumento}">00000000</span>
                                      </div>
@@ -115,21 +125,21 @@
                                      <div class="rounded-circle d-flex align-items-center justify-content-center bg-light shadow-sm" style="width: 32px; height: 32px;">
                                          <i class="bi bi-patch-check-fill fs-6 text-secondary"></i>
                                      </div>
-                                     <div class="d-flex flex-column lh-1">
+                                     <div class="d-flex flex-column lh-1 text-start">
                                          <span class="text-muted fw-bold" style="font-size: 0.60rem; letter-spacing: 0.5px;">COLEGIATURA</span>
                                          <span class="text-dark fw-900 mt-1" style="font-size: 0.85rem;" th:text="${p.numeroColegiatura != null and !p.numeroColegiatura.isEmpty() ? p.numeroColegiatura : 'S/C'}">CMP-0000</span>
                                      </div>
                                  </div>
                              </div>
                         </div>
-                        <div class="col-auto px-4 border-start border-light border-2 ms-auto d-flex align-items-center">
+                        <div class="col-12 col-lg-auto px-4 border-start-0 border-lg-start border-light border-2 ms-lg-auto d-flex flex-wrap justify-content-center align-items-center gap-3 py-2 py-lg-0">
                             <div class="d-flex flex-row gap-2 justify-content-center">
                                 <button class="btn btn-light rounded-pill px-3 py-1.5 fw-800 extra-small shadow-sm border transition-all hover-scale d-flex align-items-center justify-content-center gap-1" 
                                         th:onclick="'abrirModalPersonal(' + ${p.idPersona} + ')'" title="Editar Personal" style="color: var(--text-main);">
                                     <i class="bi bi-pencil-square text-primary"></i> EDITAR
                                 </button>
-                                <button class="btn btn-premium-action-compact btn-slate-dark text-white d-flex align-items-center justify-content-center gap-1" 
-                                        th:onclick="'abrirConfiguracionPermisos(' + ${p.idPersona} + ')'" style="font-size: 0.65rem; height: auto; padding: 0.4rem 1rem;">
+                                <button class="btn btn-premium-main rounded-pill text-white d-flex align-items-center justify-content-center gap-1 shadow-sm" 
+                                        th:onclick="'abrirConfiguracionPermisos(' + ${p.idPersona} + ')'" style="font-size: 0.65rem; height: auto; padding: 0.5rem 1.2rem; font-weight: 800; border: none;">
                                     <i class="bi bi-shield-lock-fill"></i> PERMISOS
                                 </button>
                             </div>
@@ -182,7 +192,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label-premium">Colegiatura</label>
-                                    <div class="d-flex align-items-center rounded-3 overflow-hidden border form-control-premium p-0 bg-white">
+                                    <div class="d-flex align-items-center rounded-3 overflow-hidden border form-control-premium p-0 bg-white" id="containerColegiatura">
                                         <div class="bg-light px-3 py-2 fw-900 text-muted border-end" id="prefixColegiatura">CMP-</div>
                                         <input type="hidden" name="numeroColegiatura" id="hiddenColegiatura">
                                         <input type="text" id="inputColegiatura" class="form-control border-0 px-3 py-2 fw-bold shadow-none" placeholder="Solo números..." oninput="updateColegiatura()" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
@@ -384,18 +394,36 @@
         function updateColegiaturaPrefix() {
             const select = document.querySelector('[name="idTipoPersonal"]');
             const prefixEl = document.getElementById('prefixColegiatura');
-            const val = select.options[select.selectedIndex].text;
+            const val = select.options[select.selectedIndex].text.trim().toUpperCase();
             
-            let prefix = 'CMP-';
-            if (val === 'ENFERMERO') prefix = 'CEP-';
-            else if (val === 'OBSTETRA' || val === 'ODONTÓLOGO') prefix = 'COP-';
-            else if (val === 'PSICÓLOGO') prefix = 'CPsP-';
-            else if (val === 'NUTRICIONISTA') prefix = 'CNP-';
-            else if (val === 'INGENIERO') prefix = 'CIP-';
-            else if (val === 'ESPECIALISTA') prefix = 'REG-';
-
-            prefixEl.innerText = prefix;
-            updateColegiatura();
+            const container = document.getElementById('containerColegiatura');
+            const inputCol = document.getElementById('inputColegiatura');
+            const hiddenCol = document.getElementById('hiddenColegiatura');
+            
+            if (['ADMISION', 'CAJA', 'ADMIN', 'SUPERADMIN'].includes(val)) {
+                prefixEl.innerText = 'N/A';
+                inputCol.value = '';
+                inputCol.disabled = true;
+                inputCol.placeholder = 'No requerido';
+                container.style.opacity = '0.6';
+                container.style.backgroundColor = '#e2e8f0';
+                hiddenCol.value = '';
+            } else {
+                inputCol.disabled = false;
+                inputCol.placeholder = 'Solo números...';
+                container.style.opacity = '1';
+                container.style.backgroundColor = '#ffffff';
+                
+                let prefix = 'REG-';
+                if (val === 'MEDICINA GENERAL') prefix = 'CMP-';
+                else if (val === 'ENFERMERIA') prefix = 'CEP-';
+                else if (val === 'OBSTETRICIA' || val === 'ODONTOLOGIA') prefix = 'COP-';
+                else if (val === 'PSICOLOGIA') prefix = 'CPsP-';
+                else if (val === 'NUTRICION') prefix = 'CNP-';
+                
+                prefixEl.innerText = prefix;
+                updateColegiatura();
+            }
         }
 
         function updateColegiatura() {

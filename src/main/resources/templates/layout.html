@@ -59,7 +59,7 @@
         .bg-primary-soft { background: rgba(13, 148, 136, 0.1) !important; color: var(--premium-teal) !important; }
 
         /* OVERRIDE LEGACY BLUE GRADIENTS */
-        .btn-premium-main, .module-header-icon, .avatar-main, 
+        .btn-premium-main, .module-header-icon, .avatar-main, .user-avatar-initial,
         .sidebar-logo-circle, .module-header-icon-sm, .btn-premium-action, .btn-premium-action-v2, .swal2-confirm {
             background: linear-gradient(135deg, var(--premium-teal), var(--premium-teal-hover)) !important;
             border-color: var(--premium-teal) !important;
@@ -91,6 +91,34 @@
         .fw-black { font-weight: 900 !important; }
         .tracking-tight { letter-spacing: -0.05em !important; }
         .tracking-wider { letter-spacing: 0.05em !important; }
+
+        /* Premium Form Controls (Inputs, Selects) */
+        .form-control-premium {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            font-size: 0.95rem;
+            color: #1e293b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            width: 100%;
+        }
+        .form-control-premium:focus {
+            background: #ffffff;
+            border-color: var(--premium-teal);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
+            outline: none;
+        }
+        .form-label-premium {
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+            margin-bottom: 6px;
+            display: block;
+        }
 
         /* KPI Cards Premium */
         .kpi-card {
@@ -391,6 +419,11 @@
                         <i class="bi bi-chat-dots text-muted fs-5"></i>
                     </div>
                     <div class="vr mx-2 opacity-10"></div>
+                    <!-- CONTADOR DE SESIÓN -->
+                    <div class="premium-badge d-flex align-items-center gap-2" title="Tiempo de sesión restante" style="background: rgba(13, 148, 136, 0.05);">
+                        <i class="bi bi-stopwatch text-primary" id="sessionTimerIcon"></i>
+                        <span id="sessionTimerText" class="fw-900" style="font-variant-numeric: tabular-nums; color: var(--premium-teal);">01:00</span>
+                    </div>
                     <div class="btn btn-outline-primary btn-sm px-3 rounded-3 fw-bold" id="userRoleBadge" th:data-role="${#authentication.authorities.isEmpty() ? '' : #authentication.authorities[0].authority}" th:text="${#authentication.authorities.isEmpty() ? 'SIN ROL' : #authentication.authorities[0].authority.replace('ROLE_', '').replace('_', ' ')}">Administrador</div>
                 </div>
             </div>
@@ -428,7 +461,7 @@
                             <p class="text-muted small px-3 mb-0" style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem;">${message}</p>
                         `,
                         confirmButtonText: 'ENTENDIDO',
-                        confirmButtonColor: 'var(--primary)',
+                        confirmButtonColor: '#0d9488',
                         timer: 5000,
                         timerProgressBar: true,
                         customClass: {
@@ -530,11 +563,11 @@
                             title: '<i class="bi bi-bell me-2 text-primary"></i> Notificaciones del Sistema',
                             html: html,
                             confirmButtonText: 'Cerrar',
-                            confirmButtonColor: 'var(--primary)',
+                            confirmButtonColor: '#0d9488',
                             width: 420
                         });
                     })
-                    .catch(() => Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: 'var(--primary)' }));
+                    .catch(() => Swal.fire({ icon: 'info', title: 'Notificaciones', text: 'No hay notificaciones pendientes.', confirmButtonColor: '#0d9488' }));
             }
 
             function openChat(event) {
@@ -556,7 +589,7 @@
                         </div>
                     </div>`,
                     confirmButtonText: '<i class="bi bi-send me-1"></i> Enviar Mensaje',
-                    confirmButtonColor: 'var(--primary)',
+                    confirmButtonColor: '#0d9488',
                     showCancelButton: true,
                     cancelButtonText: 'Cancelar',
                     cancelButtonColor: '#94a3b8',
@@ -670,6 +703,47 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
+            // ===== CONTADOR DE SESIÓN (TIMEOUT: 1m) =====
+            let sessionTimeLeft = 60; // 1 minuto configurado en application.properties
+            
+            function updateSessionTimer() {
+                const timerEl = document.getElementById('sessionTimerText');
+                const iconEl = document.getElementById('sessionTimerIcon');
+                if (!timerEl) return;
+                
+                if (sessionTimeLeft <= 0) {
+                    timerEl.textContent = '00:00';
+                    Swal.fire({
+                        title: 'Sesión Expirada',
+                        text: 'Su sesión ha caducado por inactividad. Redirigiendo...',
+                        icon: 'warning',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.location.href = '/login';
+                    });
+                    return;
+                }
+                
+                const m = Math.floor(sessionTimeLeft / 60);
+                const s = sessionTimeLeft % 60;
+                timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                
+                if (sessionTimeLeft <= 15) {
+                    timerEl.style.color = 'var(--premium-red)';
+                    iconEl.classList.replace('text-primary', 'text-danger');
+                    timerEl.parentElement.classList.add('animate-pulse');
+                }
+                
+                sessionTimeLeft--;
+                if (sessionTimeLeft >= 0) {
+                    setTimeout(updateSessionTimer, 1000);
+                }
+            }
+            // Iniciar cuenta regresiva al cargar la página
+            setTimeout(updateSessionTimer, 1000);
+
             // ===== CSRF INTERCEPTOR GLOBAL =====
             (function() {
                 const token = document.querySelector('meta[name="_csrf"]');
@@ -705,6 +779,119 @@
                 }
             })();
         </script>
+        <!-- FORCED PASSWORD CHANGE MODAL -->
+        <div th:if="${#authorization.expression('isAuthenticated()') and #strings.toString(#authentication.principal) != 'anonymousUser' and #authentication.principal.requiereCambioPassword}" 
+             class="modal fade" id="forcedPasswordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="forcedPasswordModalLabel" aria-hidden="true" style="z-index: 9999;">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
+                    <div class="modal-header border-0 pb-0 justify-content-center pt-4">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--premium-teal), var(--premium-teal-hover));">
+                            <i class="bi bi-shield-lock-fill text-white fs-3"></i>
+                        </div>
+                    </div>
+                    <div class="modal-body text-center px-4 pt-3 pb-4">
+                        <h4 class="fw-900 text-dark mb-2">¡Cambio de Contraseña Requerido!</h4>
+                        <p class="text-muted small mb-4">Por motivos de seguridad, es necesario que actualices tu contraseña temporal antes de continuar usando el sistema.</p>
+                        
+                        <form id="forcedPasswordForm" onsubmit="return submitForcedPassword(event)">
+                            <div class="form-floating mb-3 text-start">
+                                <input type="password" class="form-control form-control-premium" id="newPassword" name="newPassword" placeholder="Nueva Contraseña" required>
+                                <label for="newPassword" class="form-label-premium">NUEVA CONTRASEÑA</label>
+                                <div class="form-text text-muted" style="font-size: 0.7rem;">
+                                    Debe contener 8 a 12 caracteres, incluir mayúsculas, minúsculas y un número. (Opcional: $, %, &)
+                                </div>
+                            </div>
+                            <div class="form-floating mb-4 text-start">
+                                <input type="password" class="form-control form-control-premium" id="confirmPassword" placeholder="Confirmar Contraseña" required>
+                                <label for="confirmPassword" class="form-label-premium">CONFIRMAR CONTRASEÑA</label>
+                            </div>
+                            <button type="submit" class="btn btn-premium-main w-100 py-3 fw-bold rounded-pill" id="btnSubmitPassword">
+                                <i class="bi bi-check2-circle me-1"></i> ACTUALIZAR CONTRASEÑA
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:if="${#authorization.expression('isAuthenticated()') and #strings.toString(#authentication.principal) != 'anonymousUser' and #authentication.principal.requiereCambioPassword}">
+            document.addEventListener('DOMContentLoaded', function() {
+                var modalEl = document.getElementById('forcedPasswordModal');
+                if (modalEl) {
+                    var forcedModal = new bootstrap.Modal(modalEl);
+                    forcedModal.show();
+                }
+            });
+
+            function submitForcedPassword(e) {
+                e.preventDefault();
+                const newPass = document.getElementById('newPassword').value;
+                const confPass = document.getElementById('confirmPassword').value;
+                
+                if (newPass !== confPass) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Validación',
+                        text: 'Las contraseñas no coinciden.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return false;
+                }
+                
+                const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d$%&]{8,12}$/;
+                if (!regex.test(newPass)) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Contraseña Insegura',
+                        text: 'La contraseña debe tener entre 8 y 12 caracteres, e incluir al menos una mayúscula, una minúscula y un número.',
+                        confirmButtonColor: '#0d9488'
+                    });
+                    return false;
+                }
+
+                const btn = document.getElementById('btnSubmitPassword');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Procesando...';
+                btn.disabled = true;
+
+                fetch('/cambiar-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ newPassword: newPass })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message && data.message.includes('exitosamente')) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Contraseña Actualizada',
+                            text: 'Tu contraseña ha sido cambiada con éxito. Por favor, inicia sesión nuevamente.',
+                            confirmButtonColor: '#0d9488',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    } else {
+                        throw new Error(data.message || 'Error desconocido');
+                    }
+                })
+                .catch(error => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Operación fallida',
+                        text: error.message,
+                        confirmButtonColor: '#0d9488'
+                    });
+                });
+
+                return false;
+            }
+        </script>
+        
         <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     </footer>

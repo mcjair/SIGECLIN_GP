@@ -143,12 +143,12 @@
 
         .loading svg polyline#back {
             fill: none;
-            stroke: var(--primary-soft) !important;
+            stroke: rgba(13, 148, 136, 0.2) !important;
         }
 
         .loading svg polyline#front {
             fill: none;
-            stroke: var(--primary) !important;
+            stroke: #0d9488 !important;
             stroke-dasharray: 48, 144;
             stroke-dashoffset: 192;
             animation: dash_682 2s linear infinite;
@@ -157,7 +157,7 @@
 
         .loading svg polyline#front2 {
             fill: none;
-            stroke: var(--primary) !important;
+            stroke: #0d9488 !important;
             stroke-dasharray: 48, 144;
             stroke-dashoffset: 192;
             animation: dash_682 2s linear infinite;
@@ -221,15 +221,15 @@
     </div>
 
     <!-- Loader Overlay -->
-    <div id="loaderOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none flex-column justify-content-center align-items-center" style="background: var(--bg-card); z-index: 9999;">
-        <div class="loading">
+    <div id="loaderOverlay" class="position-fixed top-0 start-0 w-100 h-100 d-none flex-column justify-content-center align-items-center" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(5px); z-index: 9999;">
+        <div class="loading mb-3">
             <svg height="80px" width="100px" viewBox="0 0 64 48">
                 <polyline id="back" points="0.157 23.954, 14 23.954, 21.843 48, 43 0, 50 24, 64 24" />
                 <polyline id="front" points="0.157 23.954, 14 23.954, 21.843 48, 43 0, 50 24, 64 24" />
                 <polyline id="front2" points="0.157 23.954, 14 23.954, 21.843 48, 43 0, 50 24, 64 24" />
             </svg>
         </div>
-        <h5 class="mt-4 fw-800 text-dark">Autenticando credenciales...</h5>
+        <h5 class="fw-900" style="color: #0d9488;">Autenticando credenciales...</h5>
         <p class="text-muted small fw-bold">Por favor espere un momento</p>
     </div>
 

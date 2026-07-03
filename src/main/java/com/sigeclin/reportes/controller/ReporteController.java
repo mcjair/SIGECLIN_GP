@@ -29,22 +29,31 @@ public class ReporteController {
         return "reportes/dashboard";
     }
 
-    @GetMapping("/descargarExcel")
-    public ResponseEntity<byte[]> descargarExcel(
+    @GetMapping("/descargar")
+    public ResponseEntity<byte[]> descargarReporte(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaInicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaFin,
             @RequestParam(defaultValue = "TODOS") String servicio,
-            @RequestParam(defaultValue = "TODOS") String tipoPersonal) {
-
-        byte[] excelContent = reporteExcelService.generarReporteAtenciones(fechaInicio, fechaFin, servicio, tipoPersonal);
+            @RequestParam(defaultValue = "TODOS") String tipoPersonal,
+            @RequestParam(defaultValue = "EXCEL") String formato) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-        headers.setContentDispositionFormData("attachment", "Reporte_Atenciones_Ganancias_SIGECLIN_" + LocalDate.now() + ".xlsx");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
-        return ResponseEntity.ok()
-                .headers(headers)
-                .body(excelContent);
+        if (formato.equalsIgnoreCase("PDF")) {
+            byte[] pdfContent = reporteExcelService.generarReportePdf(fechaInicio, fechaFin, servicio, tipoPersonal);
+            headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Reporte_SIGECLIN_" + LocalDate.now() + ".pdf");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfContent);
+        } else {
+            byte[] excelContent = reporteExcelService.generarReporteAtenciones(fechaInicio, fechaFin, servicio, tipoPersonal);
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+            headers.setContentDispositionFormData("attachment", "Reporte_SIGECLIN_" + LocalDate.now() + ".xlsx");
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelContent);
+        }
     }
 }

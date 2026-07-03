@@ -169,7 +169,7 @@ public class PersonalService implements IPersonalService {
         }
         
         // Crear Usuario
-        entityManager.createNativeQuery("INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) VALUES (:id, :usr, :hash, false, 0, false, CURRENT_TIMESTAMP)")
+        entityManager.createNativeQuery("INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) VALUES (:id, :usr, :hash, false, 0, true, CURRENT_TIMESTAMP)")
                 .setParameter("id", p.getIdPersona())
                 .setParameter("usr", username)
                 .setParameter("hash", hashAdmin)

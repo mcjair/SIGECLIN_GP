@@ -13,28 +13,28 @@
             <div class="card glass-panel-premium border-0 shadow-sm rounded-4 p-4 mb-4">
                 <h5 class="fw-900 text-dark mb-4"><i class="bi bi-funnel-fill text-primary me-2"></i> Motor de Extracción de Datos</h5>
                 
-                <form th:action="@{/reportes/descargarExcel}" method="get" id="formFiltros" target="_blank">
+                <form th:action="@{/reportes/descargar}" method="get" id="formFiltros" target="_blank">
                     <div class="row g-4 mb-4">
-                        <div class="col-md-3">
-                            <label class="form-label-premium">Rango de Búsqueda</label>
+                        <div class="col-md-2">
+                            <label class="form-label-premium">Rango</label>
                             <select id="tipoRango" class="form-control-premium w-100 rounded-3 p-2 fw-bold" onchange="actualizarFechas()">
-                                <option value="diario">Hoy (Diario)</option>
-                                <option value="semanal">Última Semana</option>
-                                <option value="mensual">Último Mes</option>
-                                <option value="anual">Último Año (Anual)</option>
+                                <option value="diario">Hoy</option>
+                                <option value="semanal">1 Semana</option>
+                                <option value="mensual">1 Mes</option>
+                                <option value="anual">1 Año</option>
                                 <option value="personalizado">Personalizado</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label-premium">Fecha Inicio</label>
+                        <div class="col-md-2">
+                            <label class="form-label-premium">Desde</label>
                             <input type="date" id="fechaInicio" name="fechaInicio" class="form-control-premium w-100 rounded-3 p-2 fw-bold" th:value="${fechaHoy}" required readonly>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label-premium">Fecha Fin</label>
+                        <div class="col-md-2">
+                            <label class="form-label-premium">Hasta</label>
                             <input type="date" id="fechaFin" name="fechaFin" class="form-control-premium w-100 rounded-3 p-2 fw-bold" th:value="${fechaHoy}" required readonly>
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label-premium">Filtro por Servicio</label>
+                            <label class="form-label-premium">Especialidad</label>
                             <select name="servicio" class="form-control-premium w-100 rounded-3 p-2 fw-bold">
                                 <option value="TODOS">Todos los Servicios</option>
                                 <option value="Medicina General">Medicina General</option>
@@ -45,11 +45,25 @@
                                 <option value="Nutrición">Nutrición</option>
                             </select>
                         </div>
+                        <div class="col-md-3">
+                            <label class="form-label-premium">Formato Exportación</label>
+                            <div class="d-flex gap-2">
+                                <input type="radio" class="btn-check" name="formato" id="fmtExcel" value="EXCEL" checked onchange="actualizarBotonDescarga()">
+                                <label class="btn btn-outline-success flex-grow-1 d-flex align-items-center justify-content-center gap-2 fw-bold py-2 rounded-3 border-2" for="fmtExcel">
+                                    <i class="bi bi-file-earmark-excel-fill fs-5"></i> EXCEL
+                                </label>
+
+                                <input type="radio" class="btn-check" name="formato" id="fmtPdf" value="PDF" onchange="actualizarBotonDescarga()">
+                                <label class="btn btn-outline-danger flex-grow-1 d-flex align-items-center justify-content-center gap-2 fw-bold py-2 rounded-3 border-2" for="fmtPdf">
+                                    <i class="bi bi-file-earmark-pdf-fill fs-5"></i> PDF
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     
                     <div class="d-flex gap-3 mt-2 justify-content-end border-top pt-4">
-                        <button type="submit" class="btn btn-premium-main rounded-pill px-5 py-2.5 fw-bold shadow-glow border-0 d-flex align-items-center gap-2">
-                            <i class="bi bi-file-earmark-excel-fill fs-5"></i> GENERAR Y DESCARGAR EXCEL
+                        <button type="submit" id="btnDescarga" class="btn btn-premium-main rounded-pill px-5 py-2.5 fw-bold shadow-glow border-0 d-flex align-items-center gap-2">
+                            <i id="btnIcon" class="bi bi-file-earmark-excel-fill fs-5"></i> <span id="btnText">GENERAR ARCHIVO EXCEL</span>
                         </button>
                     </div>
                 </form>
@@ -108,6 +122,25 @@
                         fi.readOnly = false;
                         ff.readOnly = false;
                         fi.focus();
+                    }
+                }
+
+                function actualizarBotonDescarga() {
+                    const formato = document.querySelector('input[name="formato"]:checked').value;
+                    const btnIcon = document.getElementById('btnIcon');
+                    const btnText = document.getElementById('btnText');
+                    const btnDescarga = document.getElementById('btnDescarga');
+
+                    if (formato === 'PDF') {
+                        btnIcon.className = "bi bi-file-earmark-pdf-fill fs-5 text-white";
+                        btnText.innerText = "GENERAR ARCHIVO PDF";
+                        btnDescarga.classList.remove('btn-premium-main', 'btn-success');
+                        btnDescarga.classList.add('btn-danger');
+                    } else {
+                        btnIcon.className = "bi bi-file-earmark-excel-fill fs-5 text-white";
+                        btnText.innerText = "GENERAR ARCHIVO EXCEL";
+                        btnDescarga.classList.remove('btn-danger');
+                        btnDescarga.classList.add('btn-premium-main');
                     }
                 }
             </script>

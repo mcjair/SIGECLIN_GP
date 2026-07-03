@@ -34,38 +34,25 @@ public class PasswordController {
 
     @PostMapping("/cambiar-password")
     @ResponseBody
-    public ResponseEntity<?> doCambiarPassword(@RequestParam String newPassword) {
+    public ResponseEntity<?> doCambiarPassword(@RequestParam String newPassword, jakarta.servlet.http.HttpServletRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String username = auth.getName();
             Usuario usuario = usuarioRepository.findByUsername(username)
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             
-            // Regla de seguridad: obligar a que tenga mínimo 5 caracteres
-            if (newPassword == null || newPassword.length() < 5) {
-                return ResponseEntity.badRequest().body(Map.of("message", "La contraseña debe tener al menos 5 caracteres."));
+            // Regla de seguridad: Alfanumérica, 8 a 12 caracteres, mayúsculas, minúsculas, números y especial opcional
+            if (newPassword == null || !newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d$%&]{8,12}$")) {
+                return ResponseEntity.badRequest().body(Map.of("message", "La contraseña debe tener entre 8 y 12 caracteres, incluir mayúsculas, minúsculas y un número. Opcional caracteres especiales ($ % &)."));
             }
             
             // Usamos la query @Modifying para evitar validación de los campos de Persona (como 'sexo' en admin)
             usuarioRepository.actualizarPassword(username, passwordEncoder.encode(newPassword), LocalDateTime.now());
             
-            // Actualizar el token en sesión (Spring Security)
-            if (auth.getPrincipal() instanceof CustomUserDetails) {
-                CustomUserDetails currentDetails = (CustomUserDetails) auth.getPrincipal();
-                CustomUserDetails newDetails = new CustomUserDetails(
-                        currentDetails.getUsername(),
-                        usuario.getPasswordHash(),
-                        currentDetails.isEnabled(),
-                        currentDetails.isAccountNonExpired(),
-                        currentDetails.isCredentialsNonExpired(),
-                        currentDetails.isAccountNonLocked(),
-                        currentDetails.getAuthorities(),
-                        false // ¡Bandera desactivada!
-                );
-                UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
-                        newDetails, auth.getCredentials(), newDetails.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(newAuth);
-            }
+            // Cerrar la sesión forzosamente
+            request.getSession().invalidate();
+            SecurityContextHolder.clearContext();
+
             
             return ResponseEntity.ok(Map.of("message", "Contraseña actualizada exitosamente."));
         } catch (Exception e) {

@@ -20,7 +20,7 @@ public class ReporteExcelService {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public byte[] generarReporteAtenciones(LocalDate fechaInicio, LocalDate fechaFin, String servicio, String tipoPersonal) {
+    private List<Map<String, Object>> obtenerDatosReporte(LocalDate fechaInicio, LocalDate fechaFin, String servicio) {
         StringBuilder sql = new StringBuilder(
             "SELECT " +
             "    c.id_consulta, " +
@@ -50,11 +50,15 @@ public class ReporteExcelService {
 
         sql.append(" ORDER BY c.fecha_hora_inicio DESC");
 
-        List<Map<String, Object>> resultados = jdbcTemplate.queryForList(
+        return jdbcTemplate.queryForList(
             sql.toString(), 
             java.sql.Date.valueOf(fechaInicio), 
             java.sql.Date.valueOf(fechaFin)
         );
+    }
+
+    public byte[] generarReporteAtenciones(LocalDate fechaInicio, LocalDate fechaFin, String servicio, String tipoPersonal) {
+        List<Map<String, Object>> resultados = obtenerDatosReporte(fechaInicio, fechaFin, servicio);
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             Sheet sheet = workbook.createSheet("Reporte SIGECLIN");
@@ -97,7 +101,7 @@ public class ReporteExcelService {
 
             // 4. Super Cabecera 2 (Azul Minsa - Clínico)
             CellStyle superHeader2 = workbook.createCellStyle();
-            superHeader2.setFillForegroundColor(IndexedColors.STEEL_BLUE.getIndex());
+            superHeader2.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
             superHeader2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             superHeader2.setAlignment(HorizontalAlignment.CENTER);
             superHeader2.setVerticalAlignment(VerticalAlignment.CENTER);
@@ -275,5 +279,112 @@ public class ReporteExcelService {
             log.error("Error generando Excel de atenciones: ", e);
             throw new RuntimeException("Error al generar el reporte Excel");
         }
+    }
+
+    public byte[] generarReportePdf(LocalDate fechaInicio, LocalDate fechaFin, String servicio, String tipoPersonal) {
+        List<Map<String, Object>> resultados = obtenerDatosReporte(fechaInicio, fechaFin, servicio);
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            com.lowagie.text.Document document = new com.lowagie.text.Document(com.lowagie.text.PageSize.A4.rotate(), 20, 20, 20, 20);
+            com.lowagie.text.pdf.PdfWriter.getInstance(document, out);
+            document.open();
+
+            // Título
+            com.lowagie.text.Font fontTitulo = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 16, com.lowagie.text.Font.BOLD, java.awt.Color.decode("#8B0000"));
+            com.lowagie.text.Paragraph titulo = new com.lowagie.text.Paragraph("REPORTE GERENCIAL DE ATENCIONES Y FINANZAS - SIGECLIN", fontTitulo);
+            titulo.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            document.add(titulo);
+
+            // Subtítulo
+            String fechaGeneracion = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss"));
+            com.lowagie.text.Font fontSubtitulo = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.ITALIC, java.awt.Color.GRAY);
+            com.lowagie.text.Paragraph subtitulo = new com.lowagie.text.Paragraph("Generado el: " + fechaGeneracion + " | Registros: " + resultados.size(), fontSubtitulo);
+            subtitulo.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+            subtitulo.setSpacingAfter(20);
+            document.add(subtitulo);
+
+            // Tabla Dinámica
+            com.lowagie.text.pdf.PdfPTable table = new com.lowagie.text.pdf.PdfPTable(10);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{1.5f, 2.5f, 2f, 4f, 3f, 3.5f, 3f, 3f, 2.5f, 2.5f});
+
+            // Cabeceras de Tabla
+            com.lowagie.text.Font fontCabecera = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 8, com.lowagie.text.Font.BOLD, java.awt.Color.WHITE);
+            java.awt.Color colorCabecera = java.awt.Color.decode("#0056b3");
+
+            String[] columns = {"ID", "Fecha/Hora", "DNI", "Paciente", "Servicio", "Médico Tratante", "Pers. Triaje", "Pers. Caja", "Pago", "Monto (S/)"};
+            for (String col : columns) {
+                com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(col, fontCabecera));
+                cell.setBackgroundColor(colorCabecera);
+                cell.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_CENTER);
+                cell.setVerticalAlignment(com.lowagie.text.Element.ALIGN_MIDDLE);
+                cell.setPadding(6);
+                table.addCell(cell);
+            }
+
+            // Datos
+            com.lowagie.text.Font fontDato = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 7, com.lowagie.text.Font.NORMAL, java.awt.Color.BLACK);
+            java.math.BigDecimal totalGanancias = java.math.BigDecimal.ZERO;
+
+            for (Map<String, Object> rowMap : resultados) {
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("id_consulta")), fontDato, com.lowagie.text.Element.ALIGN_CENTER));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("fecha_atencion")), fontDato, com.lowagie.text.Element.ALIGN_CENTER));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("dni_paciente")), fontDato, com.lowagie.text.Element.ALIGN_CENTER));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("paciente")).toUpperCase(), fontDato, com.lowagie.text.Element.ALIGN_LEFT));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("servicio")).toUpperCase(), fontDato, com.lowagie.text.Element.ALIGN_LEFT));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("medico")).toUpperCase(), fontDato, com.lowagie.text.Element.ALIGN_LEFT));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("personal_triaje")).toUpperCase(), fontDato, com.lowagie.text.Element.ALIGN_LEFT));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("personal_caja")).toUpperCase(), fontDato, com.lowagie.text.Element.ALIGN_LEFT));
+                table.addCell(crearCeldaPdf(String.valueOf(rowMap.get("tipo_pago")).toUpperCase(), fontDato, com.lowagie.text.Element.ALIGN_CENTER));
+                
+                Object rawMonto = rowMap.get("ganancia");
+                java.math.BigDecimal monto = java.math.BigDecimal.ZERO;
+                if (rawMonto instanceof java.math.BigDecimal) {
+                    monto = (java.math.BigDecimal) rawMonto;
+                } else if (rawMonto instanceof Number) {
+                    monto = java.math.BigDecimal.valueOf(((Number) rawMonto).doubleValue());
+                }
+                
+                table.addCell(crearCeldaPdf(String.format("S/ %.2f", monto.doubleValue()), fontDato, com.lowagie.text.Element.ALIGN_RIGHT));
+                totalGanancias = totalGanancias.add(monto);
+            }
+
+            // Fila de Total
+            com.lowagie.text.Font fontTotal = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 8, com.lowagie.text.Font.BOLD, java.awt.Color.BLACK);
+            
+            com.lowagie.text.pdf.PdfPCell cellEmpty = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(""));
+            cellEmpty.setColspan(8);
+            cellEmpty.setBorder(com.lowagie.text.Rectangle.NO_BORDER);
+            table.addCell(cellEmpty);
+
+            com.lowagie.text.pdf.PdfPCell cellTotalLbl = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase("TOTAL RECAUDADO:", fontTotal));
+            cellTotalLbl.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_RIGHT);
+            cellTotalLbl.setVerticalAlignment(com.lowagie.text.Element.ALIGN_MIDDLE);
+            cellTotalLbl.setPadding(6);
+            table.addCell(cellTotalLbl);
+
+            com.lowagie.text.pdf.PdfPCell cellTotalVal = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(String.format("S/ %.2f", totalGanancias.doubleValue()), fontTotal));
+            cellTotalVal.setHorizontalAlignment(com.lowagie.text.Element.ALIGN_RIGHT);
+            cellTotalVal.setVerticalAlignment(com.lowagie.text.Element.ALIGN_MIDDLE);
+            cellTotalVal.setBackgroundColor(java.awt.Color.decode("#d4edda"));
+            cellTotalVal.setPadding(6);
+            table.addCell(cellTotalVal);
+
+            document.add(table);
+            document.close();
+            
+            return out.toByteArray();
+        } catch (Exception e) {
+            log.error("Error generando PDF de atenciones: ", e);
+            throw new RuntimeException("Error al generar el reporte PDF");
+        }
+    }
+
+    private com.lowagie.text.pdf.PdfPCell crearCeldaPdf(String texto, com.lowagie.text.Font font, int alineacion) {
+        com.lowagie.text.pdf.PdfPCell cell = new com.lowagie.text.pdf.PdfPCell(new com.lowagie.text.Phrase(texto, font));
+        cell.setHorizontalAlignment(alineacion);
+        cell.setVerticalAlignment(com.lowagie.text.Element.ALIGN_MIDDLE);
+        cell.setPadding(5);
+        return cell;
     }
 }

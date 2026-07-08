@@ -37,7 +37,7 @@ public class Cie10Seeder implements CommandLineRunner {
 
         try (BufferedReader br = new BufferedReader(new FileReader(csvPath, StandardCharsets.UTF_8))) {
             String line;
-            br.readLine(); // Skip header
+            String header = br.readLine(); // Skip header
 
             while ((line = br.readLine()) != null) {
                 try {

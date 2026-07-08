@@ -13,8 +13,8 @@
                     <div class="col-auto">
                         <div class="position-relative">
                             <div th:if="${paciente.fotografia != null}" class="avatar shadow-sm border border-4 border-white rounded-circle" style="width: 70px; height: 70px; background-size: cover; background-position: center;" th:styleappend="'background-image: url(/paciente/foto/' + ${paciente.idPersona} + ')'"></div>
-                            <div th:unless="${paciente.fotografia != null}" class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center border border-4 border-white shadow-sm" style="width: 70px; height: 70px;">
-                                <i class="bi bi-person-fill text-primary fs-2"></i>
+                            <div th:unless="${paciente.fotografia != null}" class="rounded-circle d-flex align-items-center justify-content-center border border-4 border-white shadow-sm" style="width: 70px; height: 70px; background: linear-gradient(135deg, #3b82f6, #2563eb) !important;">
+                                <i class="bi bi-person-fill text-white fs-2"></i>
                             </div>
                             <span class="position-absolute bottom-0 end-0 p-2 bg-success border border-3 border-white rounded-circle animate-pulse"></span>
                         </div>
@@ -22,12 +22,12 @@
                     <div class="col">
                         <div class="d-flex align-items-center gap-3 mb-1">
                             <h4 class="fw-800 text-dark mb-0" th:text="${paciente.nombres + ' ' + paciente.apellidoPaterno + ' ' + (paciente.apellidoMaterno ?: '')}">JUAN PÉREZ</h4>
-                            <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill fw-bold" th:text="${'HC: ' + paciente.numeroHistoriaClinica}">HC: 100234</span>
+                            <span class="badge px-3 py-1 rounded-pill fw-bold" style="background-color: rgba(37, 99, 235, 0.08) !important; color: #2563eb !important;" th:text="${'HC: ' + paciente.numeroHistoriaClinica}">HC: 100234</span>
                         </div>
                         <div class="d-flex gap-4 text-muted extra-small fw-bold">
                             <span><i class="bi bi-calendar-event me-1 text-primary"></i> <span th:text="${edad}">34 Años, 5 Meses, 2 Días</span></span>
-                            <span><i class="bi bi-gender-ambiguous me-1 text-primary"></i> <span th:text="${paciente.sexo == 'M' ? 'MASCULINO' : 'FEMENINO'}">MASCULINO</span></span>
-                            <span><i class="bi bi-fingerprint me-1 text-primary"></i> <span th:text="${paciente.numeroDocumento}">45678901</span></span>
+                            <span><i class="bi bi-gender-ambiguous me-1" style="color: #2563eb !important;"></i> <span th:text="${paciente.sexo == 'M' ? 'MASCULINO' : 'FEMENINO'}">MASCULINO</span></span>
+                            <span><i class="bi bi-fingerprint me-1" style="color: #2563eb !important;"></i> <span th:text="${paciente.numeroDocumento}">45678901</span></span>
                         </div>
                     </div>
                     <div class="col-auto">
@@ -152,10 +152,10 @@
                             </div>
                         </div>
                         <div class="card-body p-4 pt-0 d-flex flex-column">
-                            <div class="mb-4 bg-primary bg-opacity-10 p-3 rounded-4 border border-primary border-opacity-20">
+                            <div class="mb-4 p-3 rounded-4 border-0 shadow-sm" style="background-color: #ffffff !important;">
                                 <label class="label-premium text-primary mb-1">SERVICIO DE DESTINO (DESDE ADMISIÓN)</label>
                                 <div class="fw-800 text-dark d-flex align-items-center gap-2">
-                                    <i class="bi bi-hospital-fill text-primary"></i>
+                                    <i class="bi bi-hospital-fill" style="color: #2563eb !important;"></i>
                                     <span th:text="${paciente.servicioSolicitado ?: 'MEDICINA GENERAL'}">MEDICINA GENERAL</span>
                                 </div>
                                 <input type="hidden" name="servicioDestino" form="triajeForm" th:value="${paciente.servicioSolicitado ?: 'MEDICINA GENERAL'}">
@@ -473,5 +473,37 @@
         </div>
     </main>
     <div th:replace="~{layout :: footer}"></div>
+    <style>
+        /* Override all green/teal accent elements in Triaje to professional medical blue */
+        #triaje-dashboard .bg-primary.bg-opacity-10 {
+            background-color: rgba(37, 99, 235, 0.08) !important;
+        }
+        #triaje-dashboard .text-primary {
+            color: #2563eb !important;
+        }
+        #triaje-dashboard .bg-primary-soft {
+            background-color: rgba(37, 99, 235, 0.08) !important;
+        }
+        #triaje-dashboard .avatar {
+            background-color: #2563eb !important;
+        }
+        #triaje-dashboard .bg-success.animate-pulse {
+            background-color: #2563eb !important;
+        }
+        #triaje-dashboard .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+            border-color: #2563eb !important;
+        }
+        #triaje-dashboard .btn-primary:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e4ea8) !important;
+        }
+        /* Style input form-control-biometric */
+        #triaje-dashboard .form-control-biometric {
+            color: #2563eb !important;
+        }
+        #triaje-dashboard .form-control-biometric:focus {
+            border-color: #2563eb !important;
+        }
+    </style>
 </body>
 </html>

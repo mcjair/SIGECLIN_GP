@@ -5,7 +5,25 @@
     <div th:replace="~{layout :: sidebar}"></div>
     
     <main th:replace="~{layout :: main(pageTitle='Panel de Control Operativo', content=~{::#p-content})}">
-        <div id="p-content" class="p-dashboard-premium-wrapper animate-fade-in d-flex flex-column" style="height: calc(100vh - 85px); overflow: hidden; gap: 1rem;">
+        <div id="p-content" class="p-dashboard-premium-wrapper animate-fade-in d-flex flex-column" style="height: calc(100vh - 110px); overflow: hidden; gap: 1rem; padding-bottom: 5px;">
+            <style>
+                html, body {
+                    height: 100% !important;
+                    overflow: hidden !important;
+                }
+                .main-wrapper {
+                    height: 100vh !important;
+                    overflow: hidden !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                }
+                #p-content {
+                    flex: 1 !important;
+                    height: calc(100vh - 110px) !important;
+                    min-height: 0 !important;
+                    overflow: hidden !important;
+                }
+            </style>
 
             <!-- TOP BAR -->
             <div class="d-flex justify-content-between align-items-center w-100">

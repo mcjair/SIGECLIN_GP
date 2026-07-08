@@ -16,6 +16,7 @@ public interface IConsultaService {
 
     /** Obtiene el historial de consultas de un paciente, ordenado descendente. */
     List<Consulta> obtenerHistorialPaciente(Integer idPaciente);
+    List<Map<String, Object>> obtenerHistorialPacienteDto(Integer idPaciente, String finalRolFiltro);
 
     /** Obtiene pacientes en espera de consulta del día actual. */
     List<Triaje> obtenerPacientesEnEspera();

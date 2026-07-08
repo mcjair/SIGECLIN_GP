@@ -10,9 +10,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
     
     private final PasswordForceInterceptor passwordForceInterceptor;
+    private final AuditInterceptor auditInterceptor;
     
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(passwordForceInterceptor);
+        registry.addInterceptor(auditInterceptor);
     }
 }

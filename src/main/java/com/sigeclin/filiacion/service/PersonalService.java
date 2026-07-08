@@ -16,11 +16,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PersonalService implements IPersonalService {
 
+    private static final String ESTADO_ACTIVO = "activo";
+
     private final PersonalRepository personalRepository;
     private final jakarta.persistence.EntityManager entityManager;
-    
-    @org.springframework.beans.factory.annotation.Autowired
-    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public List<Personal> listarTodos() {
         return personalRepository.findAll();
@@ -67,7 +67,7 @@ public class PersonalService implements IPersonalService {
             existente.setNumeroColegiatura(personal.getNumeroColegiatura());
             existente.setFechaIngreso(personal.getFechaIngreso());
             
-            existente.setFechaActualizacion(LocalDateTime.now());
+            existente.setFechaActualizacion(LocalDateTime.now(java.time.ZoneId.systemDefault()));
             return personalRepository.save(existente);
         } else {
             // Check if Persona already exists (e.g. as a Paciente)
@@ -105,7 +105,7 @@ public class PersonalService implements IPersonalService {
                                 .setParameter("esp", personal.getIdEspecialidad())
                                 .setParameter("col", personal.getNumeroColegiatura())
                                 .setParameter("ingreso", personal.getFechaIngreso())
-                                .setParameter("estado", "activo")
+                                .setParameter("estado", ESTADO_ACTIVO)
                                 .executeUpdate();
                     }
                     
@@ -116,8 +116,8 @@ public class PersonalService implements IPersonalService {
             }
             
             // Registro de nuevo personal normal
-            personal.setFechaCreacion(LocalDateTime.now());
-            personal.setFechaActualizacion(LocalDateTime.now());
+            personal.setFechaCreacion(LocalDateTime.now(java.time.ZoneId.systemDefault()));
+            personal.setFechaActualizacion(LocalDateTime.now(java.time.ZoneId.systemDefault()));
             return personalRepository.save(personal);
         }
     }
@@ -132,7 +132,7 @@ public class PersonalService implements IPersonalService {
     @Transactional
     public void toggleEstado(Integer id) {
         Personal p = buscarPorId(id);
-        p.setEstadoLaboral("activo".equals(p.getEstadoLaboral()) ? "inactivo" : "activo");
+        p.setEstadoLaboral(ESTADO_ACTIVO.equals(p.getEstadoLaboral()) ? "inactivo" : ESTADO_ACTIVO);
         personalRepository.save(p);
     }
 
@@ -149,15 +149,17 @@ public class PersonalService implements IPersonalService {
                 .setParameter("id", p.getIdPersona()).getResultList();
         if (!existing.isEmpty()) {
             // Actualizar el password para asegurarnos de que funciona
-            String nuevoHash = passwordEncoder.encode("admin");
+            String tempPassword = (p.getNumeroDocumento() != null && !p.getNumeroDocumento().isBlank()) ? p.getNumeroDocumento().trim() : "admin";
+            String nuevoHash = passwordEncoder.encode(tempPassword);
             entityManager.createNativeQuery("UPDATE filiacion.usuario SET password_hash = :hash WHERE id_usuario = :id")
                 .setParameter("hash", nuevoHash)
                 .setParameter("id", p.getIdPersona()).executeUpdate();
             return null; // Ya existe, solo actualizamos el pass
         }
         
-        // Hash BCrypt dinámico de la contraseña "admin"
-        String hashAdmin = passwordEncoder.encode("admin");
+        // Hash BCrypt dinámico de la contraseña (DNI o admin como fallback)
+        String tempPassword = (p.getNumeroDocumento() != null && !p.getNumeroDocumento().isBlank()) ? p.getNumeroDocumento().trim() : "admin";
+        String hashAdmin = passwordEncoder.encode(tempPassword);
         
         // Evitar colisiones de nombres de usuario (ej: si ya existe "jperez", creará "jperez1")
         String username = baseUser;

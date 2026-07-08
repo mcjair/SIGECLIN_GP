@@ -1,8 +1,13 @@
+
+import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-public class HashTest {
-    public static void main(String[] args) {
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class HashTest {
+    @Test
+    void testPasswordMatches() {
         BCryptPasswordEncoder e = new BCryptPasswordEncoder();
-        System.out.println("COINCIDE ADMIN: " + e.matches("admin", "$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2"));
-        System.out.println("NUEVO HASH: " + e.encode("admin"));
+        String hash = e.encode("admin");
+        assertTrue(e.matches("admin", hash));
     }
 }

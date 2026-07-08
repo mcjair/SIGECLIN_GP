@@ -15,7 +15,7 @@
                         <p class="text-muted small mb-0">Gestión de recaudación para pacientes en espera de atención.</p>
                     </div>
                     <div class="d-flex gap-3 align-items-center">
-                        <span class="badge bg-primary rounded-pill px-4 py-2 fw-bold" th:if="${pacientesPendientes != null}" th:text="${pacientesPendientes.size() + ' PENDIENTES'}">0 PENDIENTES</span>
+                        <span class="badge rounded-pill px-4 py-2 fw-bold" style="background-color: #2563eb !important;" th:if="${pacientesPendientes != null}" th:text="${pacientesPendientes.size() + ' PENDIENTES'}">0 PENDIENTES</span>
                         <button class="btn btn-outline-primary btn-sm rounded-3" onclick="window.location.reload()">
                             <i class="bi bi-arrow-clockwise"></i> Actualizar
                         </button>
@@ -36,7 +36,7 @@
                         <div class="card-medical-glass p-0 rounded-5 shadow-sm bg-white border border-light overflow-hidden transition-all">
                             <!-- Header: Identity -->
                             <div class="p-4 d-flex align-items-center gap-3">
-                                <div class="avatar-premium bg-primary shadow-sm text-white fw-bold">
+                                <div class="avatar-premium shadow-sm text-white fw-bold" style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;">
                                     <span th:text="${p.nombres != null && !p.nombres.isEmpty() ? p.nombres.substring(0,1) : 'P'}">P</span>
                                 </div>
                                 <div class="flex-grow-1">
@@ -137,7 +137,7 @@
                                         </div>
                                         <div class="d-flex justify-content-between pt-3" style="border-top: 1px dashed rgba(0, 0, 0, 0.15) !important;">
                                             <span class="fw-900 fs-6 text-dark">TOTAL A PAGAR</span>
-                                            <span class="fw-900 fs-4 text-primary" id="modalTotal">S/ 50.00</span>
+                                            <span class="fw-900 fs-4" id="modalTotal" style="color: #2563eb !important;">S/ 50.00</span>
                                         </div>
                                     </div>
                                 </div>
@@ -209,7 +209,9 @@
                                         <input type="hidden" name="monto" id="formMonto" value="50.00">
                                         <input type="hidden" name="tipoPago" id="formTipoPago" value="EFECTIVO">
                                         
-                                        <button type="button" class="btn btn-primary btn-premium w-100 py-3 rounded-pill shadow-glow fs-6 fw-800 mt-2" onclick="confirmarYEmitir()">
+                                        <button type="button" class="btn w-100 py-3 rounded-pill fs-6 fw-800 mt-2 text-white" 
+                                                style="background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; border: none !important; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3) !important;" 
+                                                onclick="confirmarYEmitir()">
                                             Confirmar y Emitir <i class="bi bi-check2-circle ms-1"></i>
                                         </button>
                                     </form>

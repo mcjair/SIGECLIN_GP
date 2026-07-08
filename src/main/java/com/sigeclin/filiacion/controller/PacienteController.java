@@ -24,6 +24,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Slf4j
 @Controller
 @RequestMapping("/admission")
@@ -32,6 +34,14 @@ public class PacienteController {
 
     private final IPacienteService pacienteService;
     private final TipoDocumentoRepository tipoDocumentoRepository;
+
+    @InitBinder
+    public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+        binder.setAllowedFields("idPersona", "tipoDocumento.idTipoDocumento", "numeroDocumento", 
+            "nombres", "apellidoPaterno", "apellidoMaterno", "fechaNacimiento", "sexo", 
+            "direccion", "referenciaDireccion", "numeroHistoriaClinica", "telefonoPrincipal", 
+            "telefonoSecundario", "correoElectronico", "servicioSolicitado");
+    }
 
     @GetMapping("/registro")
     public String showRegistroForm(@RequestParam(required = false) String search, Model model) {
@@ -72,38 +82,62 @@ public class PacienteController {
 
     @GetMapping("/api/buscar/{documento}")
     @ResponseBody
-    public ResponseEntity<?> buscarPacienteApi(@PathVariable String documento) {
+    public ResponseEntity<Paciente> buscarPacienteApi(@PathVariable String documento) {
         try {
             return pacienteService.buscarPorDniOHC(documento)
                     .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
+                    .orElseGet(() -> ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).build());
         } catch (Exception e) {
             log.error("Error al buscar paciente por documento {}: {}", documento, e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
     @PostMapping("/guardar")
-    public String registrarPaciente(@Valid @ModelAttribute Paciente paciente, BindingResult bindingResult,
+    public String registrarPaciente(@Valid @ModelAttribute("paciente") PacienteDto pacienteDto, BindingResult bindingResult,
                                     @RequestParam(required = false) String servicio,
                                     org.springframework.ui.Model model,
                                     RedirectAttributes redirectAttributes) {
         if (bindingResult.hasErrors()) {
-            // Perfeccionamiento UX: Retenemos los datos escritos por el usuario en lugar de hacer redirect
             model.addAttribute("tiposDoc", tipoDocumentoRepository.findAll());
             String msg = bindingResult.getAllErrors().stream()
                     .map(e -> e.getDefaultMessage())
                     .reduce((a, b) -> a + "; " + b)
                     .orElse("Error de validación en los datos ingresados.");
             
-            // Pasamos el error para que SweetAlert lo dibuje en el mismo template
             model.addAttribute("errorObj", msg);
             return "admission/registro";
         }
         try {
+            Paciente paciente = new Paciente();
+            paciente.setIdPersona(pacienteDto.getIdPersona());
+            if (pacienteDto.getTipoDocumento() != null && pacienteDto.getTipoDocumento().getIdTipoDocumento() != null) {
+                TipoDocumento td = tipoDocumentoRepository.findById(pacienteDto.getTipoDocumento().getIdTipoDocumento()).orElse(null);
+                paciente.setTipoDocumento(td);
+            }
+            paciente.setNumeroDocumento(pacienteDto.getNumeroDocumento());
+            paciente.setNombres(pacienteDto.getNombres());
+            paciente.setApellidoPaterno(pacienteDto.getApellidoPaterno());
+            paciente.setApellidoMaterno(pacienteDto.getApellidoMaterno());
+            paciente.setFechaNacimiento(pacienteDto.getFechaNacimiento());
+            paciente.setSexo(pacienteDto.getSexo());
+            paciente.setTelefonoPrincipal(pacienteDto.getTelefonoPrincipal());
+            paciente.setCorreoElectronico(pacienteDto.getCorreoElectronico());
+            paciente.setDireccion(pacienteDto.getDireccion());
+            paciente.setGrupoSanguineo(pacienteDto.getGrupoSanguineo());
+            paciente.setFactorRh(pacienteDto.getFactorRh());
+            paciente.setContactoEmergenciaNombre(pacienteDto.getContactoEmergenciaNombre());
+            paciente.setContactoEmergenciaTelefono(pacienteDto.getContactoEmergenciaTelefono());
+            paciente.setEstadoCivil(pacienteDto.getEstadoCivil());
+            paciente.setOcupacion(pacienteDto.getOcupacion());
+            paciente.setReferenciaDireccion(pacienteDto.getReferenciaDireccion());
+
             if (servicio != null && !servicio.isEmpty()) {
                 paciente.setServicioSolicitado(servicio);
+            } else if (pacienteDto.getServicioSolicitado() != null) {
+                paciente.setServicioSolicitado(pacienteDto.getServicioSolicitado());
             }
+
             Paciente guardado = pacienteService.registrarPaciente(paciente);
             String hc = guardado.getNumeroHistoriaClinica();
             log.debug("Paciente registrado con éxito. HC: {}", hc);
@@ -115,5 +149,35 @@ public class PacienteController {
             log.error("Error al registrar paciente", e);
             return "redirect:/admission/registro?error=true&msg=" + java.net.URLEncoder.encode(e.getMessage(), java.nio.charset.StandardCharsets.UTF_8);
         }
+    }
+
+    @lombok.Getter
+    @lombok.Setter
+    public static class PacienteDto {
+        private Integer idPersona;
+        private TipoDocumentoDto tipoDocumento;
+        private String numeroDocumento;
+        private String nombres;
+        private String apellidoPaterno;
+        private String apellidoMaterno;
+        private java.time.LocalDate fechaNacimiento;
+        private String sexo;
+        private String telefonoPrincipal;
+        private String correoElectronico;
+        private String direccion;
+        private String grupoSanguineo;
+        private String factorRh;
+        private String contactoEmergenciaNombre;
+        private String contactoEmergenciaTelefono;
+        private String estadoCivil;
+        private String ocupacion;
+        private String referenciaDireccion;
+        private String servicioSolicitado;
+    }
+
+    @lombok.Getter
+    @lombok.Setter
+    public static class TipoDocumentoDto {
+        private Integer idTipoDocumento;
     }
 }

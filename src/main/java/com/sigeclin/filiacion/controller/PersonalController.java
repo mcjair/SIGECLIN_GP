@@ -18,14 +18,35 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 @Slf4j
 @Controller
 @RequestMapping("/personal")
-@RequiredArgsConstructor
 public class PersonalController {
+
+    private static final String FLASH_ERROR = "error";
+    private static final String FLASH_SUCCESS = "success";
+    private static final String REDIRECT_LISTA = "redirect:/personal/lista";
 
     private final IPersonalService personalService;
     private final JdbcTemplate jdbcTemplate;
+    private final com.sigeclin.filiacion.repository.TipoDocumentoRepository tipoDocumentoRepository;
+
+    @Autowired
+    public PersonalController(IPersonalService personalService,
+                              JdbcTemplate jdbcTemplate,
+                              @Autowired(required = false) com.sigeclin.filiacion.repository.TipoDocumentoRepository tipoDocumentoRepository) {
+        this.personalService = personalService;
+        this.jdbcTemplate = jdbcTemplate;
+        this.tipoDocumentoRepository = tipoDocumentoRepository;
+    }
+
+    @InitBinder
+    public void initBinder(org.springframework.web.bind.WebDataBinder binder) {
+        binder.setAllowedFields("idPersona", "numeroColegiatura", "tipoPersonal", "especialidad", 
+            "nombres", "apellidoPaterno", "apellidoMaterno", "sexo", "numeroDocumento", "fechaNacimiento");
+    }
 
     @GetMapping("/lista")
     @PreAuthorize("hasAnyRole('ADMIN', 'MEDICO_GENERAL', 'ENFERMERIA')")
@@ -47,12 +68,39 @@ public class PersonalController {
 
     @PostMapping("/guardar")
     @PreAuthorize("hasRole('ADMIN')")
-    public String guardarPersonal(@Valid @ModelAttribute Personal personal, BindingResult result, RedirectAttributes ra) {
+    public String guardarPersonal(@Valid @ModelAttribute("personal") PersonalDto personalDto, BindingResult result, RedirectAttributes ra) {
         if (result.hasErrors()) {
-            ra.addFlashAttribute("error", "Datos invalidos: " + result.getAllErrors().get(0).getDefaultMessage());
-            return "redirect:/personal/lista";
+            ra.addFlashAttribute(FLASH_ERROR, "Datos invalidos: " + result.getAllErrors().get(0).getDefaultMessage());
+            return REDIRECT_LISTA;
         }
         try {
+            Personal personal = new Personal();
+            personal.setIdPersona(personalDto.getIdPersona());
+            if (personalDto.getTipoDocumento() != null && personalDto.getTipoDocumento().getIdTipoDocumento() != null) {
+                com.sigeclin.filiacion.model.TipoDocumento td = tipoDocumentoRepository.findById(personalDto.getTipoDocumento().getIdTipoDocumento()).orElse(null);
+                personal.setTipoDocumento(td);
+            } else {
+                com.sigeclin.filiacion.model.TipoDocumento td = tipoDocumentoRepository.findById(1).orElse(null);
+                personal.setTipoDocumento(td);
+            }
+            personal.setNumeroDocumento(personalDto.getNumeroDocumento());
+            personal.setNombres(personalDto.getNombres());
+            personal.setApellidoPaterno(personalDto.getApellidoPaterno());
+            personal.setApellidoMaterno(personalDto.getApellidoMaterno());
+            personal.setFechaNacimiento(personalDto.getFechaNacimiento());
+            personal.setSexo(personalDto.getSexo());
+            personal.setTelefonoPrincipal(personalDto.getTelefonoPrincipal());
+            personal.setCorreoElectronico(personalDto.getCorreoElectronico());
+            personal.setDireccion(personalDto.getDireccion());
+            personal.setIdTipoPersonal(personalDto.getIdTipoPersonal());
+            personal.setIdEspecialidad(personalDto.getIdEspecialidad());
+            personal.setNumeroColegiatura(personalDto.getNumeroColegiatura());
+            personal.setFechaIngreso(personalDto.getFechaIngreso() != null ? personalDto.getFechaIngreso() : java.time.LocalDate.now(java.time.ZoneId.systemDefault()));
+            personal.setFechaCese(personalDto.getFechaCese());
+            if (personalDto.getEstadoLaboral() != null) {
+                personal.setEstadoLaboral(personalDto.getEstadoLaboral());
+            }
+
             if (personal.getNumeroColegiatura() != null && personal.getNumeroColegiatura().trim().isEmpty()) {
                 personal.setNumeroColegiatura(null);
             }
@@ -62,17 +110,17 @@ public class PersonalController {
             if (isNew) {
                 String generatedUser = personalService.generarUsuario(saved.getIdPersona());
                 if (generatedUser != null) {
-                    ra.addFlashAttribute("success", "Personal creado exitosamente. Credenciales de acceso generadas: Usuario: [" + generatedUser + "] | Clave: [admin]");
+                    ra.addFlashAttribute(FLASH_SUCCESS, "Personal creado exitosamente. Credenciales de acceso generadas: Usuario: [" + generatedUser + "] | Clave: [Su N° de Documento (DNI)]");
                 } else {
-                    ra.addFlashAttribute("success", "Personal guardado correctamente.");
+                    ra.addFlashAttribute(FLASH_SUCCESS, "Personal guardado correctamente.");
                 }
             } else {
-                ra.addFlashAttribute("success", "Personal guardado correctamente.");
+                ra.addFlashAttribute(FLASH_SUCCESS, "Personal guardado correctamente.");
             }
         } catch (Exception e) {
-            ra.addFlashAttribute("error", "Error al guardar: " + e.getMessage());
+            ra.addFlashAttribute(FLASH_ERROR, "Error al guardar: " + e.getMessage());
         }
-        return "redirect:/personal/lista";
+        return REDIRECT_LISTA;
     }
 
     @PostMapping("/eliminar/{id}")
@@ -80,11 +128,11 @@ public class PersonalController {
     public String eliminarPersonal(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             personalService.eliminar(id);
-            ra.addFlashAttribute("success", "Personal desactivado correctamente.");
+            ra.addFlashAttribute(FLASH_SUCCESS, "Personal desactivado correctamente.");
         } catch (Exception e) {
-            ra.addFlashAttribute("error", "Error al eliminar: " + e.getMessage());
+            ra.addFlashAttribute(FLASH_ERROR, "Error al eliminar: " + e.getMessage());
         }
-        return "redirect:/personal/lista";
+        return REDIRECT_LISTA;
     }
 
     @PostMapping("/toggle-estado/{id}")
@@ -92,11 +140,11 @@ public class PersonalController {
     public String toggleEstado(@PathVariable Integer id, RedirectAttributes ra) {
         try {
             personalService.toggleEstado(id);
-            ra.addFlashAttribute("success", "Estado del personal actualizado.");
+            ra.addFlashAttribute(FLASH_SUCCESS, "Estado del personal actualizado.");
         } catch (Exception e) {
-            ra.addFlashAttribute("error", "Error al cambiar estado: " + e.getMessage());
+            ra.addFlashAttribute(FLASH_ERROR, "Error al cambiar estado: " + e.getMessage());
         }
-        return "redirect:/personal/lista";
+        return REDIRECT_LISTA;
     }
 
     @GetMapping("/api/{id}")
@@ -104,5 +152,33 @@ public class PersonalController {
     @PreAuthorize("hasAnyRole('ADMIN', 'MEDICO_GENERAL', 'ENFERMERIA')")
     public Personal obtenerPersonal(@PathVariable Integer id) {
         return personalService.buscarPorId(id);
+    }
+
+    @lombok.Getter
+    @lombok.Setter
+    public static class PersonalDto {
+        private Integer idPersona;
+        private TipoDocumentoDto tipoDocumento;
+        private String numeroDocumento;
+        private String nombres;
+        private String apellidoPaterno;
+        private String apellidoMaterno;
+        private java.time.LocalDate fechaNacimiento;
+        private String sexo;
+        private String telefonoPrincipal;
+        private String correoElectronico;
+        private String direccion;
+        private Integer idTipoPersonal;
+        private Integer idEspecialidad;
+        private String numeroColegiatura;
+        private java.time.LocalDate fechaIngreso;
+        private java.time.LocalDate fechaCese;
+        private String estadoLaboral;
+    }
+
+    @lombok.Getter
+    @lombok.Setter
+    public static class TipoDocumentoDto {
+        private Integer idTipoDocumento;
     }
 }

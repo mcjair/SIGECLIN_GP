@@ -7,6 +7,7 @@ import com.sigeclin.filiacion.service.IPacienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +23,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/caja")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ADMIN')") // A01: Solo el rol ADMIN gestiona caja
 public class CajaController {
 
     private final IPacienteService pacienteService;
@@ -74,6 +76,8 @@ public class CajaController {
         return "clinico/voucher_impresion";
     }
 
+    private static final java.security.SecureRandom secureRandom = new java.security.SecureRandom();
+
     @PostMapping("/pagar")
     public String procesarPago(@RequestParam Integer idPaciente, 
                                @RequestParam String hc, 
@@ -91,8 +95,15 @@ public class CajaController {
                     .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
             // Generar concepto y número de comprobante
-            String conceptoFinal = (concepto != null && !concepto.isEmpty()) ? concepto : ("Atención en " + (servicio != null ? servicio : "Consulta"));
-            String numeroComprobante = "C-" + LocalDate.now().getYear() + "-" + String.format("%06d", (int)(Math.random() * 1000000));
+            String conceptoFinal;
+            if (concepto != null && !concepto.isEmpty()) {
+                conceptoFinal = concepto;
+            } else {
+                String serv = (servicio != null) ? servicio : "Consulta";
+                conceptoFinal = "Atención en " + serv;
+            }
+
+            String numeroComprobante = "C-" + LocalDate.now(java.time.ZoneId.systemDefault()).getYear() + "-" + String.format("%06d", secureRandom.nextInt(1000000));
 
             // Insertar el registro de pago en pago_log
             jdbcTemplate.update(

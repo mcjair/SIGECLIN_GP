@@ -25,7 +25,7 @@ public class ReporteController {
 
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
-        model.addAttribute("fechaHoy", LocalDate.now());
+        model.addAttribute("fechaHoy", LocalDate.now(java.time.ZoneId.systemDefault()));
         return "reportes/dashboard";
     }
 
@@ -38,19 +38,21 @@ public class ReporteController {
             @RequestParam(defaultValue = "EXCEL") String formato) {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+        headers.setCacheControl("no-cache, no-store, must-revalidate");
+        headers.add("Pragma", "no-cache");
+        headers.add("Expires", "0");
 
         if (formato.equalsIgnoreCase("PDF")) {
             byte[] pdfContent = reporteExcelService.generarReportePdf(fechaInicio, fechaFin, servicio, tipoPersonal);
             headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("attachment", "Reporte_SIGECLIN_" + LocalDate.now() + ".pdf");
+            headers.setContentDispositionFormData("attachment", "Reporte_SIGECLIN_" + LocalDate.now(java.time.ZoneId.systemDefault()) + ".pdf");
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(pdfContent);
         } else {
             byte[] excelContent = reporteExcelService.generarReporteAtenciones(fechaInicio, fechaFin, servicio, tipoPersonal);
             headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
-            headers.setContentDispositionFormData("attachment", "Reporte_SIGECLIN_" + LocalDate.now() + ".xlsx");
+            headers.setContentDispositionFormData("attachment", "Reporte_SIGECLIN_" + LocalDate.now(java.time.ZoneId.systemDefault()) + ".xlsx");
             return ResponseEntity.ok()
                     .headers(headers)
                     .body(excelContent);

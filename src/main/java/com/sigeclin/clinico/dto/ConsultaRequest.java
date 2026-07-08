@@ -16,6 +16,8 @@ public class ConsultaRequest {
     private String planTratamiento;
     private String proximoControl;
     private String tipoSalida;
+    private Boolean tieneCertificado = false;
+    private String observacionesCertificado;
     private List<Map<String, Object>> diagnosticos;
     private List<Map<String, Object>> medicamentos;
     private List<Map<String, Object>> examenes;

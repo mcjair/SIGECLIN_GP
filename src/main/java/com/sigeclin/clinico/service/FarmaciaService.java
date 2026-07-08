@@ -24,6 +24,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class FarmaciaService {
+    private static final String KEY_MEDICAMENTO = "medicamento";
+    private static final String KEY_CANTIDAD = "cantidad";
+    private static final String KEY_NUMERO_LOTE = "numeroLote";
+    private static final String KEY_FECHA_VENCIMIENTO = "fechaVencimiento";
+    private static final String KEY_LOTE = "lote";
+    private static final String KEY_STOCK_ACTUAL = "stockActual";
 
     private final DetalleRecetaRepository detalleRecetaRepository;
     private final LoteMedicamentoRepository loteMedicamentoRepository;
@@ -54,12 +60,12 @@ public class FarmaciaService {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("idDetalle", d.getIdDetalleReceta());
             item.put("idMedicamento", d.getMedicamento().getIdMedicamento());
-            item.put("medicamento", d.getMedicamento().getNombreGenerico());
+            item.put(KEY_MEDICAMENTO, d.getMedicamento().getNombreGenerico());
             item.put("concentracion", d.getMedicamento().getConcentracion());
             item.put("dosis", d.getDosis());
             item.put("frecuencia", d.getFrecuencia());
             item.put("duracion", d.getDuracionDias());
-            item.put("cantidad", d.getCantidadTotal());
+            item.put(KEY_CANTIDAD, d.getCantidadTotal());
             item.put("estadoDispensacion", d.getEstadoDispensacion());
             items.add(item);
         }
@@ -75,9 +81,9 @@ public class FarmaciaService {
             if (l.getFechaVencimiento().isAfter(LocalDate.now())) {
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("idLote", l.getIdLote());
-                item.put("numeroLote", l.getNumeroLote());
-                item.put("fechaVencimiento", l.getFechaVencimiento());
-                item.put("stockActual", l.getStockActual());
+                item.put(KEY_NUMERO_LOTE, l.getNumeroLote());
+                item.put(KEY_FECHA_VENCIMIENTO, l.getFechaVencimiento());
+                item.put(KEY_STOCK_ACTUAL, l.getStockActual());
                 result.add(item);
             }
         }
@@ -126,9 +132,9 @@ public class FarmaciaService {
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("idDispensacion", d.getIdDispensacion());
-        result.put("medicamento", detalle.getMedicamento().getNombreGenerico());
-        result.put("lote", lote.getNumeroLote());
-        result.put("cantidad", cantidad);
+        result.put(KEY_MEDICAMENTO, detalle.getMedicamento().getNombreGenerico());
+        result.put(KEY_LOTE, lote.getNumeroLote());
+        result.put(KEY_CANTIDAD, cantidad);
         result.put("stockRestante", lote.getStockActual());
         result.put("estadoDetalle", detalle.getEstadoDispensacion());
         log.info("Dispensación exitosa: {} x {} del lote {} (stock restante: {})",
@@ -146,9 +152,9 @@ public class FarmaciaService {
             vistos.add(l.getIdLote());
             Map<String, Object> a = new LinkedHashMap<>();
             a.put("tipo", "stock_bajo");
-            a.put("medicamento", l.getMedicamento().getNombreGenerico() + " " + l.getMedicamento().getConcentracion());
-            a.put("lote", l.getNumeroLote());
-            a.put("stockActual", l.getStockActual());
+            a.put(KEY_MEDICAMENTO, l.getMedicamento().getNombreGenerico() + " " + l.getMedicamento().getConcentracion());
+            a.put(KEY_LOTE, l.getNumeroLote());
+            a.put(KEY_STOCK_ACTUAL, l.getStockActual());
             a.put("stockMinimo", 10);
             alertas.add(a);
         }
@@ -159,10 +165,10 @@ public class FarmaciaService {
             if (l.getStockActual() > 0 && l.getFechaVencimiento().isAfter(LocalDate.now()) && !vistos.contains(l.getIdLote())) {
                 Map<String, Object> a = new LinkedHashMap<>();
                 a.put("tipo", "proximo_vencer");
-                a.put("medicamento", l.getMedicamento().getNombreGenerico() + " " + l.getMedicamento().getConcentracion());
-                a.put("lote", l.getNumeroLote());
-                a.put("fechaVencimiento", l.getFechaVencimiento());
-                a.put("stockActual", l.getStockActual());
+                a.put(KEY_MEDICAMENTO, l.getMedicamento().getNombreGenerico() + " " + l.getMedicamento().getConcentracion());
+                a.put(KEY_LOTE, l.getNumeroLote());
+                a.put(KEY_FECHA_VENCIMIENTO, l.getFechaVencimiento());
+                a.put(KEY_STOCK_ACTUAL, l.getStockActual());
                 alertas.add(a);
             }
         }
@@ -184,27 +190,27 @@ public class FarmaciaService {
                 .findFirst();
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("idMedicamento", m.getIdMedicamento());
-            item.put("medicamento", m.getNombreGenerico());
+            item.put(KEY_MEDICAMENTO, m.getNombreGenerico());
             item.put("concentracion", m.getConcentracion());
             item.put("presentacion", m.getPresentacion());
             item.put("stockTotal", totalStock);
             if (loteVigente.isPresent()) {
-                item.put("numeroLote", loteVigente.get().getNumeroLote());
-                item.put("fechaVencimiento", loteVigente.get().getFechaVencimiento());
-                item.put("stockActual", loteVigente.get().getStockActual());
+                item.put(KEY_NUMERO_LOTE, loteVigente.get().getNumeroLote());
+                item.put(KEY_FECHA_VENCIMIENTO, loteVigente.get().getFechaVencimiento());
+                item.put(KEY_STOCK_ACTUAL, loteVigente.get().getStockActual());
                 item.put("vencido", false);
                 item.put("sinStock", false);
             } else if (!lotes.isEmpty()) {
                 LoteMedicamento ultimo = lotes.get(lotes.size() - 1);
-                item.put("numeroLote", ultimo.getNumeroLote());
-                item.put("fechaVencimiento", ultimo.getFechaVencimiento());
-                item.put("stockActual", totalStock);
+                item.put(KEY_NUMERO_LOTE, ultimo.getNumeroLote());
+                item.put(KEY_FECHA_VENCIMIENTO, ultimo.getFechaVencimiento());
+                item.put(KEY_STOCK_ACTUAL, totalStock);
                 item.put("vencido", ultimo.getFechaVencimiento().isBefore(LocalDate.now()));
                 item.put("sinStock", totalStock == 0);
             } else {
-                item.put("numeroLote", "--");
-                item.put("fechaVencimiento", null);
-                item.put("stockActual", 0);
+                item.put(KEY_NUMERO_LOTE, "--");
+                item.put(KEY_FECHA_VENCIMIENTO, null);
+                item.put(KEY_STOCK_ACTUAL, 0);
                 item.put("vencido", false);
                 item.put("sinStock", true);
             }
@@ -220,11 +226,11 @@ public class FarmaciaService {
         for (Dispensacion d : list) {
             Map<String, Object> item = new LinkedHashMap<>();
             item.put("idDispensacion", d.getIdDispensacion());
-            item.put("medicamento", d.getDetalleReceta().getMedicamento().getNombreGenerico());
+            item.put(KEY_MEDICAMENTO, d.getDetalleReceta().getMedicamento().getNombreGenerico());
             item.put("paciente", d.getDetalleReceta().getReceta().getPaciente().getNombres() + " " +
                 d.getDetalleReceta().getReceta().getPaciente().getApellidoPaterno());
-            item.put("lote", d.getLote().getNumeroLote());
-            item.put("cantidad", d.getCantidadEntregada());
+            item.put(KEY_LOTE, d.getLote().getNumeroLote());
+            item.put(KEY_CANTIDAD, d.getCantidadEntregada());
             item.put("fecha", d.getFechaDispensacion());
             item.put("usuario", d.getUsuario().getUsername());
             result.add(item);
@@ -264,9 +270,9 @@ public class FarmaciaService {
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("idLote", lote.getIdLote());
-        result.put("medicamento", med.getNombreGenerico());
-        result.put("numeroLote", lote.getNumeroLote());
-        result.put("fechaVencimiento", lote.getFechaVencimiento());
+        result.put(KEY_MEDICAMENTO, med.getNombreGenerico());
+        result.put(KEY_NUMERO_LOTE, lote.getNumeroLote());
+        result.put(KEY_FECHA_VENCIMIENTO, lote.getFechaVencimiento());
         result.put("cantidadInicial", request.getCantidadInicial());
         result.put("mensaje", "Lote registrado exitosamente");
         return result;

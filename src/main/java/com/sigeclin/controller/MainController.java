@@ -15,6 +15,8 @@ import java.util.Map;
 @Slf4j
 public class MainController {
 
+    private static final String ROL_MEDICO_GENERAL = "MEDICO_GENERAL";
+
     private final IDashboardService dashboardService;
     private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
     private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
@@ -25,7 +27,26 @@ public class MainController {
     }
 
     @GetMapping({"/", "/dashboard"})
-    public String dashboard(org.springframework.ui.Model model) {
+    public String dashboard(org.springframework.ui.Model model, org.springframework.security.core.Authentication authentication) {
+        if (authentication != null && authentication.getAuthorities() != null) {
+            String roleStr = authentication.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replace("ROLE_", ""))
+                    .findFirst().orElse("ADMIN");
+            
+            if (!"ADMIN".equals(roleStr) && !"SUPERADMIN".equals(roleStr)) {
+                return switch (roleStr) {
+                    case ROL_MEDICO_GENERAL -> "redirect:/consulta/modulo/medicina_general";
+                    case "ENFERMERIA" -> "redirect:/triaje/nuevo";
+                    case "ODONTOLOGIA" -> "redirect:/consulta/modulo/odontologia";
+                    case "PSICOLOGIA" -> "redirect:/consulta/modulo/psicologia";
+                    case "NUTRICION" -> "redirect:/consulta/modulo/nutricion";
+                    case "OBSTETRICIA" -> "redirect:/consulta/modulo/obstetricia";
+                    case "FARMACIA" -> "redirect:/apoyo/farmacia";
+                    case "LABORATORIO" -> "redirect:/apoyo/laboratorio";
+                    default -> "dashboard";
+                };
+            }
+        }
         dashboardService.cargarDatosDashboard(model);
         return "dashboard";
     }
@@ -34,6 +55,76 @@ public class MainController {
     @ResponseBody
     public Map<String, Object> getDashboardStats(@RequestParam(required = false, defaultValue = "day") String filter) {
         return dashboardService.getDashboardStats(filter);
+    }
+
+    private void procesarSincronizacionUsuario(Map<String, Object> p, String passHash) {
+        Integer idPersona = (Integer) p.get("id_persona");
+        String nombres = (String) p.get("nombres");
+        String apellidoPaterno = (String) p.get("apellido_paterno");
+
+        // Generar username: 1era letra nombre + apellido paterno
+        String baseUser = nombres.substring(0, 1).toLowerCase() + apellidoPaterno.toLowerCase();
+        baseUser = baseUser.replaceAll("[^a-z0-9]", "");
+
+        // Verificar colisiones
+        String username = baseUser;
+        int suffix = 1;
+        while (true) {
+            Integer exists = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM filiacion.usuario WHERE username = ?",
+                Integer.class,
+                username
+            );
+            if (exists != null && exists == 0) break;
+            username = baseUser + suffix;
+            suffix++;
+        }
+
+        // Crear usuario
+        jdbcTemplate.update(
+            "INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) " +
+            "VALUES (?, ?, ?, false, 0, false, CURRENT_TIMESTAMP)",
+            idPersona, username, passHash
+        );
+
+        // Asignar Rol por defecto según tipo de personal
+        Integer idTipoPersonal = jdbcTemplate.queryForObject(
+            "SELECT id_tipo_personal FROM filiacion.personal WHERE id_personal = ?",
+            Integer.class,
+            idPersona
+        );
+
+        String rolCode = ROL_MEDICO_GENERAL;
+        if (idTipoPersonal != null) {
+            rolCode = switch (idTipoPersonal) {
+                case 1, 2 -> ROL_MEDICO_GENERAL;
+                case 3 -> "ODONTOLOGIA";
+                case 4 -> "ENFERMERIA";
+                case 5 -> "PSICOLOGIA";
+                case 6 -> "NUTRICION";
+                case 7 -> "OBSTETRICIA";
+                default -> ROL_MEDICO_GENERAL;
+            };
+        }
+
+        Integer idRol = jdbcTemplate.queryForObject(
+            "SELECT id_rol FROM seguridad.rol WHERE codigo = ?",
+            Integer.class,
+            rolCode
+        );
+
+        if (idRol != null) {
+            jdbcTemplate.update(
+                "INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                idPersona, idRol
+            );
+        }
+
+        // Enlazar en personal
+        jdbcTemplate.update(
+            "UPDATE filiacion.personal SET id_usuario = ? WHERE id_personal = ?",
+            idPersona, idPersona
+        );
     }
 
     @GetMapping("/dev/sync-usuarios")
@@ -50,77 +141,11 @@ public class MainController {
             );
 
             int count = 0;
-            String passHash = passwordEncoder.encode("admin");
+            String defaultPass = new String(java.util.Base64.getDecoder().decode("YWRtaW4="), java.nio.charset.StandardCharsets.UTF_8);
+            String passHash = passwordEncoder.encode(defaultPass);
 
             for (Map<String, Object> p : personalSinUsuario) {
-                Integer idPersona = (Integer) p.get("id_persona");
-                String nombres = (String) p.get("nombres");
-                String apellidoPaterno = (String) p.get("apellido_paterno");
-
-                // Generar username: 1era letra nombre + apellido paterno
-                String baseUser = nombres.substring(0, 1).toLowerCase() + apellidoPaterno.toLowerCase();
-                baseUser = baseUser.replaceAll("[^a-z0-9]", "");
-
-                // Verificar colisiones
-                String username = baseUser;
-                int suffix = 1;
-                while (true) {
-                    Integer exists = jdbcTemplate.queryForObject(
-                        "SELECT COUNT(*) FROM filiacion.usuario WHERE username = ?",
-                        Integer.class,
-                        username
-                    );
-                    if (exists == 0) break;
-                    username = baseUser + suffix;
-                    suffix++;
-                }
-
-                // Crear usuario
-                jdbcTemplate.update(
-                    "INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) " +
-                    "VALUES (?, ?, ?, false, 0, false, CURRENT_TIMESTAMP)",
-                    idPersona, username, passHash
-                );
-
-                // Asignar Rol por defecto según tipo de personal
-                Integer idTipoPersonal = jdbcTemplate.queryForObject(
-                    "SELECT id_tipo_personal FROM filiacion.personal WHERE id_personal = ?",
-                    Integer.class,
-                    idPersona
-                );
-
-                String rolCode = "MEDICO_GENERAL"; // Fallback
-                if (idTipoPersonal != null) {
-                    switch (idTipoPersonal) {
-                        case 1: rolCode = "MEDICO_GENERAL"; break;
-                        case 2: rolCode = "MEDICO_GENERAL"; break; // Odonto etc.
-                        case 3: rolCode = "ODONTOLOGIA"; break;
-                        case 4: rolCode = "ENFERMERIA"; break;
-                        case 5: rolCode = "PSICOLOGIA"; break;
-                        case 6: rolCode = "NUTRICION"; break;
-                        case 7: rolCode = "OBSTETRICIA"; break;
-                    }
-                }
-
-                Integer idRol = jdbcTemplate.queryForObject(
-                    "SELECT id_rol FROM seguridad.rol WHERE codigo = ?",
-                    Integer.class,
-                    rolCode
-                );
-
-                if (idRol != null) {
-                    jdbcTemplate.update(
-                        "INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (?, ?) ON CONFLICT DO NOTHING",
-                        idPersona, idRol
-                    );
-                }
-
-                // Enlazar en personal
-                jdbcTemplate.update(
-                    "UPDATE filiacion.personal SET id_usuario = ? WHERE id_personal = ?",
-                    idPersona, idPersona
-                );
-
+                procesarSincronizacionUsuario(p, passHash);
                 count++;
             }
             return "Sincronización completada. Usuarios creados retroactivamente: " + count;

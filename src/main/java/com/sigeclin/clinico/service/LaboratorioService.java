@@ -160,6 +160,7 @@ public class LaboratorioService {
         ordenMedicaRepository.save(orden);
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Object> getPanelData() {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("examenesPorArea", getExamenesAgrupados());

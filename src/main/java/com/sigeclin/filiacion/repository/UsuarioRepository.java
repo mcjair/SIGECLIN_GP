@@ -11,6 +11,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {"roles"})
     Optional<Usuario> findByUsername(String username);
 
+    boolean existsByUsername(String username);
+
     @org.springframework.data.jpa.repository.Modifying
     @org.springframework.transaction.annotation.Transactional
     @org.springframework.data.jpa.repository.Query("UPDATE Usuario u SET u.passwordHash = :passwordHash, u.requiereCambioPassword = false, u.fechaCambioPassword = :fecha WHERE u.username = :username")

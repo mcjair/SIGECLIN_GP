@@ -5,6 +5,7 @@ import com.sigeclin.maestras.model.Examen;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -15,6 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/laboratorio")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('LABORATORIO', 'ADMIN')") // A01: Control de acceso por rol
 public class LaboratorioApiController {
 
     private final LaboratorioService laboratorioService;

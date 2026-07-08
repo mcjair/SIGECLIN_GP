@@ -68,6 +68,7 @@ class SecurityAuthorizationTest {
     @MockBean private CustomUserDetailsService customUserDetailsService;
 
     @MockBean private OrdenMedicaRepository ordenMedicaRepository;
+    @MockBean private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
     @BeforeEach
     void setUp() {

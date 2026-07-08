@@ -18,6 +18,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 @RequiredArgsConstructor
 public class PacienteService implements IPacienteService {
 
+    private static final String ESTADO_PENDIENTE_PAGO = "PENDIENTE_PAGO";
+
     private final PacienteRepository pacienteRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -44,8 +46,8 @@ public class PacienteService implements IPacienteService {
             p.setTipoDocumento(paciente.getTipoDocumento());
             
             // IMPORTANTE: Resetear el estado para que aparezca en el flujo de Caja nuevamente
-            p.setEstado("PENDIENTE_PAGO");
-            p.setFechaCreacion(LocalDateTime.now()); // Actualizar fecha para orden de llegada
+            p.setEstado(ESTADO_PENDIENTE_PAGO);
+            p.setFechaCreacion(LocalDateTime.now(java.time.ZoneId.systemDefault())); // Actualizar fecha para orden de llegada
             
             log.debug("Actualizando paciente recurrente: {} - HC: {}", p.getNumeroDocumento(), p.getNumeroHistoriaClinica());
             return pacienteRepository.save(p);
@@ -55,9 +57,9 @@ public class PacienteService implements IPacienteService {
         paciente.setNumeroHistoriaClinica(paciente.getNumeroDocumento());
         
         // 2. Metadatos
-        paciente.setFechaCreacion(LocalDateTime.now());
-        paciente.setFechaRegistro(LocalDateTime.now());
-        paciente.setEstado("PENDIENTE_PAGO");
+        paciente.setFechaCreacion(LocalDateTime.now(java.time.ZoneId.systemDefault()));
+        paciente.setFechaRegistro(LocalDateTime.now(java.time.ZoneId.systemDefault()));
+        paciente.setEstado(ESTADO_PENDIENTE_PAGO);
 
         log.info("Nuevo paciente registrado: {} - HC: {}", paciente.getNumeroDocumento(), paciente.getNumeroHistoriaClinica());
         return pacienteRepository.save(paciente);
@@ -68,7 +70,7 @@ public class PacienteService implements IPacienteService {
     }
 
     public java.util.List<Paciente> obtenerPacientesRecientes() {
-        return pacienteRepository.findByEstadoOrderByFechaCreacionAsc("PENDIENTE_PAGO");
+        return pacienteRepository.findByEstadoOrderByFechaCreacionAsc(ESTADO_PENDIENTE_PAGO);
     }
 
     public java.util.List<Paciente> obtenerTodos() {
@@ -104,22 +106,30 @@ public class PacienteService implements IPacienteService {
     @Transactional
     @CacheEvict(value = "dashboardStats", allEntries = true)
     public void actualizarEstadoPorDocumento(String doc, String nuevoEstado) {
-        buscarPorDniOHC(doc).ifPresentOrElse(p -> {
+        java.util.Optional<Paciente> pacienteOpt = pacienteRepository.findByNumeroDocumento(doc);
+        if (pacienteOpt.isEmpty()) {
+            pacienteOpt = pacienteRepository.findByNumeroHistoriaClinica(doc);
+        }
+        
+        pacienteOpt.ifPresentOrElse(p -> {
             p.setEstado(nuevoEstado);
             pacienteRepository.save(p);
             log.debug("Estado actualizado a {} para paciente: {}", nuevoEstado, doc);
             messagingTemplate.convertAndSend("/topic/notificaciones", "UPDATE");
-        }, () -> {
-            log.warn("No se pudo actualizar estado. Paciente no encontrado con: {}", doc);
-        });
+        }, () -> log.warn("No se pudo actualizar estado. Paciente no encontrado con: {}", doc));
     }
 
+    @Transactional(readOnly = true)
     public java.util.Optional<Paciente> buscarPorDniOHC(String query) {
-        // Intentar buscar por número de documento o HC
         java.util.Optional<Paciente> p = pacienteRepository.findByNumeroDocumento(query);
         if (p.isEmpty()) {
             p = pacienteRepository.findByNumeroHistoriaClinica(query);
         }
+        p.ifPresent(paciente -> {
+            if (paciente.getTipoDocumento() != null) {
+                org.hibernate.Hibernate.initialize(paciente.getTipoDocumento());
+            }
+        });
         return p;
     }
 }

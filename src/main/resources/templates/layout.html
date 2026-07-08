@@ -31,6 +31,8 @@
             --primary-soft: rgba(13, 148, 136, 0.1) !important;
             --primary-shadow-20: rgba(13, 148, 136, 0.2) !important;
             --primary-shadow-30: rgba(13, 148, 136, 0.3) !important;
+            --primary-gradient: linear-gradient(135deg, var(--premium-teal), var(--premium-teal-hover)) !important;
+            --bs-primary-gradient: linear-gradient(135deg, var(--premium-teal), var(--premium-teal-hover)) !important;
             
             --premium-blue: #3b82f6;
             --premium-blue-soft: #eff6ff;
@@ -60,7 +62,8 @@
 
         /* OVERRIDE LEGACY BLUE GRADIENTS */
         .btn-premium-main, .module-header-icon, .avatar-main, .user-avatar-initial,
-        .sidebar-logo-circle, .module-header-icon-sm, .btn-premium-action, .btn-premium-action-v2, .swal2-confirm {
+        .sidebar-logo-circle, .module-header-icon-sm, .btn-premium-action, .btn-premium-action-v2, 
+        .swal2-confirm, .swal2-styled.swal2-confirm, .swal2-popup .swal2-styled.swal2-confirm {
             background: linear-gradient(135deg, var(--premium-teal), var(--premium-teal-hover)) !important;
             border-color: var(--premium-teal) !important;
             color: #ffffff !important;
@@ -85,6 +88,11 @@
             color: var(--premium-teal) !important;
             background: transparent !important;
             -webkit-text-fill-color: var(--premium-teal) !important;
+        }
+
+        /* Premium Glow Effect Override */
+        .shadow-glow {
+            box-shadow: 0 0 15px rgba(13, 148, 136, 0.4) !important;
         }
 
         /* Typography */
@@ -294,6 +302,87 @@
                 });
             }
         });
+    </script>
+    
+    <!-- CONTADOR DE SESIÓN POR INACTIVIDAD GLOBAL (TIMEOUT: 1m) -->
+    <script>
+        (function() {
+            let sessionTimeLeft = 60; // 1 minuto de inactividad
+            let sessionTimerActive = true;
+            let lastPingTime = Date.now();
+            
+            function updateSessionTimer() {
+                if (!sessionTimerActive) return;
+                
+                const timerEl = document.getElementById('sessionTimerText');
+                const iconEl = document.getElementById('sessionTimerIcon');
+                
+                if (sessionTimeLeft <= 0) {
+                    sessionTimerActive = false;
+                    if (timerEl) timerEl.textContent = '00:00';
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Sesión Expirada',
+                            text: 'Su sesión ha caducado por inactividad. Redirigiendo...',
+                            icon: 'warning',
+                            showConfirmButton: false,
+                            timer: 3000,
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = '/login';
+                        });
+                    } else {
+                        window.location.href = '/login';
+                    }
+                    return;
+                }
+                
+                if (timerEl) {
+                    const m = Math.floor(sessionTimeLeft / 60);
+                    const s = sessionTimeLeft % 60;
+                    timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                    
+                    if (sessionTimeLeft <= 15) {
+                        timerEl.style.color = 'var(--premium-red)';
+                        if(iconEl) iconEl.classList.replace('text-primary', 'text-danger');
+                        timerEl.parentElement.classList.add('animate-pulse');
+                    } else {
+                        timerEl.style.color = 'var(--premium-teal)';
+                        if(iconEl) iconEl.classList.replace('text-danger', 'text-primary');
+                        timerEl.parentElement.classList.remove('animate-pulse');
+                    }
+                }
+                
+                sessionTimeLeft--;
+                setTimeout(updateSessionTimer, 1000);
+            }
+
+            function resetSessionTimer() {
+                if (sessionTimerActive) {
+                    sessionTimeLeft = 60;
+                    
+                    // Throttle de 20 segundos para evitar saturar el servidor con pings
+                    const now = Date.now();
+                    if (now - lastPingTime > 20000) {
+                        lastPingTime = now;
+                        // Hacemos una petición rápida silenciosa para mantener viva la sesión en el servidor
+                        fetch('/api/dashboard/stats')
+                            .then(r => r.json())
+                            .catch(() => {});
+                    }
+                }
+            }
+
+            window.addEventListener('mousemove', resetSessionTimer);
+            window.addEventListener('keydown', resetSessionTimer);
+            window.addEventListener('click', resetSessionTimer);
+            window.addEventListener('scroll', resetSessionTimer);
+
+            // Iniciar cuenta regresiva al cargar la página
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(updateSessionTimer, 1000);
+            });
+        })();
     </script>
 </head>
 <body class="bg-deep">
@@ -703,47 +792,6 @@
             updateLiveClock();
             setInterval(updateLiveClock, 1000);
 
-            // ===== CONTADOR DE SESIÓN (TIMEOUT: 1m) =====
-            let sessionTimeLeft = 60; // 1 minuto configurado en application.properties
-            
-            function updateSessionTimer() {
-                const timerEl = document.getElementById('sessionTimerText');
-                const iconEl = document.getElementById('sessionTimerIcon');
-                if (!timerEl) return;
-                
-                if (sessionTimeLeft <= 0) {
-                    timerEl.textContent = '00:00';
-                    Swal.fire({
-                        title: 'Sesión Expirada',
-                        text: 'Su sesión ha caducado por inactividad. Redirigiendo...',
-                        icon: 'warning',
-                        showConfirmButton: false,
-                        timer: 3000,
-                        allowOutsideClick: false
-                    }).then(() => {
-                        window.location.href = '/login';
-                    });
-                    return;
-                }
-                
-                const m = Math.floor(sessionTimeLeft / 60);
-                const s = sessionTimeLeft % 60;
-                timerEl.textContent = String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
-                
-                if (sessionTimeLeft <= 15) {
-                    timerEl.style.color = 'var(--premium-red)';
-                    iconEl.classList.replace('text-primary', 'text-danger');
-                    timerEl.parentElement.classList.add('animate-pulse');
-                }
-                
-                sessionTimeLeft--;
-                if (sessionTimeLeft >= 0) {
-                    setTimeout(updateSessionTimer, 1000);
-                }
-            }
-            // Iniciar cuenta regresiva al cargar la página
-            setTimeout(updateSessionTimer, 1000);
-
             // ===== CSRF INTERCEPTOR GLOBAL =====
             (function() {
                 const token = document.querySelector('meta[name="_csrf"]');
@@ -766,21 +814,27 @@
                     
                     // Native Fetch Interceptor (Ecosistema actual)
                     const originalFetch = window.fetch;
-                    window.fetch = function() {
-                        let [resource, config] = arguments;
-                        if (config && config.method && config.method.toUpperCase() !== 'GET' && config.method.toUpperCase() !== 'HEAD') {
-                            config.headers = {
-                                ...config.headers,
-                                [csrfHeader]: csrfToken
-                            };
+                    window.fetch = function(input, init) {
+                        init = init || {};
+                        const method = (init.method || 'GET').toUpperCase();
+                        if (method !== 'GET' && method !== 'HEAD') {
+                            init.headers = init.headers || {};
+                            if (init.headers instanceof Headers) {
+                                init.headers.set(csrfHeader, csrfToken);
+                            } else if (Array.isArray(init.headers)) {
+                                const exists = init.headers.find(h => h[0].toUpperCase() === csrfHeader.toUpperCase());
+                                if (!exists) init.headers.push([csrfHeader, csrfToken]);
+                            } else {
+                                init.headers[csrfHeader] = csrfToken;
+                            }
                         }
-                        return originalFetch(resource, config);
+                        return originalFetch(input, init);
                     };
                 }
             })();
         </script>
         <!-- FORCED PASSWORD CHANGE MODAL -->
-        <div th:if="${#authorization.expression('isAuthenticated()') and #strings.toString(#authentication.principal) != 'anonymousUser' and #authentication.principal.requiereCambioPassword}" 
+        <div th:if="${#authorization.expression('isAuthenticated()') and #strings.toString(#authentication.principal) != 'anonymousUser' and (#authentication.principal instanceof T(com.sigeclin.seguridad.service.CustomUserDetailsService.CustomUserDetails)) and #authentication.principal.requiereCambioPassword}" 
              class="modal fade" id="forcedPasswordModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="forcedPasswordModalLabel" aria-hidden="true" style="z-index: 9999;">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
@@ -814,7 +868,7 @@
             </div>
         </div>
 
-        <script th:if="${#authorization.expression('isAuthenticated()') and #strings.toString(#authentication.principal) != 'anonymousUser' and #authentication.principal.requiereCambioPassword}">
+        <script th:if="${#authorization.expression('isAuthenticated()') and #strings.toString(#authentication.principal) != 'anonymousUser' and (#authentication.principal instanceof T(com.sigeclin.seguridad.service.CustomUserDetailsService.CustomUserDetails)) and #authentication.principal.requiereCambioPassword}">
             document.addEventListener('DOMContentLoaded', function() {
                 var modalEl = document.getElementById('forcedPasswordModal');
                 if (modalEl) {
@@ -893,7 +947,7 @@
         </script>
         
         <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     </footer>
 </body>
 </html>

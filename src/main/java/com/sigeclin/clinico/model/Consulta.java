@@ -37,7 +37,7 @@ public class Consulta {
     @Column(nullable = false)
     private Integer idEspecialidad;
 
-    private LocalDateTime fechaHoraInicio = LocalDateTime.now();
+    private LocalDateTime fechaHoraInicio = LocalDateTime.now(java.time.ZoneId.systemDefault());
     private LocalDateTime fechaHoraFin;
 
     private String tipoConsulta = "presencial";
@@ -57,6 +57,12 @@ public class Consulta {
     private LocalDate proximoControl;
     
     private String estado = "en_progreso";
+
+    @Column(name = "tiene_certificado", nullable = false)
+    private Boolean tieneCertificado = false;
+
+    @Column(name = "observaciones_certificado")
+    private String observacionesCertificado;
 
     @OneToMany(mappedBy = "consulta")
     private java.util.List<DiagnosticoConsulta> diagnosticos;

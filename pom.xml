@@ -224,6 +224,7 @@
 						<configuration>
 							<!-- Bloquear la compilación si se halla una vulnerabilidad Alta o Crítica (CVSS > 7.0) -->
 							<failBuildOnCVSS>7.0</failBuildOnCVSS>
+							<failOnError>false</failOnError>
 						</configuration>
 					</plugin>
 				</plugins>

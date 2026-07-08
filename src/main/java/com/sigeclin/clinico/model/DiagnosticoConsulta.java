@@ -17,6 +17,7 @@ public class DiagnosticoConsulta {
     @Column(name = "id_diagnostico")
     private Integer idDiagnosticoConsulta;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_consulta", nullable = false)
     private Consulta consulta;

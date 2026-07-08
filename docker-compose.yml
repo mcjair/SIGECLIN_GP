@@ -1,17 +1,17 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:16-alpine
+  postgres:
+    image: postgres:15-alpine
+    container_name: sigeclin-postgres
     environment:
       POSTGRES_DB: sigeclin
-      POSTGRES_USER: ${POSTGRES_USER:-admin}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-SuperSigeclinSecure2026!}
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d sigeclin"]
       interval: 10s
@@ -20,18 +20,19 @@ services:
 
   app:
     build: .
+    container_name: sigeclin-app
     ports:
       - "3001:3001"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/sigeclin
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-admin}
-      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-SuperSigeclinSecure2026!}
-      SIGECLIN_CIE10_DIR_PATH: /app/ciex
+      - DB_URL=jdbc:postgresql://postgres:5432/sigeclin?sslmode=prefer
+      - DB_USERNAME=admin
+      - DB_PASSWORD=admin
+      - APP_CRYPTO_KEY=SigeclinSecureKeyDefault32BytesLong
+      - SESSION_TIMEOUT=15m
     depends_on:
-      db:
+      postgres:
         condition: service_healthy
-    volumes:
-      - ./ciex:/app/ciex
+    restart: always
 
 volumes:
-  pgdata:
+  postgres_data:

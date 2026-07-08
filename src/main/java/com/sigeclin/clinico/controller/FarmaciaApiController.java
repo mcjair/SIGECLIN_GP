@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/farmacia")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('FARMACIA', 'ADMIN')") // A01: Control de acceso por rol
 public class FarmaciaApiController {
 
     private final FarmaciaService farmaciaService;
@@ -36,7 +38,7 @@ public class FarmaciaApiController {
     }
 
     @PostMapping("/dispensar")
-    public ResponseEntity<?> dispensar(@Valid @RequestBody DispensarRequest request,
+    public ResponseEntity<Map<String, Object>> dispensar(@Valid @RequestBody DispensarRequest request,
                                        Authentication auth) {
         try {
             String username = auth != null ? auth.getName() : "admin";
@@ -75,7 +77,7 @@ public class FarmaciaApiController {
     }
 
     @PostMapping("/lote")
-    public ResponseEntity<?> crearLote(@Valid @RequestBody LoteRequest request,
+    public ResponseEntity<Map<String, Object>> crearLote(@Valid @RequestBody LoteRequest request,
                                        Authentication auth) {
         try {
             String username = auth != null ? auth.getName() : "admin";

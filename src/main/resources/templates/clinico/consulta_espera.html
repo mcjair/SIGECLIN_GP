@@ -36,7 +36,7 @@
                     </div>
                     <div class="col-auto">
                         <div class="d-flex gap-2">
-                            <button class="btn btn-premium-action-compact btn-cyan-grad shadow-sm text-white" onclick="generarCertificado()">
+                            <button id="btnCertificadoMedico" class="btn btn-premium-action-compact btn-cyan-grad shadow-sm text-white" onclick="generarCertificado()">
                                 <i class="bi bi-file-earmark-pdf-fill me-1 fs-6"></i> CERT. MÉDICO
                             </button>
                             <button class="btn btn-premium-action-compact btn-emerald-grad shadow-sm text-white" onclick="registrarAlta()">
@@ -385,6 +385,9 @@
                 let selectedDx = null;
                 let examenesAgrupados = null;
                 const moduloBase = /*[[${moduloJson}]]*/ '';
+                
+                window.certificadoEmitidoEnPantalla = false;
+                window.observacionesCertificadoEnPantalla = null;
                 
                 const historialBase = JSON.parse(/*[[${historialJson}]]*/ "[]");
                 const pacienteBase = JSON.parse(/*[[${pacienteJson}]]*/ "{}");
@@ -912,6 +915,8 @@
                         examenFisico: document.getElementById('atencionExamen').value,
                         planTratamiento: document.getElementById('atencionPlan').value,
                         proximoControl: proximoControl,
+                        tieneCertificado: window.certificadoEmitidoEnPantalla || false,
+                        observacionesCertificado: window.observacionesCertificadoEnPantalla || null,
                         diagnosticos: itemsDiagnosticos.map(function(d) {
                             return {
                                 codigo: d.codigo,
@@ -1022,6 +1027,8 @@
                         anamnesis: document.getElementById('atencionAnamnesis').value,
                         examenFisico: document.getElementById('atencionExamen').value,
                         planTratamiento: document.getElementById('atencionPlan').value,
+                        tieneCertificado: window.certificadoEmitidoEnPantalla || false,
+                        observacionesCertificado: window.observacionesCertificadoEnPantalla || null,
                         diagnosticos: selectedDx ? [{codigo: selectedDx.codigo, descripcion: selectedDx.descripcion}] : [],
                         medicamentos: itemsReceta.map(function(i) {
                             return {
@@ -1256,6 +1263,16 @@
                             };
                             localStorage.setItem('current_certificate', JSON.stringify(data));
                             window.open('/consulta/certificado/preview', '_blank');
+                            
+                            window.certificadoEmitidoEnPantalla = true;
+                            window.observacionesCertificadoEnPantalla = data.observaciones;
+                            
+                            const btnCert = document.getElementById('btnCertificadoMedico');
+                            if (btnCert) {
+                                btnCert.classList.remove('btn-cyan-grad');
+                                btnCert.classList.add('btn-success');
+                                btnCert.innerHTML = '<i class="bi bi-check-circle-fill me-1 fs-6"></i> CERT. GENERADO';
+                            }
                         }
                     });
                 }
@@ -1539,7 +1556,7 @@
                             </div>
                         </div>
                         <div class="col-md-4">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 shadow-sm border border-primary border-opacity-25 h-100 d-flex flex-column">
+                            <div class="bg-white p-3 rounded-3 shadow-sm border-0 h-100 d-flex flex-column">
                                 <label class="d-flex align-items-center gap-2 small text-primary fw-900 mb-1 letter-spacing-1 text-uppercase">
                                     <i class="bi bi-journal-medical"></i> Plan de Tratamiento
                                 </label>

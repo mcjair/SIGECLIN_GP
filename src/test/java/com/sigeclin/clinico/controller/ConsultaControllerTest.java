@@ -6,8 +6,8 @@ import com.sigeclin.clinico.repository.AlergiaPacienteRepository;
 import com.sigeclin.clinico.repository.ConsultaRepository;
 import com.sigeclin.clinico.repository.TriajeRepository;
 import com.sigeclin.clinico.service.IConsultaService;
+import com.sigeclin.clinico.service.IAuditoriaService;
 import com.sigeclin.filiacion.model.Paciente;
-import com.sigeclin.filiacion.model.Personal;
 import com.sigeclin.filiacion.repository.PersonalRepository;
 import com.sigeclin.filiacion.service.IPacienteService;
 import com.sigeclin.maestras.service.ICie10Service;
@@ -19,7 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Map;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -37,6 +36,9 @@ class ConsultaControllerTest {
 
     @MockBean
     private IConsultaService consultaService;
+
+    @MockBean
+    private IAuditoriaService auditoriaService;
 
     @MockBean
     private AlergiaPacienteRepository alergiaRepository;

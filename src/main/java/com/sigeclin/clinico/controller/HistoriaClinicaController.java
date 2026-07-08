@@ -4,6 +4,7 @@ import com.sigeclin.clinico.service.IHistoriaClinicaService;
 import com.sigeclin.clinico.service.IAuditoriaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/clinico/historia")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('MEDICO_GENERAL','ENFERMERIA','OBSTETRICIA','ODONTOLOGIA','PSICOLOGIA','NUTRICION','ADMIN')") // A01
 public class HistoriaClinicaController {
 
     private final IHistoriaClinicaService historiaClinicaService;

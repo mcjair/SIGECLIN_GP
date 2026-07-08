@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interrupción del Servicio | SIGECLIN</title>
-    <!-- Mismos CSS Base para "Impeccable UI" -->
+    <title>Error de Servidor 500 | SIGECLIN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" th:href="@{/css/main.css}">
     
     <style>
         body {
@@ -21,7 +19,6 @@
             position: relative;
         }
 
-        /* Elementos decorativos de fondo */
         .bg-glow-1 {
             position: absolute;
             width: 400px;
@@ -83,7 +80,7 @@
 
         .error-icon {
             font-size: 3.5rem;
-            color: #e11d48; /* Carmín Premium */
+            color: #e11d48;
             z-index: 2;
             animation: heartbeat 2.5s infinite ease-in-out;
         }
@@ -181,7 +178,6 @@
             color: #1066e4;
         }
 
-        /* Animaciones */
         @keyframes pulseGlow {
             0% { transform: scale(0.95); opacity: 0.5; }
             50% { transform: scale(1.15); opacity: 0.8; }
@@ -196,7 +192,6 @@
             70% { transform: scale(1); }
         }
 
-        /* Soporte para modo oscuro mediante el atributo del sistema */
         [data-theme="dark"] body {
             background: radial-gradient(circle at 50% 50%, #0b1329 0%, #070c19 100%);
         }
@@ -230,33 +225,28 @@
     <div class="bg-glow-1"></div>
     <div class="bg-glow-2"></div>
 
-    <div class="error-container animate-fade-in">
+    <div class="error-container">
         <div class="error-card">
-            <!-- Icono Estilizado de Alerta Médica / Latido -->
             <div class="error-icon-wrapper">
                 <div class="error-icon-bg"></div>
                 <i class="bi bi-heart-pulse-fill error-icon"></i>
             </div>
 
-            <!-- Código de Estado -->
             <div class="error-badge">
-                <span>ESTADO <span th:text="${errorStatus != null ? errorStatus : '500'}">500</span></span>
+                <span>CÓDIGO 500</span>
             </div>
 
-            <!-- Título Amigable para Usuario -->
             <h1 class="error-title">Interrupción del Servicio</h1>
 
-            <!-- Mensaje Amigable -->
             <p class="error-message">
                 Nuestros servidores han experimentado una inconsistencia al procesar esta solicitud. 
                 El equipo médico y de sistemas ha sido alertado automáticamente para su pronta resolución.
             </p>
 
-            <!-- Caja de Información de Soporte (Útil para soporte, ocultando stack trace) -->
             <div class="info-box d-flex flex-column gap-2">
                 <div>
                     <div class="info-box-title">Identificador de Evento (ID)</div>
-                    <div class="info-box-value" th:text="${T(java.util.UUID).randomUUID().toString().substring(0, 18)}">REF-89F7B3D2A1</div>
+                    <div class="info-box-value" th:text="${T(java.util.UUID).randomUUID().toString().substring(0, 18)}">REF-99F2D3A1B8</div>
                 </div>
                 <div class="border-top pt-2">
                     <div class="info-box-title">Fecha del Evento</div>
@@ -264,7 +254,6 @@
                 </div>
             </div>
 
-            <!-- Botones de Acción -->
             <div class="d-flex flex-column align-items-center gap-2">
                 <a th:href="@{/dashboard}" class="btn-action">
                     <i class="bi bi-arrow-left-circle-fill"></i>
@@ -278,7 +267,6 @@
     </div>
     
     <script>
-        // Sincronizar tema oscuro del almacenamiento local si existe
         const currentTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', currentTheme);
     </script>

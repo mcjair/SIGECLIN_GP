@@ -24,6 +24,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PasswordController {
 
+    private static final String KEY_MESSAGE = "message";
+
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -34,30 +36,36 @@ public class PasswordController {
 
     @PostMapping("/cambiar-password")
     @ResponseBody
-    public ResponseEntity<?> doCambiarPassword(@RequestParam String newPassword, jakarta.servlet.http.HttpServletRequest request) {
+    public ResponseEntity<Map<String, String>> doCambiarPassword(@RequestParam String newPassword, @RequestParam String confirmPassword, jakarta.servlet.http.HttpServletRequest request) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String username = auth.getName();
-            Usuario usuario = usuarioRepository.findByUsername(username)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
             
-            // Regla de seguridad: Alfanumérica, 8 a 12 caracteres, mayúsculas, minúsculas, números y especial opcional
-            if (newPassword == null || !newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d$%&]{8,12}$")) {
-                return ResponseEntity.badRequest().body(Map.of("message", "La contraseña debe tener entre 8 y 12 caracteres, incluir mayúsculas, minúsculas y un número. Opcional caracteres especiales ($ % &)."));
+            // Verificar existencia de usuario
+            if (!usuarioRepository.existsByUsername(username)) {
+                throw new IllegalArgumentException("Usuario no encontrado");
+            }
+            
+            if (newPassword == null || confirmPassword == null || !newPassword.equals(confirmPassword)) {
+                return ResponseEntity.badRequest().body(Map.of(KEY_MESSAGE, "Las contraseñas ingresadas no coinciden. Por favor, verifíquelas."));
+            }
+
+            // Regla de seguridad: Alfanumérica, 8 a 12 caracteres, mayúsculas, minúsculas, números y especial
+            if (!newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)[a-zA-Z\\d$%&¡!\\?\\*@#\\-_\\.\\+]{8,12}$")) {
+                return ResponseEntity.badRequest().body(Map.of(KEY_MESSAGE, "La contraseña debe tener entre 8 y 12 caracteres, incluir al menos una mayúscula, una minúscula, un número y al menos un carácter especial (permitidos: $ % & ¡ ! ? * @ # - _ . +)."));
             }
             
             // Usamos la query @Modifying para evitar validación de los campos de Persona (como 'sexo' en admin)
-            usuarioRepository.actualizarPassword(username, passwordEncoder.encode(newPassword), LocalDateTime.now());
+            usuarioRepository.actualizarPassword(username, passwordEncoder.encode(newPassword), LocalDateTime.now(java.time.ZoneId.systemDefault()));
             
             // Cerrar la sesión forzosamente
             request.getSession().invalidate();
             SecurityContextHolder.clearContext();
 
-            
-            return ResponseEntity.ok(Map.of("message", "Contraseña actualizada exitosamente."));
+            return ResponseEntity.ok(Map.of(KEY_MESSAGE, "Contraseña actualizada exitosamente. Inicie sesión con su nueva contraseña."));
         } catch (Exception e) {
             log.error("Error al cambiar password: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of("message", "Error interno al procesar el cambio."));
+            return ResponseEntity.badRequest().body(Map.of(KEY_MESSAGE, "Error interno al procesar el cambio."));
         }
     }
 }

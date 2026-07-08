@@ -2,7 +2,9 @@ package com.sigeclin.clinico.controller;
 
 import com.sigeclin.maestras.model.Medicamento;
 import com.sigeclin.maestras.repository.MedicamentoRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,15 @@ import java.util.stream.Collectors;
 public class MedicamentoApiController {
 
     private final MedicamentoRepository medicamentoRepository;
+
+    @Getter
+    @Setter
+    public static class MedicamentoDto {
+        private String nombreGenerico;
+        private String concentracion;
+        private String presentacion;
+        private Boolean activo;
+    }
 
     @GetMapping("/buscar")
     public ResponseEntity<List<Map<String, Object>>> buscar(@RequestParam String q) {
@@ -38,27 +49,31 @@ public class MedicamentoApiController {
     }
 
     @PostMapping
-    public ResponseEntity<Medicamento> crear(@RequestBody Medicamento med) {
-        if (med.getActivo() == null) med.setActivo(true);
+    public ResponseEntity<Medicamento> crear(@RequestBody MedicamentoDto medDto) {
+        Medicamento med = new Medicamento();
+        med.setNombreGenerico(medDto.getNombreGenerico());
+        med.setConcentracion(medDto.getConcentracion());
+        med.setPresentacion(medDto.getPresentacion());
+        med.setActivo(medDto.getActivo() == null || medDto.getActivo());
         return ResponseEntity.ok(medicamentoRepository.save(med));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Medicamento> actualizar(@PathVariable Integer id, @RequestBody Medicamento med) {
+    public ResponseEntity<Medicamento> actualizar(@PathVariable Integer id, @RequestBody MedicamentoDto medDto) {
         return medicamentoRepository.findById(id).map(existente -> {
-            existente.setNombreGenerico(med.getNombreGenerico());
-            existente.setConcentracion(med.getConcentracion());
-            existente.setPresentacion(med.getPresentacion());
-            if (med.getActivo() != null) existente.setActivo(med.getActivo());
+            existente.setNombreGenerico(medDto.getNombreGenerico());
+            existente.setConcentracion(medDto.getConcentracion());
+            existente.setPresentacion(medDto.getPresentacion());
+            if (medDto.getActivo() != null) existente.setActivo(medDto.getActivo());
             return ResponseEntity.ok(medicamentoRepository.save(existente));
-        }).orElse(ResponseEntity.notFound().build());
+        }).orElseGet(() -> ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> eliminar(@PathVariable Integer id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Integer id) {
         return medicamentoRepository.findById(id).map(existente -> {
             medicamentoRepository.delete(existente);
-            return ResponseEntity.ok().build();
-        }).orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.ok().<Void>build();
+        }).orElseGet(() -> ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).build());
     }
 }

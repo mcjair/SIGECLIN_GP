@@ -22,6 +22,18 @@ public class ReporteExcelService {
 
     private List<Map<String, Object>> obtenerDatosReporte(LocalDate fechaInicio, LocalDate fechaFin, String servicio) {
         StringBuilder sql = new StringBuilder(
+            "WITH consultas_numeradas AS ( " +
+            "    SELECT " +
+            "        id_consulta, id_paciente, id_triaje, id_personal, id_especialidad, fecha_hora_inicio, " +
+            "        ROW_NUMBER() OVER(PARTITION BY id_paciente, CAST(fecha_hora_inicio AS DATE) ORDER BY fecha_hora_inicio ASC) as rn " +
+            "    FROM clinico.consulta " +
+            "), " +
+            "pagos_numerados AS ( " +
+            "    SELECT " +
+            "        id_paciente, id_usuario, monto, tipo_pago, fecha_pago, " +
+            "        ROW_NUMBER() OVER(PARTITION BY id_paciente, CAST(fecha_pago AS DATE) ORDER BY fecha_pago ASC) as rn " +
+            "    FROM clinico.pago_log " +
+            ") " +
             "SELECT " +
             "    c.id_consulta, " +
             "    TO_CHAR(c.fecha_hora_inicio, 'YYYY-MM-DD HH24:MI') as fecha_atencion, " +
@@ -33,13 +45,15 @@ public class ReporteExcelService {
             "    COALESCE(caj_per.nombres || ' ' || caj_per.apellido_paterno, 'NO REGISTRADO') as personal_caja, " +
             "    COALESCE(p.monto, 0) as ganancia, " +
             "    COALESCE(p.tipo_pago, 'NO REGISTRADO') as tipo_pago " +
-            "FROM clinico.consulta c " +
+            "FROM consultas_numeradas c " +
             "JOIN filiacion.persona pac_per ON c.id_paciente = pac_per.id_persona " +
             "JOIN filiacion.persona med_per ON c.id_personal = med_per.id_persona " +
             "JOIN maestras.especialidad esp ON c.id_especialidad = esp.id_especialidad " +
             "LEFT JOIN clinico.triaje t ON c.id_triaje = t.id_triaje " +
             "LEFT JOIN filiacion.persona tri_per ON t.id_usuario = tri_per.id_persona " +
-            "LEFT JOIN clinico.pago_log p ON p.id_paciente = c.id_paciente AND CAST(p.fecha_pago AS DATE) = CAST(c.fecha_hora_inicio AS DATE) " +
+            "LEFT JOIN pagos_numerados p ON p.id_paciente = c.id_paciente " +
+            "    AND CAST(p.fecha_pago AS DATE) = CAST(c.fecha_hora_inicio AS DATE) " +
+            "    AND p.rn = c.rn " +
             "LEFT JOIN filiacion.persona caj_per ON p.id_usuario = caj_per.id_persona " +
             "WHERE CAST(c.fecha_hora_inicio AS DATE) BETWEEN ? AND ? "
         );
@@ -58,6 +72,7 @@ public class ReporteExcelService {
     }
 
     public byte[] generarReporteAtenciones(LocalDate fechaInicio, LocalDate fechaFin, String servicio, String tipoPersonal) {
+        log.debug("Generando reporte Excel para servicio: {} y tipoPersonal: {}", servicio, tipoPersonal);
         List<Map<String, Object>> resultados = obtenerDatosReporte(fechaInicio, fechaFin, servicio);
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -169,7 +184,7 @@ public class ReporteExcelService {
             // Fila 1: Subtítulo (Metadatos)
             Row rowSub = sheet.createRow(1);
             Cell cellSub = rowSub.createCell(0);
-            String fechaGeneracion = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy, hh:mm:ss a"));
+            String fechaGeneracion = java.time.LocalDateTime.now(java.time.ZoneId.systemDefault()).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy, hh:mm:ss a"));
             cellSub.setCellValue("Generado el: " + fechaGeneracion + "  |  Registros: " + resultados.size());
             cellSub.setCellStyle(subtitleStyle);
             sheet.addMergedRegion(new org.apache.poi.ss.util.CellRangeAddress(1, 1, 0, 9));
@@ -220,7 +235,7 @@ public class ReporteExcelService {
 
                 Cell c0 = row.createCell(0); c0.setCellValue(String.valueOf(rowMap.get("id_consulta"))); c0.setCellStyle(dataStyle);
                 Cell c1 = row.createCell(1); c1.setCellValue(String.valueOf(rowMap.get("fecha_atencion"))); c1.setCellStyle(dataStyle);
-                Cell c2 = row.createCell(2); c2.setCellValue("DNI: " + String.valueOf(rowMap.get("dni_paciente"))); c2.setCellStyle(dataStyle);
+                Cell c2 = row.createCell(2); c2.setCellValue("DNI: " + rowMap.get("dni_paciente")); c2.setCellStyle(dataStyle);
                 Cell c3 = row.createCell(3); c3.setCellValue(String.valueOf(rowMap.get("paciente")).toUpperCase()); c3.setCellStyle(dataStyle);
                 Cell c4 = row.createCell(4); c4.setCellValue(String.valueOf(rowMap.get("servicio")).toUpperCase()); c4.setCellStyle(dataStyle);
                 Cell c5 = row.createCell(5); c5.setCellValue(String.valueOf(rowMap.get("medico")).toUpperCase()); c5.setCellStyle(dataStyle);
@@ -230,10 +245,10 @@ public class ReporteExcelService {
                 
                 Object rawMonto = rowMap.get("ganancia");
                 BigDecimal monto = BigDecimal.ZERO;
-                if (rawMonto instanceof BigDecimal) {
-                    monto = (BigDecimal) rawMonto;
-                } else if (rawMonto instanceof Number) {
-                    monto = BigDecimal.valueOf(((Number) rawMonto).doubleValue());
+                if (rawMonto instanceof BigDecimal bigDecimal) {
+                    monto = bigDecimal;
+                } else if (rawMonto instanceof Number number) {
+                    monto = BigDecimal.valueOf(number.doubleValue());
                 }
                 
                 Cell c9 = row.createCell(9);
@@ -277,11 +292,12 @@ public class ReporteExcelService {
             return out.toByteArray();
         } catch (Exception e) {
             log.error("Error generando Excel de atenciones: ", e);
-            throw new RuntimeException("Error al generar el reporte Excel");
+            throw new IllegalStateException("Error al generar el reporte Excel", e);
         }
     }
 
     public byte[] generarReportePdf(LocalDate fechaInicio, LocalDate fechaFin, String servicio, String tipoPersonal) {
+        log.debug("Generando reporte PDF para servicio: {} y tipoPersonal: {}", servicio, tipoPersonal);
         List<Map<String, Object>> resultados = obtenerDatosReporte(fechaInicio, fechaFin, servicio);
 
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
@@ -296,7 +312,7 @@ public class ReporteExcelService {
             document.add(titulo);
 
             // Subtítulo
-            String fechaGeneracion = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss"));
+            String fechaGeneracion = java.time.LocalDateTime.now(java.time.ZoneId.systemDefault()).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy, HH:mm:ss"));
             com.lowagie.text.Font fontSubtitulo = new com.lowagie.text.Font(com.lowagie.text.Font.HELVETICA, 10, com.lowagie.text.Font.ITALIC, java.awt.Color.GRAY);
             com.lowagie.text.Paragraph subtitulo = new com.lowagie.text.Paragraph("Generado el: " + fechaGeneracion + " | Registros: " + resultados.size(), fontSubtitulo);
             subtitulo.setAlignment(com.lowagie.text.Element.ALIGN_CENTER);
@@ -339,10 +355,10 @@ public class ReporteExcelService {
                 
                 Object rawMonto = rowMap.get("ganancia");
                 java.math.BigDecimal monto = java.math.BigDecimal.ZERO;
-                if (rawMonto instanceof java.math.BigDecimal) {
-                    monto = (java.math.BigDecimal) rawMonto;
-                } else if (rawMonto instanceof Number) {
-                    monto = java.math.BigDecimal.valueOf(((Number) rawMonto).doubleValue());
+                if (rawMonto instanceof java.math.BigDecimal bigDecimal) {
+                    monto = bigDecimal;
+                } else if (rawMonto instanceof Number number) {
+                    monto = java.math.BigDecimal.valueOf(number.doubleValue());
                 }
                 
                 table.addCell(crearCeldaPdf(String.format("S/ %.2f", monto.doubleValue()), fontDato, com.lowagie.text.Element.ALIGN_RIGHT));
@@ -376,7 +392,7 @@ public class ReporteExcelService {
             return out.toByteArray();
         } catch (Exception e) {
             log.error("Error generando PDF de atenciones: ", e);
-            throw new RuntimeException("Error al generar el reporte PDF");
+            throw new IllegalStateException("Error al generar el reporte PDF", e);
         }
     }
 

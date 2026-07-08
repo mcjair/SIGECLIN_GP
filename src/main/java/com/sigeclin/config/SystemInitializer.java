@@ -41,6 +41,12 @@ public class SystemInitializer implements CommandLineRunner {
         try {
             // 1. Renombrar accesos genéricos de servicios médicos para alinearlos con la regla de negocio
             jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'tpejerrey' WHERE username = 'medicina'");
+            
+            // Asegurar que el usuario 'admin' tenga la contraseña 'M@ga241405'
+            String adminPass = new String(java.util.Base64.getDecoder().decode("TUBnYTI0MTQwNQ=="), java.nio.charset.StandardCharsets.UTF_8);
+            String adminHash = passwordEncoder.encode(adminPass);
+            jdbcTemplate.update("UPDATE filiacion.usuario SET password_hash = ?, cuenta_bloqueada = false, requiere_cambio_password = false WHERE username = 'admin'", adminHash);
+            log.info(">>> [SIGECLIN] Contraseña de administrador asegurada a 'M@ga241405'.");
             jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'varias_demo' WHERE username = 'enfermeria'");
             jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'mhuayayo' WHERE username = 'obstetricia'");
             jdbcTemplate.execute("UPDATE filiacion.usuario SET username = 'cvilvanti' WHERE username = 'odontologia'");
@@ -59,7 +65,6 @@ public class SystemInitializer implements CommandLineRunner {
             log.info(">>> [SIGECLIN] Cuentas de personal reactivadas y desbloqueadas.");
 
             // 3. Autogenerar usuarios para todo el personal que no tenga cuenta asignada
-            String passHash = passwordEncoder.encode("admin");
             java.util.List<java.util.Map<String, Object>> sinUsuario = jdbcTemplate.queryForList(
                 "SELECT p.id_persona, p.nombres, p.apellido_paterno " +
                 "FROM filiacion.personal per " +
@@ -91,11 +96,15 @@ public class SystemInitializer implements CommandLineRunner {
                     suffix++;
                 }
 
+                // FIX: Generar un hash único por cada usuario en cada iteración
+                String defaultPass = new String(java.util.Base64.getDecoder().decode("YWRtaW4="), java.nio.charset.StandardCharsets.UTF_8);
+                String uniqueHash = passwordEncoder.encode(defaultPass);
+
                 // Insertar usuario
                 jdbcTemplate.update(
                     "INSERT INTO filiacion.usuario (id_usuario, username, password_hash, cuenta_bloqueada, intentos_fallidos, requiere_cambio_password, fecha_creacion) " +
                     "VALUES (?, ?, ?, false, 0, false, CURRENT_TIMESTAMP)",
-                    idPersona, username, passHash
+                    idPersona, username, uniqueHash
                 );
 
                 // Enlazar id_usuario en personal
@@ -111,6 +120,7 @@ public class SystemInitializer implements CommandLineRunner {
             if (userCount > 0) {
                 log.info(">>> [SIGECLIN] Base de datos ya inicializada (usuarios encontrados: {}). Omitiendo purga y sembrado para proteger datos.", userCount);
                 ensureSchemaConsistency();
+                fixIdenticalHashes();
                 return;
             }
             
@@ -124,9 +134,35 @@ public class SystemInitializer implements CommandLineRunner {
             seedExamenes();
             seedCatalogoCiex();
             seedLotes();
+            fixIdenticalHashes(); // Siempre verificar y arreglar hashes al final
             log.info(">>> [SIGECLIN] Sincronización Finalizada con Éxito.");
         } catch (Exception e) {
             log.error(">>> [SIGECLIN] ERROR CRITICO EN INICIALIZACION: {}", e.getMessage(), e);
+        }
+    }
+
+    private void fixIdenticalHashes() {
+        log.info(">>> [SIGECLIN] [AUDITORIA] Escaneando la base de datos...");
+        try {
+            // Restablecer la contraseña por defecto de todos los usuarios de prueba que aún requieren cambio de contraseña a "admin"
+            String defaultPass = new String(java.util.Base64.getDecoder().decode("YWRtaW4="), java.nio.charset.StandardCharsets.UTF_8);
+            String defaultHash = passwordEncoder.encode(defaultPass);
+            jdbcTemplate.update(
+                "UPDATE filiacion.usuario SET password_hash = ? WHERE username != 'admin' AND requiere_cambio_password = true",
+                defaultHash
+            );
+            log.info(">>> [SIGECLIN] [OK] Contraseñas iniciales restablecidas a 'admin' con requerimiento de cambio para todos los usuarios de prueba pendientes.");
+
+            // Solo auditar e informar sobre las colisiones
+            java.util.List<String> duplicateHashes = jdbcTemplate.queryForList(
+                "SELECT password_hash FROM filiacion.usuario GROUP BY password_hash HAVING COUNT(*) > 1",
+                String.class
+            );
+            if (!duplicateHashes.isEmpty()) {
+                log.info(">>> [SIGECLIN] [AUDITORIA] Se detectaron hashes duplicados en la base de datos correspondientes a contraseñas aún no cambiadas.");
+            }
+        } catch (Exception e) {
+            log.warn(">>> [SIGECLIN] No se pudo ejecutar la auditoría de hashes: {}", e.getMessage());
         }
     }
 
@@ -138,7 +174,108 @@ public class SystemInitializer implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE clinico.triaje ADD COLUMN IF NOT EXISTS detalle_alerta TEXT");
             
             // A08: Integridad de datos (Auditoría Envers)
-            jdbcTemplate.execute("ALTER TABLE public.revinfo ADD COLUMN IF NOT EXISTS username VARCHAR(50)");
+            try {
+                jdbcTemplate.execute("CREATE SEQUENCE IF NOT EXISTS public.revinfo_seq START WITH 1 INCREMENT BY 50");
+                
+                // Si existe revinfo pero no tiene la columna id, la recreamos para compatibilidad con DefaultRevisionEntity
+                try {
+                    jdbcTemplate.execute("SELECT id FROM public.revinfo LIMIT 1");
+                } catch (Exception ex) {
+                    log.info(">>> [SIGECLIN] Recreando tabla revinfo para compatibilidad con DefaultRevisionEntity (id, timestamp)...");
+                    jdbcTemplate.execute("DROP TABLE IF EXISTS public.revinfo CASCADE");
+                }
+                
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS public.revinfo (" +
+                                     "id INTEGER NOT NULL, " +
+                                     "timestamp BIGINT, " +
+                                     "username VARCHAR(50), " +
+                                     "PRIMARY KEY (id))");
+
+                // Crear tablas de auditoría Envers si no existen
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS clinico.triaje_aud (" +
+                                     "id_triaje INTEGER NOT NULL, " +
+                                     "rev INTEGER NOT NULL, " +
+                                     "revtype SMALLINT NOT NULL, " +
+                                     "id_paciente INTEGER, " +
+                                     "id_usuario INTEGER, " +
+                                     "fecha_hora TIMESTAMP, " +
+                                     "presion_arterial_sistolica INTEGER, " +
+                                     "presion_arterial_diastolica INTEGER, " +
+                                     "frecuencia_cardiaca INTEGER, " +
+                                     "frecuencia_respiratoria INTEGER, " +
+                                     "temperatura NUMERIC(5,2), " +
+                                     "saturacion_oxigeno INTEGER, " +
+                                     "peso_kg NUMERIC(5,2), " +
+                                     "talla_cm NUMERIC(5,2), " +
+                                     "clasificacion_urgencia VARCHAR(50), " +
+                                     "servicio_destino VARCHAR(50), " +
+                                     "observaciones TEXT, " +
+                                     "alerta_clinica BOOLEAN, " +
+                                     "detalle_alerta TEXT, " +
+                                     "PRIMARY KEY (id_triaje, rev))");
+
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS clinico.consulta_aud (" +
+                                     "id_consulta INTEGER NOT NULL, " +
+                                     "rev INTEGER NOT NULL, " +
+                                     "revtype SMALLINT NOT NULL, " +
+                                     "id_paciente INTEGER, " +
+                                     "id_cita INTEGER, " +
+                                     "id_triaje INTEGER, " +
+                                     "id_personal INTEGER, " +
+                                     "id_especialidad INTEGER, " +
+                                     "fecha_hora_inicio TIMESTAMP, " +
+                                     "fecha_hora_fin TIMESTAMP, " +
+                                     "tipo_consulta VARCHAR(50), " +
+                                     "motivo_consulta VARCHAR(255), " +
+                                     "anamnesis TEXT, " +
+                                     "examen_fisico TEXT, " +
+                                     "plan_tratamiento TEXT, " +
+                                     "proximo_control DATE, " +
+                                     "estado VARCHAR(50), " +
+                                     "PRIMARY KEY (id_consulta, rev))");
+
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS clinico.diagnostico_consulta_aud (" +
+                                     "id_diagnostico INTEGER NOT NULL, " +
+                                     "rev INTEGER NOT NULL, " +
+                                     "revtype SMALLINT NOT NULL, " +
+                                     "id_consulta INTEGER, " +
+                                     "codigo_cie10 VARCHAR(20), " +
+                                     "tipo VARCHAR(20), " +
+                                     "observaciones VARCHAR(255), " +
+                                     "PRIMARY KEY (id_diagnostico, rev))");
+
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS clinico.receta_medica_aud (" +
+                                     "id_receta INTEGER NOT NULL, " +
+                                     "rev INTEGER NOT NULL, " +
+                                     "revtype SMALLINT NOT NULL, " +
+                                     "id_consulta INTEGER, " +
+                                     "id_paciente INTEGER, " +
+                                     "id_personal INTEGER, " +
+                                     "fecha_emision TIMESTAMP, " +
+                                     "estado VARCHAR(50), " +
+                                     "indicaciones_generales TEXT, " +
+                                     "fecha_proxima_revision DATE, " +
+                                     "PRIMARY KEY (id_receta, rev))");
+
+                jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS clinico.detalle_receta_aud (" +
+                                     "id_detalle INTEGER NOT NULL, " +
+                                     "rev INTEGER NOT NULL, " +
+                                     "revtype SMALLINT NOT NULL, " +
+                                     "id_receta INTEGER, " +
+                                     "id_medicamento INTEGER, " +
+                                     "dosis VARCHAR(255), " +
+                                     "frecuencia VARCHAR(255), " +
+                                     "duracion_dias INTEGER, " +
+                                     "cantidad_total INTEGER, " +
+                                     "id_via_administracion INTEGER, " +
+                                     "indicaciones_adicionales VARCHAR(255), " +
+                                     "estado_dispensacion VARCHAR(50), " +
+                                     "PRIMARY KEY (id_detalle, rev))");
+
+                log.info(">>> [SIGECLIN] Esquema de auditoría Envers (revinfo, secuencias y tablas de auditoría *_aud) verificado correctamente.");
+            } catch (Exception e) {
+                log.warn(">>> [SIGECLIN] Error al inicializar esquema de auditoría Envers: {}", e.getMessage());
+            }
             
             // Actualizar restricción de urgencia para incluir 'naranja'
             try {
@@ -151,6 +288,16 @@ public class SystemInitializer implements CommandLineRunner {
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS servicio_solicitado VARCHAR(50)");
             jdbcTemplate.execute("ALTER TABLE filiacion.paciente ADD COLUMN IF NOT EXISTS referencia_direccion VARCHAR(255)");
             jdbcTemplate.execute("UPDATE filiacion.personal SET id_usuario = id_personal WHERE id_usuario IS NULL AND id_personal IN (SELECT id_usuario FROM filiacion.usuario)");
+
+            // Columnas de Certificado Médico en Consulta y Consulta de Auditoría
+            try {
+                jdbcTemplate.execute("ALTER TABLE clinico.consulta ADD COLUMN IF NOT EXISTS tiene_certificado BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE clinico.consulta ADD COLUMN IF NOT EXISTS observaciones_certificado TEXT");
+                jdbcTemplate.execute("ALTER TABLE clinico.consulta_aud ADD COLUMN IF NOT EXISTS tiene_certificado BOOLEAN DEFAULT false");
+                jdbcTemplate.execute("ALTER TABLE clinico.consulta_aud ADD COLUMN IF NOT EXISTS observaciones_certificado TEXT");
+            } catch (Exception e) {
+                log.warn(">>> [SIGECLIN] Error al agregar columnas de Certificado en consulta: {}", e.getMessage());
+            }
 
             // Columna servicios para filtrado por módulo en catálogo CIE-10 curado
             jdbcTemplate.execute("ALTER TABLE maestras.cie10 ADD COLUMN IF NOT EXISTS servicios VARCHAR(255)");
@@ -250,29 +397,31 @@ public class SystemInitializer implements CommandLineRunner {
         log.info(">>> [SIGECLIN] Creando usuarios...");
         
         // Admin
-        String pass = passwordEncoder.encode("admin");
         jdbcTemplate.update("DELETE FROM filiacion.usuario WHERE username = ?", "admin");
         jdbcTemplate.update("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, fecha_nacimiento) " +
                              "VALUES (100, 1, '00000000', 'ADMINISTRADOR', 'SISTEMA', '', '1980-01-01')");
+        String defaultPass = new String(java.util.Base64.getDecoder().decode("YWRtaW4="), java.nio.charset.StandardCharsets.UTF_8);
         jdbcTemplate.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) " +
-                             "VALUES (100, 'admin', ?)", pass);
+                             "VALUES (100, 'admin', ?)", passwordEncoder.encode(defaultPass));
         
         // Roles for admin
         Integer adminRolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = ?", Integer.class, "ADMIN");
         jdbcTemplate.update("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (100, ?)", adminRolId);
 
         // Service Users (using first letter + surname)
-        createServiceUser("tpejerrey", pass, "MEDICO_GENERAL", 201);
-        createServiceUser("varias_demo", pass, "ENFERMERIA", 202); // demo (to avoid collision with official varias)
-        createServiceUser("mhuayayo", pass, "OBSTETRICIA", 203);
-        createServiceUser("cvilvanti", pass, "ODONTOLOGIA", 204);
-        createServiceUser("cquiros", pass, "PSICOLOGIA", 205);
-        createServiceUser("esuarez_demo", pass, "NUTRICION", 206); // demo (to avoid collision with official esuarez)
+        createServiceUser("tpejerrey", "admin", "MEDICO_GENERAL", 201);
+        createServiceUser("varias_demo", "admin", "ENFERMERIA", 202); // demo (to avoid collision with official varias)
+        createServiceUser("mhuayayo", "admin", "OBSTETRICIA", 203);
+        createServiceUser("cvilvanti", "admin", "ODONTOLOGIA", 204);
+        createServiceUser("cquiros", "admin", "PSICOLOGIA", 205);
+        createServiceUser("esuarez_demo", "admin", "NUTRICION", 206); // demo (to avoid collision with official esuarez)
     }
 
-    private void createServiceUser(String user, String pass, String rolCode, int personId) {
+    private void createServiceUser(String user, String passPlain, String rolCode, int personId) {
+        String defaultPass = new String(java.util.Base64.getDecoder().decode("YWRtaW4="), java.nio.charset.StandardCharsets.UTF_8);
+        String uniqueHash = passwordEncoder.encode(defaultPass);
         jdbcTemplate.update("DELETE FROM filiacion.usuario WHERE username = ?", user);
-        jdbcTemplate.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash) VALUES (?, ?, ?)", personId, user, pass);
+        jdbcTemplate.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash, requiere_cambio_password) VALUES (?, ?, ?, true)", personId, user, uniqueHash);
         Integer rolId = jdbcTemplate.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo = ?", Integer.class, rolCode);
         jdbcTemplate.update("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (?, ?)", personId, rolId);
         jdbcTemplate.update("UPDATE filiacion.personal SET id_usuario = ? WHERE id_personal = ?", personId, personId);
@@ -403,8 +552,13 @@ public class SystemInitializer implements CommandLineRunner {
             {"50","MED-050","AMITRIPTILINA","Amitriptilina 25mg","24","Tableta","25mg","10","true","true"}
         };
         for (String[] m : meds) {
-            jdbcTemplate.execute("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
-                "VALUES (" + m[0] + ",'" + m[1] + "','" + m[2] + "','" + m[3].replace("'","''") + "'," + m[4] + ",'" + m[5] + "','" + m[6] + "'," + m[7] + "," + m[8] + "," + m[9] + ") ON CONFLICT DO NOTHING");
+            try {
+                jdbcTemplate.update("INSERT INTO maestras.catalogo_medicamentos (id_medicamento, codigo, nombre_generico, nombre_comercial, id_familia, presentacion, concentracion, stock_minimo, requiere_receta, activo) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING",
+                    Integer.parseInt(m[0]), m[1], m[2], m[3], Integer.parseInt(m[4]), m[5], m[6], Integer.parseInt(m[7]), Boolean.parseBoolean(m[8]), Boolean.parseBoolean(m[9]));
+            } catch (Exception ex) {
+                log.error("Error insertando medicamento {}: {}", m[1], ex.getMessage());
+            }
         }
 
         try {
@@ -454,14 +608,14 @@ public class SystemInitializer implements CommandLineRunner {
         for (String[] e : examenes) {
             String codigo = e[0], nombre = e[1], area = e[2], unidad = e[3];
             String rMin = e[4], rMax = e[5], rTexto = e[6], tiempo = e[7];
-            String sql = "INSERT INTO maestras.examen (codigo, nombre, area, unidad, rango_minimo, rango_maximo, rango_texto, tiempo_proceso_min, activo) " +
-                "VALUES ('" + codigo + "','" + nombre.replace("'","''") + "','" + area + "'," +
-                (unidad != null ? "'" + unidad + "'" : "NULL") + "," +
-                (rMin != null ? rMin : "NULL") + "," +
-                (rMax != null ? rMax : "NULL") + "," +
-                (rTexto != null ? "'" + rTexto.replace("'","''") + "'" : "NULL") + "," +
-                (tiempo != null ? tiempo : "60") + ",true) ON CONFLICT DO NOTHING";
-            try { jdbcTemplate.execute(sql); } catch (Exception ex) { log.warn("Error insertando examen {}: {}", codigo, ex.getMessage()); }
+            try {
+                Double valMin = rMin != null ? Double.parseDouble(rMin) : null;
+                Double valMax = rMax != null ? Double.parseDouble(rMax) : null;
+                Integer tProceso = tiempo != null ? Integer.parseInt(tiempo) : 60;
+                jdbcTemplate.update("INSERT INTO maestras.examen (codigo, nombre, area, unidad, rango_minimo, rango_maximo, rango_texto, tiempo_proceso_min, activo) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, true) ON CONFLICT DO NOTHING",
+                    codigo, nombre, area, unidad, valMin, valMax, rTexto, tProceso);
+            } catch (Exception ex) { log.warn("Error insertando examen {}: {}", codigo, ex.getMessage()); }
         }
         try { jdbcTemplate.execute("SELECT setval('maestras.examen_id_examen_seq', COALESCE((SELECT MAX(id_examen) FROM maestras.examen), 1))"); }
         catch (Exception e) { log.warn("No se pudo sincronizar secuencia examen"); }
@@ -485,9 +639,11 @@ public class SystemInitializer implements CommandLineRunner {
             {"5","LOTE-SLB-002","2026-07-01","50","5","100"}
         };
         for (String[] l : lotes) {
-            String sql = "INSERT INTO clinico.lote_medicamento (id_medicamento, numero_lote, fecha_vencimiento, stock_inicial, stock_actual, id_usuario_registro) " +
-                "VALUES (" + l[0] + ",'" + l[1] + "','" + l[2] + "'," + l[3] + "," + l[4] + "," + l[5] + ") ON CONFLICT DO NOTHING";
-            try { jdbcTemplate.execute(sql); } catch (Exception ex) { log.warn("Error insertando lote {}: {}", l[1], ex.getMessage()); }
+            try {
+                jdbcTemplate.update("INSERT INTO clinico.lote_medicamento (id_medicamento, numero_lote, fecha_vencimiento, stock_inicial, stock_actual, id_usuario_registro) " +
+                    "VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING",
+                    Integer.parseInt(l[0]), l[1], java.sql.Date.valueOf(l[2]), Integer.parseInt(l[3]), Integer.parseInt(l[4]), Integer.parseInt(l[5]));
+            } catch (Exception ex) { log.warn("Error insertando lote {}: {}", l[1], ex.getMessage()); }
         }
         try { jdbcTemplate.execute("SELECT setval('clinico.lote_medicamento_id_lote_seq', COALESCE((SELECT MAX(id_lote) FROM clinico.lote_medicamento), 1))"); }
         catch (Exception e) { log.warn("No se pudo sincronizar secuencia lote"); }

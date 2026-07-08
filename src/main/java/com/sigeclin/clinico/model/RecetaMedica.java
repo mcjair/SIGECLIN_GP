@@ -21,6 +21,7 @@ public class RecetaMedica {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idReceta;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_consulta", nullable = false)
     private Consulta consulta;

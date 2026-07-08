@@ -29,6 +29,28 @@ public class GestionPacienteController {
     private final IPacienteService pacienteService;
     private final IConsultaService consultaService;
 
+    private String resolverFiltroRol(org.springframework.security.core.Authentication authentication) {
+        if (authentication == null || authentication.getAuthorities() == null) {
+            return null;
+        }
+        String roleStr = authentication.getAuthorities().stream()
+                .map(a -> a.getAuthority().replace("ROLE_", ""))
+                .findFirst().orElse("ADMIN");
+        
+        if ("ADMIN".equals(roleStr)) {
+            return null;
+        }
+
+        return switch (roleStr) {
+            case "MEDICO_GENERAL" -> "MEDICINA GENERAL";
+            case "ENFERMERIA" -> "ENFERMERÍA";
+            case "ODONTOLOGIA" -> "ODONTOLOGÍA";
+            case "PSICOLOGIA" -> "PSICOLOGÍA";
+            case "NUTRICION" -> "NUTRICIÓN";
+            default -> roleStr;
+        };
+    }
+
     @GetMapping("/lista")
     public String listarPacientes(
             @RequestParam(defaultValue = "0") int page,
@@ -37,21 +59,7 @@ public class GestionPacienteController {
             org.springframework.security.core.Authentication authentication,
             Model model) {
         
-        String rolFiltro = null;
-        if (authentication != null && authentication.getAuthorities() != null) {
-            String roleStr = authentication.getAuthorities().stream()
-                    .map(a -> a.getAuthority().replace("ROLE_", ""))
-                    .findFirst().orElse("ADMIN");
-            
-            if (!roleStr.equals("ADMIN")) {
-                rolFiltro = roleStr;
-                if (rolFiltro.equals("MEDICO_GENERAL")) rolFiltro = "MEDICINA GENERAL";
-                if (rolFiltro.equals("ENFERMERIA")) rolFiltro = "ENFERMERÍA";
-                if (rolFiltro.equals("ODONTOLOGIA")) rolFiltro = "ODONTOLOGÍA";
-                if (rolFiltro.equals("PSICOLOGIA")) rolFiltro = "PSICOLOGÍA";
-                if (rolFiltro.equals("NUTRICION")) rolFiltro = "NUTRICIÓN";
-            }
-        }
+        String rolFiltro = resolverFiltroRol(authentication);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("fechaCreacion").descending());
         Page<com.sigeclin.filiacion.model.Paciente> pacientesPage = pacienteService.obtenerTodosPaginado(search, rolFiltro, pageable);
@@ -66,41 +74,41 @@ public class GestionPacienteController {
         return "filiacion/pacientes_lista";
     }
 
+    private org.apache.poi.ss.usermodel.CellStyle crearEstiloCabecera(org.apache.poi.ss.usermodel.Workbook workbook) {
+        org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
+        org.apache.poi.ss.usermodel.Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(org.apache.poi.ss.usermodel.IndexedColors.WHITE.getIndex());
+        headerStyle.setFont(font);
+        headerStyle.setFillForegroundColor(org.apache.poi.ss.usermodel.IndexedColors.INDIGO.getIndex());
+        headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+        return headerStyle;
+    }
+
+    private void escribirFilaPaciente(org.apache.poi.ss.usermodel.Row row, com.sigeclin.filiacion.model.Paciente p) {
+        row.createCell(0).setCellValue(p.getNumeroHistoriaClinica() != null ? p.getNumeroHistoriaClinica() : "S/H");
+        row.createCell(1).setCellValue(p.getNumeroDocumento() != null ? p.getNumeroDocumento() : "---");
+        row.createCell(2).setCellValue(p.getApellidoPaterno() != null ? p.getApellidoPaterno() : "");
+        row.createCell(3).setCellValue(p.getApellidoMaterno() != null ? p.getApellidoMaterno() : "");
+        row.createCell(4).setCellValue(p.getNombres() != null ? p.getNombres() : "");
+        row.createCell(5).setCellValue(p.getEdadCompleta() != null ? p.getEdadCompleta() : "---");
+        row.createCell(6).setCellValue(p.getSexo() != null ? p.getSexo() : "");
+        row.createCell(7).setCellValue(p.getTelefonoPrincipal() != null ? p.getTelefonoPrincipal() : "");
+        row.createCell(8).setCellValue(p.getCorreoElectronico() != null ? p.getCorreoElectronico() : "");
+    }
+
     @GetMapping("/export/excel")
     public void exportarAExcel(org.springframework.security.core.Authentication authentication, jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=pacientes_sigeclin.xlsx");
 
-        String rolFiltro = null;
-        if (authentication != null && authentication.getAuthorities() != null) {
-            String roleStr = authentication.getAuthorities().stream()
-                    .map(a -> a.getAuthority().replace("ROLE_", ""))
-                    .findFirst().orElse("ADMIN");
-            
-            if (!roleStr.equals("ADMIN")) {
-                rolFiltro = roleStr;
-                if (rolFiltro.equals("MEDICO_GENERAL")) rolFiltro = "MEDICINA GENERAL";
-                if (rolFiltro.equals("ENFERMERIA")) rolFiltro = "ENFERMERÍA";
-                if (rolFiltro.equals("ODONTOLOGIA")) rolFiltro = "ODONTOLOGÍA";
-                if (rolFiltro.equals("PSICOLOGIA")) rolFiltro = "PSICOLOGÍA";
-                if (rolFiltro.equals("NUTRICION")) rolFiltro = "NUTRICIÓN";
-            }
-        }
-
+        String rolFiltro = resolverFiltroRol(authentication);
         java.util.List<com.sigeclin.filiacion.model.Paciente> pacientes = pacienteService.obtenerTodos(rolFiltro);
 
         try (org.apache.poi.ss.usermodel.Workbook workbook = new org.apache.poi.xssf.usermodel.XSSFWorkbook()) {
             org.apache.poi.ss.usermodel.Sheet sheet = workbook.createSheet("Pacientes");
-
-            // Header Style
-            org.apache.poi.ss.usermodel.CellStyle headerStyle = workbook.createCellStyle();
-            org.apache.poi.ss.usermodel.Font font = workbook.createFont();
-            font.setBold(true);
-            font.setColor(org.apache.poi.ss.usermodel.IndexedColors.WHITE.getIndex());
-            headerStyle.setFont(font);
-            headerStyle.setFillForegroundColor(org.apache.poi.ss.usermodel.IndexedColors.INDIGO.getIndex());
-            headerStyle.setFillPattern(org.apache.poi.ss.usermodel.FillPatternType.SOLID_FOREGROUND);
-            headerStyle.setAlignment(org.apache.poi.ss.usermodel.HorizontalAlignment.CENTER);
+            org.apache.poi.ss.usermodel.CellStyle headerStyle = crearEstiloCabecera(workbook);
 
             // Headers
             String[] headers = {"HC", "DNI / N° Doc", "Apellido Paterno", "Apellido Materno", "Nombres", "Edad", "Sexo", "Teléfono", "Correo Electrónico"};
@@ -115,15 +123,7 @@ public class GestionPacienteController {
             int rowIdx = 1;
             for (com.sigeclin.filiacion.model.Paciente p : pacientes) {
                 org.apache.poi.ss.usermodel.Row row = sheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(p.getNumeroHistoriaClinica() != null ? p.getNumeroHistoriaClinica() : "S/H");
-                row.createCell(1).setCellValue(p.getNumeroDocumento() != null ? p.getNumeroDocumento() : "---");
-                row.createCell(2).setCellValue(p.getApellidoPaterno() != null ? p.getApellidoPaterno() : "");
-                row.createCell(3).setCellValue(p.getApellidoMaterno() != null ? p.getApellidoMaterno() : "");
-                row.createCell(4).setCellValue(p.getNombres() != null ? p.getNombres() : "");
-                row.createCell(5).setCellValue(p.getEdadCompleta() != null ? p.getEdadCompleta() : "---");
-                row.createCell(6).setCellValue(p.getSexo() != null ? p.getSexo() : "");
-                row.createCell(7).setCellValue(p.getTelefonoPrincipal() != null ? p.getTelefonoPrincipal() : "");
-                row.createCell(8).setCellValue(p.getCorreoElectronico() != null ? p.getCorreoElectronico() : "");
+                escribirFilaPaciente(row, p);
             }
 
             // Auto-size columns
@@ -137,98 +137,10 @@ public class GestionPacienteController {
 
     @GetMapping("/api/historial/{id}")
     @ResponseBody
-    public ResponseEntity<?> obtenerHistorial(@PathVariable Integer id, org.springframework.security.core.Authentication authentication) {
-        List<Consulta> historial = consultaService.obtenerHistorialPaciente(id);
-        
-        String rolFiltro = null;
-        if (authentication != null && authentication.getAuthorities() != null) {
-            String roleStr = authentication.getAuthorities().stream()
-                    .map(a -> a.getAuthority().replace("ROLE_", ""))
-                    .findFirst().orElse("ADMIN");
-            
-            if (!roleStr.equals("ADMIN")) {
-                rolFiltro = roleStr;
-                if (rolFiltro.equals("MEDICO_GENERAL")) rolFiltro = "MEDICINA GENERAL";
-                if (rolFiltro.equals("ENFERMERIA")) rolFiltro = "ENFERMERÍA";
-                if (rolFiltro.equals("ODONTOLOGIA")) rolFiltro = "ODONTOLOGÍA";
-                if (rolFiltro.equals("PSICOLOGIA")) rolFiltro = "PSICOLOGÍA";
-                if (rolFiltro.equals("NUTRICION")) rolFiltro = "NUTRICIÓN";
-            }
-        }
+    public ResponseEntity<List<Map<String, Object>>> obtenerHistorial(@PathVariable Integer id, org.springframework.security.core.Authentication authentication) {
+        String rolFiltro = resolverFiltroRol(authentication);
 
-        final String finalRolFiltro = rolFiltro;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
-        
-        List<Map<String, Object>> response = historial.stream()
-            .filter(c -> {
-                if (finalRolFiltro == null) return true;
-                String servicio = c.getTriaje() != null && c.getTriaje().getServicioDestino() != null 
-                        ? c.getTriaje().getServicioDestino() 
-                        : "MÉDICO GENERAL";
-                return servicio.equalsIgnoreCase(finalRolFiltro);
-            })
-            .limit(7).map(c -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("fecha", c.getFechaHoraInicio() != null ? c.getFechaHoraInicio().format(formatter) : "S/F");
-            
-            String servicio = c.getTriaje() != null && c.getTriaje().getServicioDestino() != null ? c.getTriaje().getServicioDestino() : "MÉDICO GENERAL";
-            map.put("servicio", servicio);
-            
-            String medico = c.getMedico() != null ? c.getMedico().getNombres() + " " + c.getMedico().getApellidoPaterno() : "Asignado";
-            map.put("medico", "Dr(a). " + medico);
-            
-            map.put("motivo", c.getMotivoConsulta() != null ? c.getMotivoConsulta() : "Sin descripción");
-            map.put("anamnesis", c.getAnamnesis() != null ? c.getAnamnesis() : "---");
-            map.put("examen", c.getExamenFisico() != null ? c.getExamenFisico() : "---");
-            map.put("plan", c.getPlanTratamiento() != null ? c.getPlanTratamiento() : "---");
-            map.put("idAtencion", c.getIdConsulta());
-            map.put("proximoControl", c.getProximoControl() != null ? c.getProximoControl().toString() : "---");
-            
-            // Medicamentos
-            List<String> medicamentos = new java.util.ArrayList<>();
-            if (c.getRecetas() != null) {
-                c.getRecetas().forEach(r -> {
-                    if (r.getDetalles() != null) {
-                        r.getDetalles().forEach(d -> {
-                            if (d.getMedicamento() != null) {
-                                medicamentos.add(d.getMedicamento().getNombreGenerico());
-                            }
-                        });
-                    }
-                });
-            }
-            map.put("medicamentos", medicamentos);
-            
-            // Certificado flag: si tiene plan de tratamiento o se genera uno
-            map.put("tieneCertificado", c.getPlanTratamiento() != null && !c.getPlanTratamiento().trim().isEmpty());
-            map.put("estadoSalida", c.getEstado());
-            
-            // Datos precisos: Diagnóstico
-            String dx = "POR DEFINIR";
-            if (c.getDiagnosticos() != null && !c.getDiagnosticos().isEmpty()) {
-                dx = c.getDiagnosticos().stream()
-                        .map(d -> d.getCie10().getCodigo() + " - " + d.getCie10().getDescripcion())
-                        .collect(Collectors.joining("; "));
-            }
-            map.put("diagnostico", dx);
-            
-            // Datos precisos: Signos Vitales
-            if (c.getTriaje() != null) {
-                map.put("pa", (c.getTriaje().getPresionArterialSistolica() != null ? c.getTriaje().getPresionArterialSistolica() : "--") + "/" + 
-                              (c.getTriaje().getPresionArterialDiastolica() != null ? c.getTriaje().getPresionArterialDiastolica() : "--"));
-                map.put("temp", c.getTriaje().getTemperatura() != null ? c.getTriaje().getTemperatura().toString() : "--");
-                map.put("fc", c.getTriaje().getFrecuenciaCardiaca() != null ? c.getTriaje().getFrecuenciaCardiaca().toString() : "--");
-                map.put("sat", c.getTriaje().getSaturacionOxigeno() != null ? c.getTriaje().getSaturacionOxigeno().toString() : "--");
-            } else {
-                map.put("pa", "--/--");
-                map.put("temp", "--");
-                map.put("fc", "--");
-                map.put("sat", "--");
-            }
-            
-            return map;
-        }).collect(Collectors.toList());
-        
+        List<Map<String, Object>> response = consultaService.obtenerHistorialPacienteDto(id, rolFiltro);
         return ResponseEntity.ok(response);
     }
 }

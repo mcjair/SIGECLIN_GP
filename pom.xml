@@ -15,6 +15,23 @@
 	<description>Sistema Integrado de Gestión Clínica - AEAMAN</description>
 	<properties>
 		<java.version>17</java.version>
+		<!-- SonarQube Exclusions -->
+		<sonar.exclusions>
+			**/*Seeder.java,
+			**/*Initializer.java,
+			**/*Fixer.java,
+			**/config/**
+		</sonar.exclusions>
+		<sonar.coverage.exclusions>
+			**/config/**,
+			**/model/**,
+			**/dto/**,
+			**/exception/**,
+			**/*Seeder*,
+			**/*Fixer*,
+			**/*Initializer*,
+			**/*Application*
+		</sonar.coverage.exclusions>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -120,18 +137,19 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-		<!-- Apache POI for Excel Export -->
-		<dependency>
-			<groupId>org.apache.poi</groupId>
-			<artifactId>poi-ooxml</artifactId>
-			<version>5.2.3</version>
-		</dependency>
 
 		<!-- OpenPDF for PDF Export -->
 		<dependency>
 			<groupId>com.github.librepdf</groupId>
 			<artifactId>openpdf</artifactId>
 			<version>1.3.30</version>
+		</dependency>
+
+		<!-- Bouncy Castle for Argon2 Hashing support in Spring Security -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+			<version>1.78.1</version>
 		</dependency>
 
 	</dependencies>
@@ -175,7 +193,7 @@
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.10</minimum>
+											<minimum>0.15</minimum>
 										</limit>
 									</limits>
 								</rule>

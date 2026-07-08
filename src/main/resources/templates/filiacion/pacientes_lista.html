@@ -89,21 +89,21 @@
                                 <div>
                                     <div class="d-flex align-items-center gap-3 mb-2.5 flex-wrap">
                                         <h4 class="fw-900 text-dark mb-0" id="detName" style="letter-spacing: -0.025em;">Nombre Paciente</h4>
-                                        <span class="badge bg-primary-soft text-primary rounded-pill fw-800 px-3 py-1.5" style="font-size: 0.75rem;">Particular</span>
+                                        <span class="badge rounded-pill fw-800 px-3 py-1.5" style="background-color: rgba(37, 99, 235, 0.08) !important; color: #2563eb !important; font-size: 0.75rem;">Particular</span>
                                     </div>
                                     <div class="d-flex flex-wrap gap-2.5">
                                         <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-light border border-light-subtle shadow-xs" style="font-size: 0.8rem;">
-                                            <i class="bi bi-card-text text-primary" style="opacity: 0.85;"></i> 
+                                            <i class="bi bi-card-text" style="color: #2563eb !important; opacity: 0.85;"></i> 
                                             <span class="text-muted fw-bold">DNI:</span>
                                             <span id="detDni" class="fw-800 text-dark">---</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-light border border-light-subtle shadow-xs" style="font-size: 0.8rem;">
-                                            <i class="bi bi-calendar-event text-primary" style="opacity: 0.85;"></i> 
+                                            <i class="bi bi-calendar-event" style="color: #2563eb !important; opacity: 0.85;"></i> 
                                             <span class="text-muted fw-bold">Edad:</span>
                                             <span id="detEdad" class="fw-800 text-dark">---</span>
                                         </div>
                                         <div class="d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-light border border-light-subtle shadow-xs" style="font-size: 0.8rem;">
-                                            <i class="bi bi-telephone text-primary" style="opacity: 0.85;"></i> 
+                                            <i class="bi bi-telephone" style="color: #2563eb !important; opacity: 0.85;"></i> 
                                             <span class="text-muted fw-bold">Celular:</span>
                                             <span id="detCelular" class="fw-800 text-dark">---</span>
                                         </div>
@@ -731,7 +731,44 @@
                 }
             </style>
         </div>
-    </main>
+        <style>
+        /* Premium style overrides for patient list - Fix disappearing active icon bug */
+        .patient-row.active {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(37, 99, 235, 0.01) 100%) !important;
+            border-color: rgba(37, 99, 235, 0.25) !important;
+            box-shadow: 0 12px 30px -5px rgba(37, 99, 235, 0.08) !important;
+        }
+        .patient-row.active .active-indicator-bar {
+            opacity: 1 !important;
+            background: linear-gradient(to bottom, #2563eb, #60a5fa) !important;
+        }
+        /* Solid visible medical blue gradient background on active, and text color forced to white */
+        .patient-row.active .avatar-circle {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35) !important;
+        }
+        .patient-row.active .avatar-circle i {
+            color: #ffffff !important;
+            font-size: 1.25rem !important;
+        }
+        .patient-row.active .patient-name {
+            color: #1e3a8a !important;
+        }
+        .patient-row.active .chevron-icon {
+            color: #2563eb !important;
+            transform: translateX(3px) !important;
+        }
+        /* Non-active list row avatar style - shift from teal to neutral slate-blue for better premium vibe */
+        .patient-row .avatar-circle {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%) !important;
+            box-shadow: 0 4px 10px rgba(71, 85, 105, 0.15) !important;
+        }
+        .patient-row .avatar-circle i {
+            color: #ffffff !important;
+        }
+    </style>
+</main>
     <div th:replace="~{layout :: footer}"></div>
 </body>
 </html>

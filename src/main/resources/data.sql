@@ -30,7 +30,7 @@ VALUES (1, '00000000', 'ADMINISTRADOR', 'SIGECLIN', 'SISTEMA', '1990-01-01', 'M'
 
 -- 5. Usuario Admin (Password: admin)
 INSERT INTO filiacion.usuario (id_usuario, username, password_hash, requiere_cambio_password)
-VALUES (1, 'admin', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false);
+VALUES (1, 'admin', '$2a$10$IyOrcQllIZvSP6OU7FWcLejKAm/n1dticcm0sFFtcmSgQJQzQ3rFG', false);
 
 -- 6. Roles
 INSERT INTO seguridad.rol (codigo, descripcion) VALUES 
@@ -54,14 +54,14 @@ INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, 
 (6, 1, '55555555', 'CARMEN', 'OBSTETRA', 'PERU', '1988-07-07', 'F'),
 (7, 1, '66666666', 'ANA', 'ENFERMERA', 'PERU', '1995-12-12', 'F');
 
--- 8. Usuarios (Password: admin para todos)
+-- 8. Usuarios (Password: admin para todos - con hashes de sal única)
 INSERT INTO filiacion.usuario (id_usuario, username, password_hash, requiere_cambio_password) VALUES
-(2, 'admision', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false),
-(3, 'caja', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false),
-(4, 'triaje', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false),
-(5, 'medico', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false),
-(6, 'obstetra', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false),
-(7, 'enfermera', '$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2', false);
+(2, 'admision', '$2a$10$.UCSYsMwPQw/SSI6bH3UYuWrheIXTv6FGVOGechrgyETWGsFDN22.', false),
+(3, 'caja', '$2a$10$hXDz7mRW9Co/q1aZSecMTxOPpVkacDXGuD6Ji3NA7nt5Ve/aIdmdYm', false),
+(4, 'triaje', '$2a$10$81UiC3iWTCZRW8gjez4ApePe/6IGD7kNQIhjhjL.dZg9xQe3d2fpO', false),
+(5, 'medico', '$2a$10$/mo7Yq.wqj6GDtUUPdy3HeT8C/gLAAHRXLpSzrQ3mjRD8R.jEvHSu', false),
+(6, 'obstetra', '$2a$10$bL4fBV2rTSKW4EkbSvwfyuuEFM0XSrdC3lAXjZOGHeGO.BSIILnIW', false),
+(7, 'enfermera', '$2a$10$Pzo1jXbHqJ4HP5E/ccNI1O7.Zpp.k86PrlMVMBXFypsvv8FUpeJee', false);
 
 -- 9. Asignar Roles
 INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES 

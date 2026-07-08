@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@org.springframework.context.annotation.Profile("!test")
 public class TipoPersonalFixer implements CommandLineRunner {
 
     private final JdbcTemplate jdbc;

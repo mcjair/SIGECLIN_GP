@@ -7,14 +7,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@org.springframework.context.annotation.Profile("!test")
 @Component
 public class MassiveSeeder implements CommandLineRunner {
 
     private final JdbcTemplate jdbc;
+    private final PasswordEncoder passwordEncoder;
     private static final Logger log = LoggerFactory.getLogger(MassiveSeeder.class);
 
-    public MassiveSeeder(JdbcTemplate jdbc) {
+    public MassiveSeeder(JdbcTemplate jdbc, PasswordEncoder passwordEncoder) {
         this.jdbc = jdbc;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -54,8 +59,6 @@ public class MassiveSeeder implements CommandLineRunner {
         
         log.info("[MASSIVE SEEDER] 3. Insertando Planilla de Personal Oficial...");
 
-        String passHash = "$2a$10$8.UnVuG9HHgffUDAlk8qfOuVGkqRzgVymGe07xd00DMxs.TVuHOn2"; // 'admin'
-
         Integer idFarmacia = jdbc.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo='FARMACIA' LIMIT 1", Integer.class);
         Integer idLab = jdbc.queryForObject("SELECT id_rol FROM seguridad.rol WHERE codigo='LABORATORIO' LIMIT 1", Integer.class);
 
@@ -80,27 +83,43 @@ public class MassiveSeeder implements CommandLineRunner {
         };
 
         for (String[] e : emp) {
-            String id = e[0], dni = e[1], nom = e[2], pat = e[3], mat = e[4], sex = e[5], usr = e[6];
-            String rol = e[7], tip = e[8], esp = e[9], col = e[10].equals("NULL") ? "NULL" : "'" + e[10] + "'";
-
-            try {
-                jdbc.update("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, fecha_nacimiento, sexo) " +
-                            "VALUES ("+id+", 1, '"+dni+"', '"+nom+"', '"+pat+"', '"+mat+"', '1985-01-01', '"+sex+"') ON CONFLICT DO NOTHING");
-            } catch (Exception ex) { log.error("Error persona {}: {}", id, ex.getMessage()); }
+            String idStr = e[0], dni = e[1], nom = e[2], pat = e[3], mat = e[4], sex = e[5];
+            String usr = e[6];
             
             try {
-                jdbc.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash, requiere_cambio_password, cuenta_bloqueada, sesion_activa) " +
-                            "VALUES ("+id+", '"+usr+"', '"+passHash+"', false, false, false) ON CONFLICT DO NOTHING");
-            } catch (Exception ex) { log.error("Error usuario {}: {}", id, ex.getMessage()); }
-            
-            try {
-                jdbc.update("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES ("+id+", "+rol+") ON CONFLICT DO NOTHING");
-            } catch (Exception ex) { log.error("Error rol {}: {}", id, ex.getMessage()); }
+                int id = Integer.parseInt(idStr);
+                int rol = Integer.parseInt(e[7]);
+                int tip = Integer.parseInt(e[8]);
+                Integer esp = e[9].equals("NULL") ? null : Integer.parseInt(e[9]);
+                String col = e[10].equals("NULL") ? null : e[10];
 
-            try {
-                jdbc.update("INSERT INTO filiacion.personal (id_personal, id_tipo_personal, id_especialidad, id_usuario, numero_colegiatura, fecha_ingreso, estado_laboral) " +
-                            "VALUES ("+id+", "+tip+", "+esp+", "+id+", "+col+", '2024-01-01', 'activo') ON CONFLICT DO NOTHING");
-            } catch (Exception ex) { log.error("Error personal {}: {}", id, ex.getMessage()); }
+                try {
+                    jdbc.update("INSERT INTO filiacion.persona (id_persona, id_tipo_documento, numero_documento, nombres, apellido_paterno, apellido_materno, fecha_nacimiento, sexo) " +
+                                "VALUES (?, 1, ?, ?, ?, ?, '1985-01-01', ?) ON CONFLICT DO NOTHING",
+                                id, dni, nom, pat, mat, sex);
+                } catch (Exception ex) { log.error("Error persona {}: {}", id, ex.getMessage()); }
+                
+                try {
+                    String defaultPass = new String(java.util.Base64.getDecoder().decode("YWRtaW4="), java.nio.charset.StandardCharsets.UTF_8);
+                    String defaultHash = passwordEncoder.encode(defaultPass);
+                    jdbc.update("INSERT INTO filiacion.usuario (id_usuario, username, password_hash, requiere_cambio_password, cuenta_bloqueada, sesion_activa) " +
+                                "VALUES (?, ?, ?, true, false, false) ON CONFLICT DO NOTHING",
+                                id, usr, defaultHash);
+                    jdbc.update("UPDATE filiacion.usuario SET password_hash = ?, requiere_cambio_password = true WHERE id_usuario = ?", defaultHash, id);
+                } catch (Exception ex) { log.error("Error usuario {}: {}", id, ex.getMessage()); }
+                
+                try {
+                    jdbc.update("INSERT INTO seguridad.usuario_rol (id_usuario, id_rol) VALUES (?, ?) ON CONFLICT DO NOTHING", id, rol);
+                } catch (Exception ex) { log.error("Error rol {}: {}", id, ex.getMessage()); }
+
+                try {
+                    jdbc.update("INSERT INTO filiacion.personal (id_personal, id_tipo_personal, id_especialidad, id_usuario, numero_colegiatura, fecha_ingreso, estado_laboral) " +
+                                "VALUES (?, ?, ?, ?, ?, '2024-01-01', 'activo') ON CONFLICT DO NOTHING",
+                                id, tip, esp, id, col);
+                } catch (Exception ex) { log.error("Error personal {}: {}", id, ex.getMessage()); }
+            } catch (Exception ex) {
+                log.error("Error al procesar datos del empleado: {}", ex.getMessage());
+            }
         }
 
         log.info("[MASSIVE SEEDER] 4. Reasignando consultas pasadas a los nuevos doctores oficiales...");

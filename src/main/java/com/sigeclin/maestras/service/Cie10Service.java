@@ -60,7 +60,6 @@ public class Cie10Service implements ICie10Service {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             br.readLine(); // Saltar cabecera
-
             while ((line = br.readLine()) != null) {
                 try {
                     if (line.trim().isEmpty()) continue;

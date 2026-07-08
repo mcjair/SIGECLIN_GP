@@ -13,6 +13,7 @@ import com.sigeclin.filiacion.service.IPacienteService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.sigeclin.clinico.repository.TriajeRepository;
 import com.sigeclin.clinico.repository.ConsultaRepository;
-import org.springframework.http.ResponseEntity;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
@@ -38,6 +37,7 @@ import java.util.stream.Collectors;
 @Controller
 @RequestMapping("/consulta")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('MEDICO_GENERAL','ENFERMERIA','OBSTETRICIA','ODONTOLOGIA','PSICOLOGIA','NUTRICION','ADMIN')") // A01
 public class ConsultaController {
 
     private final IConsultaService consultaService;
@@ -61,10 +61,98 @@ public class ConsultaController {
         return cie10Service.search(q, servicio);
     }
 
+    private Map<String, Object> construirMapMedico(com.sigeclin.clinico.model.Consulta c) {
+        Map<String, Object> medico = new HashMap<>();
+        if (c.getMedico() != null) {
+            medico.put("nombres", c.getMedico().getNombres());
+            medico.put("apellidoPaterno", c.getMedico().getApellidoPaterno());
+            medico.put("apellidoMaterno", c.getMedico().getApellidoMaterno());
+            medico.put("numeroColegiatura", c.getMedico().getNumeroColegiatura());
+        }
+        return medico;
+    }
+
+    private Map<String, Object> construirMapPaciente(com.sigeclin.clinico.model.Consulta c) {
+        Map<String, Object> paciente = new HashMap<>();
+        if (c.getPaciente() != null) {
+            paciente.put("nombres", c.getPaciente().getNombres());
+            paciente.put("apellidoPaterno", c.getPaciente().getApellidoPaterno());
+            paciente.put("apellidoMaterno", c.getPaciente().getApellidoMaterno());
+            paciente.put("numeroDocumento", c.getPaciente().getNumeroDocumento());
+            paciente.put("numeroHistoriaClinica", c.getPaciente().getNumeroHistoriaClinica());
+            paciente.put("sexo", c.getPaciente().getSexo());
+            if (c.getPaciente().getFechaNacimiento() != null) {
+                java.time.Period p = java.time.Period.between(c.getPaciente().getFechaNacimiento(), java.time.LocalDate.now(java.time.ZoneId.systemDefault()));
+                paciente.put("edad", p.getYears() + " Años");
+            }
+        }
+        return paciente;
+    }
+
+    private Map<String, Object> construirMapTriaje(com.sigeclin.clinico.model.Consulta c) {
+        Map<String, Object> triaje = new HashMap<>();
+        if (c.getTriaje() != null) {
+            triaje.put("idTriaje", c.getTriaje().getIdTriaje());
+            triaje.put("presionArterialSistolica", c.getTriaje().getPresionArterialSistolica());
+            triaje.put("presionArterialDiastolica", c.getTriaje().getPresionArterialDiastolica());
+            triaje.put("temperatura", c.getTriaje().getTemperatura());
+            triaje.put("frecuenciaCardiaca", c.getTriaje().getFrecuenciaCardiaca());
+            triaje.put("saturacionOxigeno", c.getTriaje().getSaturacionOxigeno());
+            triaje.put("clasificacionUrgencia", c.getTriaje().getClasificacionUrgencia());
+        }
+        return triaje;
+    }
+
+    private List<Map<String, Object>> construirListaDiagnosticos(com.sigeclin.clinico.model.Consulta c) {
+        List<Map<String, Object>> diags = new ArrayList<>();
+        if (c.getDiagnosticos() != null) {
+            c.getDiagnosticos().forEach(d -> {
+                Map<String, Object> diag = new HashMap<>();
+                Map<String, Object> cie10 = new HashMap<>();
+                if (d.getCie10() != null) {
+                    cie10.put("codigo", d.getCie10().getCodigo());
+                    cie10.put("descripcion", d.getCie10().getDescripcion());
+                }
+                diag.put("cie10", cie10);
+                diags.add(diag);
+            });
+        }
+        return diags;
+    }
+
+    private List<Map<String, Object>> construirListaRecetas(com.sigeclin.clinico.model.Consulta c) {
+        List<Map<String, Object>> recetas = new ArrayList<>();
+        if (c.getRecetas() != null) {
+            c.getRecetas().forEach(r -> {
+                Map<String, Object> receta = new HashMap<>();
+                List<Map<String, Object>> detalles = new ArrayList<>();
+                if (r.getDetalles() != null) {
+                    r.getDetalles().forEach(det -> {
+                        Map<String, Object> detalle = new HashMap<>();
+                        detalle.put("dosis", det.getDosis());
+                        detalle.put("frecuencia", det.getFrecuencia());
+                        detalle.put("duracionDias", det.getDuracionDias());
+                        detalle.put("cantidad", det.getCantidadTotal());
+                        detalle.put("cantidadTotal", det.getCantidadTotal());
+                        Map<String, Object> med = new HashMap<>();
+                        if (det.getMedicamento() != null) {
+                            med.put("nombreGenerico", det.getMedicamento().getNombreGenerico());
+                        }
+                        detalle.put("medicamento", med);
+                        detalles.add(detalle);
+                    });
+                }
+                receta.put("detalles", detalles);
+                recetas.add(receta);
+            });
+        }
+        return recetas;
+    }
+
     @GetMapping("/api/detalle/{id}")
     @ResponseBody
     @Transactional(readOnly = true)
-    public ResponseEntity<?> obtenerDetalleConsulta(@PathVariable Integer id) {
+    public ResponseEntity<Object> obtenerDetalleConsulta(@PathVariable Integer id) {
         try {
             return consultaRepository.findById(id)
                     .map(c -> {
@@ -77,90 +165,17 @@ public class ConsultaController {
                         resp.put("examenFisico", c.getExamenFisico());
                         resp.put("planTratamiento", c.getPlanTratamiento());
 
-                        Map<String, Object> medico = new HashMap<>();
-                        if (c.getMedico() != null) {
-                            medico.put("nombres", c.getMedico().getNombres());
-                            medico.put("apellidoPaterno", c.getMedico().getApellidoPaterno());
-                            medico.put("apellidoMaterno", c.getMedico().getApellidoMaterno());
-                            medico.put("numeroColegiatura", c.getMedico().getNumeroColegiatura());
-                        }
-                        resp.put("medico", medico);
-                        
-                        Map<String, Object> paciente = new HashMap<>();
-                        if (c.getPaciente() != null) {
-                            paciente.put("nombres", c.getPaciente().getNombres());
-                            paciente.put("apellidoPaterno", c.getPaciente().getApellidoPaterno());
-                            paciente.put("apellidoMaterno", c.getPaciente().getApellidoMaterno());
-                            paciente.put("numeroDocumento", c.getPaciente().getNumeroDocumento());
-                            paciente.put("numeroHistoriaClinica", c.getPaciente().getNumeroHistoriaClinica());
-                            paciente.put("sexo", c.getPaciente().getSexo());
-                            if(c.getPaciente().getFechaNacimiento() != null) {
-                                java.time.Period p = java.time.Period.between(c.getPaciente().getFechaNacimiento(), java.time.LocalDate.now());
-                                resp.put("edad", p.getYears() + " Años");
-                                paciente.put("edad", p.getYears() + " Años");
-                            }
-                        }
-                        resp.put("paciente", paciente);
-                        
-                        Map<String, Object> triaje = new HashMap<>();
-                        if (c.getTriaje() != null) {
-                            triaje.put("idTriaje", c.getTriaje().getIdTriaje());
-                            triaje.put("presionArterialSistolica", c.getTriaje().getPresionArterialSistolica());
-                            triaje.put("presionArterialDiastolica", c.getTriaje().getPresionArterialDiastolica());
-                            triaje.put("temperatura", c.getTriaje().getTemperatura());
-                            triaje.put("frecuenciaCardiaca", c.getTriaje().getFrecuenciaCardiaca());
-                            triaje.put("saturacionOxigeno", c.getTriaje().getSaturacionOxigeno());
-                            triaje.put("clasificacionUrgencia", c.getTriaje().getClasificacionUrgencia());
-                        }
-                        resp.put("triaje", triaje);
+                        resp.put("medico", construirMapMedico(c));
+                        resp.put("paciente", construirMapPaciente(c));
+                        resp.put("triaje", construirMapTriaje(c));
+                        resp.put("diagnosticos", construirListaDiagnosticos(c));
+                        resp.put("recetas", construirListaRecetas(c));
 
-                        List<Map<String, Object>> diags = new ArrayList<>();
-                        if (c.getDiagnosticos() != null) {
-                            c.getDiagnosticos().forEach(d -> {
-                                Map<String, Object> diag = new HashMap<>();
-                                Map<String, Object> cie10 = new HashMap<>();
-                                if (d.getCie10() != null) {
-                                    cie10.put("codigo", d.getCie10().getCodigo());
-                                    cie10.put("descripcion", d.getCie10().getDescripcion());
-                                }
-                                diag.put("cie10", cie10);
-                                diags.add(diag);
-                            });
-                        }
-                        resp.put("diagnosticos", diags);
-
-                        List<Map<String, Object>> recetas = new ArrayList<>();
-                        if (c.getRecetas() != null) {
-                            c.getRecetas().forEach(r -> {
-                                Map<String, Object> receta = new HashMap<>();
-                                List<Map<String, Object>> detalles = new ArrayList<>();
-                                if (r.getDetalles() != null) {
-                                    r.getDetalles().forEach(det -> {
-                                        Map<String, Object> detalle = new HashMap<>();
-                                        detalle.put("dosis", det.getDosis());
-                                        detalle.put("frecuencia", det.getFrecuencia());
-                                        detalle.put("duracionDias", det.getDuracionDias());
-                                        detalle.put("cantidad", det.getCantidadTotal());
-                                        detalle.put("cantidadTotal", det.getCantidadTotal());
-                                        Map<String, Object> med = new HashMap<>();
-                                        if (det.getMedicamento() != null) {
-                                            med.put("nombreGenerico", det.getMedicamento().getNombreGenerico());
-                                        }
-                                        detalle.put("medicamento", med);
-                                        detalles.add(detalle);
-                                    });
-                                }
-                                receta.put("detalles", detalles);
-                                recetas.add(receta);
-                            });
-                        }
-                        resp.put("recetas", recetas);
-
-                        return ResponseEntity.ok(resp);
+                        return ResponseEntity.ok((Object) resp);
                     })
-                    .orElse(ResponseEntity.notFound().build());
+                    .orElseGet(() -> ResponseEntity.status(org.springframework.http.HttpStatus.NOT_FOUND).build());
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
     }
 
@@ -195,6 +210,39 @@ public class ConsultaController {
         }
     }
 
+    private void prepararAtributosMedico(com.sigeclin.filiacion.model.Personal medicoLogueado, Model model) {
+        String medNombreCompleto = "Médico Tratante";
+        String medCmp = "S/N";
+        if (medicoLogueado != null) {
+            StringBuilder sb = new StringBuilder("Dr(a). ").append(medicoLogueado.getNombres()).append(" ").append(medicoLogueado.getApellidoPaterno());
+            if (medicoLogueado.getApellidoMaterno() != null) {
+                sb.append(" ").append(medicoLogueado.getApellidoMaterno());
+            }
+            medNombreCompleto = sb.toString();
+            if (medicoLogueado.getNumeroColegiatura() != null && !medicoLogueado.getNumeroColegiatura().isEmpty()) {
+                medCmp = medicoLogueado.getNumeroColegiatura();
+            }
+        }
+        model.addAttribute("medicoNombre", medNombreCompleto);
+        model.addAttribute("medicoCmp", medCmp);
+    }
+
+    private void prepararAtributosJson(com.sigeclin.filiacion.model.Paciente paciente, Triaje triaje, 
+                                        List<Consulta> historial, com.sigeclin.filiacion.model.Personal medicoLogueado, Model model) {
+        try {
+            model.addAttribute("historialJson", objectMapper.writeValueAsString(historial != null ? historial : new ArrayList<>()));
+            model.addAttribute("pacienteJson", objectMapper.writeValueAsString(paciente));
+            model.addAttribute("triajeJson", objectMapper.writeValueAsString(triaje));
+            model.addAttribute("medicoJson", objectMapper.writeValueAsString(medicoLogueado));
+        } catch (Exception e) {
+            log.error("Error serializando datos: {}", e.getMessage());
+            model.addAttribute("historialJson", "[]");
+            model.addAttribute("pacienteJson", "{}");
+            model.addAttribute("triajeJson", "{}");
+            model.addAttribute("medicoJson", "null");
+        }
+    }
+
     @Transactional(readOnly = true)
     @GetMapping("/atender/{idTriaje}")
     public String atenderPaciente(@PathVariable Integer idTriaje, Model model) {
@@ -224,36 +272,8 @@ public class ConsultaController {
                 com.sigeclin.filiacion.model.Personal medicoLogueado = personalRepository.findByUsuarioUsername(username).orElse(null);
                 model.addAttribute("medicoLogueado", medicoLogueado);
 
-                String medNombreCompleto = "Médico Tratante";
-                String medCmp = "S/N";
-                if (medicoLogueado != null) {
-                    medNombreCompleto = "Dr(a). " + medicoLogueado.getNombres() + " "
-                            + medicoLogueado.getApellidoPaterno();
-                    if (medicoLogueado.getApellidoMaterno() != null) {
-                        medNombreCompleto += " " + medicoLogueado.getApellidoMaterno();
-                    }
-                    if (medicoLogueado.getNumeroColegiatura() != null
-                            && !medicoLogueado.getNumeroColegiatura().isEmpty()) {
-                        medCmp = medicoLogueado.getNumeroColegiatura();
-                    }
-                }
-                model.addAttribute("medicoNombre", medNombreCompleto);
-                model.addAttribute("medicoCmp", medCmp);
-
-                try {
-                    // Serialización segura para JS
-                    model.addAttribute("historialJson",
-                            objectMapper.writeValueAsString(historial != null ? historial : new ArrayList<>()));
-                    model.addAttribute("pacienteJson", objectMapper.writeValueAsString(paciente));
-                    model.addAttribute("triajeJson", objectMapper.writeValueAsString(triaje));
-                    model.addAttribute("medicoJson", objectMapper.writeValueAsString(medicoLogueado));
-                } catch (Exception e) {
-                    log.error("Error serializando datos: {}", e.getMessage());
-                    model.addAttribute("historialJson", "[]");
-                    model.addAttribute("pacienteJson", "{}");
-                    model.addAttribute("triajeJson", "{}");
-                    model.addAttribute("medicoJson", "null");
-                }
+                prepararAtributosMedico(medicoLogueado, model);
+                prepararAtributosJson(paciente, triaje, historial, medicoLogueado, model);
             }
 
             model.addAttribute("triaje", triaje);
@@ -267,7 +287,7 @@ public class ConsultaController {
     private String calcularEdad(LocalDate fechaNac) {
         if (fechaNac == null)
             return "0 Años, 0 Meses, 0 Días";
-        Period p = Period.between(fechaNac, LocalDate.now());
+        Period p = Period.between(fechaNac, LocalDate.now(java.time.ZoneId.systemDefault()));
         return p.getYears() + " Años, " + p.getMonths() + " Meses, " + p.getDays() + " Días";
     }
 

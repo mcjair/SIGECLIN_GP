@@ -1,12 +1,17 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Build stage
+FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
-COPY pom.xml ./
+COPY pom.xml .
 COPY src ./src
-RUN apk add --no-cache maven && mvn clean package -DskipTests -q
+RUN mvn clean package -DskipTests
 
+# Run stage
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-RUN mkdir -p /app/ciex
-COPY --from=build /app/target/aeaman-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/aeaman-*.jar app.jar
 EXPOSE 3001
-ENTRYPOINT ["java", "-jar", "app.jar", "--sigeclin.cie10.dir-path=/app/ciex"]
+ENV DB_URL=jdbc:postgresql://postgres:5432/sigeclin?sslmode=prefer
+ENV DB_USERNAME=admin
+ENV DB_PASSWORD=admin
+ENV APP_CRYPTO_KEY=SigeclinSecureKeyDefault32BytesLong
+ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -1,9 +1,8 @@
 package com.sigeclin.clinico.controller;
 
-import com.sigeclin.clinico.model.Triaje;
 import com.sigeclin.clinico.service.ITriajeService;
+import com.sigeclin.clinico.service.IAuditoriaService;
 import com.sigeclin.filiacion.model.Paciente;
-import com.sigeclin.filiacion.model.Usuario;
 import com.sigeclin.filiacion.repository.UsuarioRepository;
 import com.sigeclin.filiacion.service.IPacienteService;
 import org.junit.jupiter.api.Test;
@@ -15,9 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -29,6 +26,9 @@ class TriajeControllerTest {
 
     @MockBean
     private ITriajeService triajeService;
+
+    @MockBean
+    private IAuditoriaService auditoriaService;
 
     @MockBean
     private IPacienteService pacienteService;

@@ -22,6 +22,9 @@ public class Cie10Seeder implements CommandLineRunner {
 
     private final Cie10Repository cie10Repository;
 
+    @org.springframework.beans.factory.annotation.Value("${sigeclin.cie10.dir-path}")
+    private String dirPath;
+
     @Override
     public void run(String... args) throws Exception {
         if (cie10Repository.count() > 0) {
@@ -29,13 +32,29 @@ public class Cie10Seeder implements CommandLineRunner {
             return;
         }
 
-        String csvPath = "D:/UTP/SISTEMAS/AEAMAN/ciex/diagnosticos_cie10.csv";
+        java.io.File folder = new java.io.File(dirPath);
+        if (!folder.exists() || !folder.isDirectory()) {
+            log.warn("Directorio CIE-10 del seeder no encontrado en: {}. Usando fallback 'ciex'...", dirPath);
+            folder = new java.io.File("ciex");
+            if (!folder.exists() || !folder.isDirectory()) {
+                log.error("CRITICAL: Carpeta de base de datos CIE-10 no encontrada");
+                return;
+            }
+        }
+
+        java.io.File file = new java.io.File(folder, "diagnosticos_cie10.csv");
+        if (!file.exists()) {
+            log.error("CRITICAL: Archivo diagnosticos_cie10.csv no encontrado en {}", file.getAbsolutePath());
+            return;
+        }
+
+        String csvPath = file.getAbsolutePath();
         log.info("SIGECLIN: Cargando catálogo CIE-10 CURADO (~340 códigos) desde {}...", csvPath);
 
         List<Cie10> batch = new ArrayList<>();
         int count = 0;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(csvPath, StandardCharsets.UTF_8))) {
+        try (BufferedReader br = new BufferedReader(new java.io.FileReader(file, StandardCharsets.UTF_8))) {
             String line;
             String header = br.readLine(); // Skip header
 

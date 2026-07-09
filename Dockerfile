@@ -9,6 +9,7 @@ RUN mvn clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/aeaman-*.jar app.jar
+COPY ciex ./ciex
 EXPOSE 3001
 ENV DB_URL=jdbc:postgresql://postgres:5432/sigeclin?sslmode=prefer
 ENV DB_USERNAME=admin

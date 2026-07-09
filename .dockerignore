@@ -11,6 +11,5 @@ Dockerfile
 .vscode/
 *.iml
 logs/
-ciex/
 *.md
 LICENSE

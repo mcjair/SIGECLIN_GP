@@ -23,7 +23,7 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/caja")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN')") // A01: Solo el rol ADMIN gestiona caja
+@PreAuthorize("hasAnyRole('CAJA', 'ADMIN')") // A01: Solo los roles ADMIN y CAJA gestionan caja
 public class CajaController {
 
     private final IPacienteService pacienteService;

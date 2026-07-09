@@ -24,7 +24,7 @@ import java.util.Optional;
 @RequestMapping("/triaje")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasAnyRole('ENFERMERIA', 'ADMIN')") // A01: Control de acceso por rol
+@PreAuthorize("hasAnyRole('TRIAJE', 'ENFERMERIA', 'ADMIN')") // A01: Control de acceso por rol
 public class TriajeController {
 
     private final ITriajeService triajeService;

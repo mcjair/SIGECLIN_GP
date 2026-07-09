@@ -36,7 +36,9 @@ public class MainController {
             if (!"ADMIN".equals(roleStr) && !"SUPERADMIN".equals(roleStr)) {
                 return switch (roleStr) {
                     case ROL_MEDICO_GENERAL -> "redirect:/consulta/modulo/medicina_general";
-                    case "ENFERMERIA" -> "redirect:/triaje/nuevo";
+                    case "ENFERMERIA", "TRIAJE" -> "redirect:/triaje/nuevo";
+                    case "ADMISION" -> "redirect:/admission/registro";
+                    case "CAJA" -> "redirect:/caja/pago";
                     case "ODONTOLOGIA" -> "redirect:/consulta/modulo/odontologia";
                     case "PSICOLOGIA" -> "redirect:/consulta/modulo/psicologia";
                     case "NUTRICION" -> "redirect:/consulta/modulo/nutricion";
